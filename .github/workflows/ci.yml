@@ -21,11 +21,12 @@ jobs:
         run: python tools/audit_qp_traceability.py packs/ae-con-q0602
       - name: Negative fixtures must fail their one targeted check
         run: |
-          ! python tools/pack_validate.py tests/fixtures/pack_121mb
-          ! python tools/pack_validate.py tests/fixtures/pack_missing_pc_task
-          ! python tools/audit_qp_traceability.py tests/fixtures/pack_missing_pc_task
-          ! python tools/audit_qp_traceability.py tests/fixtures/pack_wrong_qp_version
-          ! python tools/audit_qp_traceability.py tests/fixtures/pack_unknown_pc_ref
+          expect_fail() { if "$@"; then echo "ERROR: expected this to fail but it exited 0: $*"; exit 1; fi; }
+          expect_fail python tools/pack_validate.py tests/fixtures/pack_121mb
+          expect_fail python tools/pack_validate.py tests/fixtures/pack_missing_pc_task
+          expect_fail python tools/audit_qp_traceability.py tests/fixtures/pack_missing_pc_task
+          expect_fail python tools/audit_qp_traceability.py tests/fixtures/pack_wrong_qp_version
+          expect_fail python tools/audit_qp_traceability.py tests/fixtures/pack_unknown_pc_ref
       - name: Matcher self-check + golden-vector parity
         run: |
           python ml/mapping/test_matcher.py
@@ -34,4 +35,5 @@ jobs:
         run: python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl
       - name: Harness data must refuse field-validation mode
         run: |
-          ! python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl --mode field
+          expect_fail() { if "$@"; then echo "ERROR: expected this to fail but it exited 0: $*"; exit 1; fi; }
+          expect_fail python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl --mode field
