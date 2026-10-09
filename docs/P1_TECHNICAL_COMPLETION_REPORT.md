@@ -5,6 +5,15 @@ P1 100% technically complete and traceable to the pinned official QP.
 Nothing in this report is committed or pushed — see "Nothing committed"
 below and the `git status`/`git diff` at the end of this message.
 
+**P1.1 addendum (same day):** `DIRECT_TASK_EVIDENCE` was renamed to
+`TASK_EVIDENCE_PATHWAY` — a PC linked to a T1-T5 task is not proof it was
+demonstrated, only that it *can* be judged from that task's evidence. See
+`docs/evidence_status_model.md` for the corrected two-axis model
+(pack-design pathway vs. per-assessment assessor outcome) and the
+`mvp_applicability` flag now set on `CON/N0603.PC16`. This document's body
+below is otherwise the original P1 report, with stale enum names updated in
+place; counts and check results are unchanged.
+
 ## 1. Source hash — verified
 
 ```
@@ -39,7 +48,7 @@ From `packs/ae-con-q0602/coverage_matrix.json` (also available as `.csv`):
 
 | Status | Count | Meaning |
 |---|---:|---|
-| `DIRECT_TASK_EVIDENCE` | 71 | PC is in >=1 of T1-T5's `linked_pcs`; scored 0-3 against `rubric.json` anchors from captured evidence |
+| `TASK_EVIDENCE_PATHWAY` | 71 | PC is in >=1 of T1-T5's `linked_pcs` — an assessor *may* score it 0-3 against `rubric.json` anchors *if* the submitted evidence actually shows it. Not proof it was demonstrated; see `docs/evidence_status_model.md` for the separate per-assessment DEMONSTRATED/NOT_OBSERVABLE/NOT_APPLICABLE_IN_MVP outcome axis (P2 scope) |
 | `DECLARATION_OR_ASSESSOR_NOTE` | 48 | PC belongs to N8001/N8002/N0101; self-declaration + up to 3 assessor questions only, no task capture, no 0-3 score |
 | `NOT_ASSESSED_IN_MVP` | 0 | Must be zero for this pack — `tools/audit_qp_traceability.py`'s `[coverage]` check fails the build otherwise |
 

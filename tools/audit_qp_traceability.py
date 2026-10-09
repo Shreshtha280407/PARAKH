@@ -163,12 +163,22 @@ def check_cross_references(qp: dict, pack_dir: Path):
     return False, f"[refs]   unknown PC reference(s): {', '.join(bad)} ✗"
 
 
+# PCs pinned to NOT_APPLICABLE_IN_MVP regardless of task linkage -- structurally
+# impossible to demonstrate in this MVP (no equipment / no safe capture path),
+# not an assessor judgement call. See docs/evidence_status_model.md.
+NOT_APPLICABLE_PCS = {"CON/N0603.PC16"}
+
+
 def check_coverage_matrix(qp: dict, tasks: dict, pack_dir: Path):
-    """Every practical-NOS PC must be DIRECT_TASK_EVIDENCE; every
-    declaration-only-NOS PC must be DECLARATION_OR_ASSESSOR_NOTE;
-    NOT_ASSESSED_IN_MVP must not occur anywhere in the pinned pack. Also
-    recomputes the expected status per PC from qp.json/tasks.json and fails
-    if coverage_matrix.json has drifted out of sync (stale regeneration)."""
+    """Every practical-NOS PC must be on the TASK_EVIDENCE_PATHWAY (a pack-design
+    fact: a task exists that is SUPPOSED to evidence it -- NOT proof that it was
+    actually demonstrated in any given assessment, see
+    docs/evidence_status_model.md); every declaration-only-NOS PC must be
+    DECLARATION_OR_ASSESSOR_NOTE; NOT_ASSESSED_IN_MVP must not occur anywhere
+    in the pinned pack. Also recomputes the expected status per PC from
+    qp.json/tasks.json and fails if coverage_matrix.json has drifted out of
+    sync (stale regeneration), and checks that NOT_APPLICABLE_PCS carry
+    mvp_applicability=NOT_APPLICABLE_IN_MVP (and no other PC does)."""
     matrix_path = pack_dir / "coverage_matrix.json"
     if not matrix_path.exists():
         return False, "[coverage] coverage_matrix.json missing ✗"
@@ -182,7 +192,7 @@ def check_coverage_matrix(qp: dict, tasks: dict, pack_dir: Path):
     for nos, pc in all_pcs(qp):
         full_id = f"{nos['code']}.{pc['id']}"
         if full_id in task_linked_pcs:
-            expected[full_id] = "DIRECT_TASK_EVIDENCE"
+            expected[full_id] = "TASK_EVIDENCE_PATHWAY"
         elif not nos["practical"]:
             expected[full_id] = "DECLARATION_OR_ASSESSOR_NOTE"
         else:
@@ -196,6 +206,10 @@ def check_coverage_matrix(qp: dict, tasks: dict, pack_dir: Path):
         want = expected.get(pc_id, "UNKNOWN_PC")
         if row["status"] != want:
             bad_status.append(f"{pc_id}: matrix says {row['status']}, expected {want}")
+        want_applicability = "NOT_APPLICABLE_IN_MVP" if pc_id in NOT_APPLICABLE_PCS else "ASSESSABLE"
+        got_applicability = row.get("mvp_applicability")
+        if got_applicability != want_applicability:
+            bad_status.append(f"{pc_id}: mvp_applicability={got_applicability!r}, expected {want_applicability!r}")
 
     missing_rows = set(expected) - seen
     for pc_id in missing_rows:
@@ -208,8 +222,9 @@ def check_coverage_matrix(qp: dict, tasks: dict, pack_dir: Path):
     if not bad_status:
         counts = matrix.get("counts", {})
         return True, (f"[coverage] coverage_matrix.json matches qp.json/tasks.json, "
-                       f"0 PCs NOT_ASSESSED_IN_MVP ✓ "
-                       f"(DIRECT_TASK_EVIDENCE={counts.get('DIRECT_TASK_EVIDENCE', 0)}, "
+                       f"0 PCs NOT_ASSESSED_IN_MVP, mvp_applicability correct for "
+                       f"{len(NOT_APPLICABLE_PCS)} NOT_APPLICABLE_IN_MVP PC(s) ✓ "
+                       f"(TASK_EVIDENCE_PATHWAY={counts.get('TASK_EVIDENCE_PATHWAY', 0)}, "
                        f"DECLARATION_OR_ASSESSOR_NOTE={counts.get('DECLARATION_OR_ASSESSOR_NOTE', 0)})")
     return False, "[coverage] " + "; ".join(bad_status) + " ✗"
 
