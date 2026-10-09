@@ -2,16 +2,32 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
+      - nipun
+      - "codex/**"
   pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  pack-validate:
+  p1-pack-validate:
+    name: P1 pack validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Diagnostic context
+        run: |
+          echo "event=$GITHUB_EVENT_NAME"
+          echo "ref=$GITHUB_REF"
+          echo "sha=$GITHUB_SHA"
       - name: Verify pinned QP PDF hash
         run: |
           echo "27ef7dc3dfdcaad536bee7c1ebd73fcf7cb381e570f009cbb1b39f1060e514ad  packs/ae-con-q0602/qp_v4.0.pdf" | sha256sum -c -
@@ -27,13 +43,31 @@ jobs:
           expect_fail python tools/audit_qp_traceability.py tests/fixtures/pack_missing_pc_task
           expect_fail python tools/audit_qp_traceability.py tests/fixtures/pack_wrong_qp_version
           expect_fail python tools/audit_qp_traceability.py tests/fixtures/pack_unknown_pc_ref
-      - name: Matcher self-check + golden-vector parity
+      - name: Matcher self-check and golden-vector parity
         run: |
           python ml/mapping/test_matcher.py
           python ml/mapping/test_golden_vectors.py
-      - name: Matcher eval, harness mode (P1 gate: must run without errors)
+      - name: Matcher eval in harness mode
         run: python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl
       - name: Harness data must refuse field-validation mode
         run: |
           expect_fail() { if "$@"; then echo "ERROR: expected this to fail but it exited 0: $*"; exit 1; fi; }
           expect_fail python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl --mode field
+
+  p2-backend-tests:
+    name: P2 backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Diagnostic context
+        run: |
+          echo "event=$GITHUB_EVENT_NAME"
+          echo "ref=$GITHUB_REF"
+          echo "sha=$GITHUB_SHA"
+      - name: Install backend test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r server/requirements.txt
+      - name: Run backend tests
+        run: python -m pytest server/tests
