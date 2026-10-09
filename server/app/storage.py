@@ -1,21 +1,38 @@
 """Private evidence storage interface (master plan p.7: "Private Docker
 volume behind a Storage interface ... swap to S3/MinIO later without code
-changes elsewhere"). Only the interface + a local-disk implementation exist
-in P2 -- no caller writes real evidence bytes through it yet (that's the
-upload-bytes path, explicitly out of P2 scope).
+changes elsewhere"). Mounted as a private volume in Docker (infra/docker-
+compose.yml) -- never exposed via a public/writable static file route.
+
+Keys are server-generated (see upload_key_for / evidence_key_for); client
+filenames are never used as paths, to rule out path traversal and
+collisions.
 """
 import hashlib
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+_READ_CHUNK = 1024 * 1024
+
 
 class Storage(ABC):
     @abstractmethod
     def write(self, key: str, data: bytes) -> str:
-        """Write data under key, return its sha256 hex digest."""
+        """Overwrite key with data, return its sha256 hex digest."""
+
+    @abstractmethod
+    def append(self, key: str, data: bytes) -> None:
+        """Append data to key, creating it if absent (resumable chunk upload)."""
 
     @abstractmethod
     def read(self, key: str) -> bytes: ...
+
+    @abstractmethod
+    def size(self, key: str) -> int: ...
+
+    @abstractmethod
+    def sha256(self, key: str) -> str:
+        """Stream the stored object through SHA-256 without loading it
+        entirely into memory."""
 
     @abstractmethod
     def exists(self, key: str) -> bool: ...
@@ -34,7 +51,8 @@ class LocalDiskStorage(Storage):
 
     def _path(self, key: str) -> Path:
         path = (self.root / key).resolve()
-        if self.root.resolve() not in path.parents and path != self.root.resolve():
+        root = self.root.resolve()
+        if root not in path.parents and path != root:
             raise ValueError(f"key escapes storage root: {key}")
         return path
 
@@ -44,8 +62,25 @@ class LocalDiskStorage(Storage):
         path.write_bytes(data)
         return hashlib.sha256(data).hexdigest()
 
+    def append(self, key: str, data: bytes) -> None:
+        path = self._path(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("ab") as f:
+            f.write(data)
+
     def read(self, key: str) -> bytes:
         return self._path(key).read_bytes()
+
+    def size(self, key: str) -> int:
+        path = self._path(key)
+        return path.stat().st_size if path.exists() else 0
+
+    def sha256(self, key: str) -> str:
+        h = hashlib.sha256()
+        with self._path(key).open("rb") as f:
+            for chunk in iter(lambda: f.read(_READ_CHUNK), b""):
+                h.update(chunk)
+        return h.hexdigest()
 
     def exists(self, key: str) -> bool:
         return self._path(key).exists()
@@ -56,5 +91,20 @@ class LocalDiskStorage(Storage):
             path.unlink()
 
 
-def key_for(assessment_id: int, task_code: str, evidence_id: int, extension: str) -> str:
-    return f"assessments/{assessment_id}/{task_code}/{evidence_id}{extension}"
+_EXTENSION_BY_MIME = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "video/mp4": ".mp4",
+    "video/webm": ".webm",
+}
+
+
+def extension_for_mime(mime: str) -> str:
+    return _EXTENSION_BY_MIME.get(mime, ".bin")
+
+
+def upload_key_for(assessment_id: int, task_code: str, session_id: int) -> str:
+    """In-progress (and, once completed, final) storage key for a resumable
+    upload session. Server-generated -- never a client-supplied filename."""
+    return f"assessments/{assessment_id}/{task_code}/uploads/{session_id}.part"

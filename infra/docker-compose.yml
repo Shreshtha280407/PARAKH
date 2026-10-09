@@ -1,19 +1,88 @@
+name: kaushalpramaan-mvp
+
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: parakh
-      POSTGRES_PASSWORD: parakh
-      POSTGRES_DB: parakh
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-parakh}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-parakh_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-parakh}
     volumes:
-      - parakh-db:/var/lib/postgresql/data
+      - dbdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U parakh"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-parakh}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 12
+
+  # One-shot: applies Alembic migrations, then exits. api/worker both wait
+  # for this to finish successfully before they start, so migrations never
+  # race against two containers trying to run them at once, and the API
+  # never comes up against a schema it doesn't match.
+  migrate:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    env_file:
+      - ../.env
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    env_file:
+      - ../.env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - evidence:/data/evidence
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  worker:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    env_file:
+      - ../.env
+    command: python -m app.worker
+    volumes:
+      - evidence:/data/evidence
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  dashboard:
+    build:
+      context: ../apps/dashboard
+      args:
+        VITE_API_BASE_URL: ${DASHBOARD_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:80"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
 volumes:
-  parakh-db:
+  dbdata: {}
+  evidence: {}

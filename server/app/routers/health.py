@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from ..config import settings
 from ..db import get_db
 from ..schemas import HealthOut
 
@@ -15,4 +16,14 @@ def health(db: Session = Depends(get_db)) -> HealthOut:
         db_status = "ok"
     except Exception:
         db_status = "unreachable"
-    return HealthOut(status="ok", database=db_status)
+
+    try:
+        settings.evidence_dir.mkdir(parents=True, exist_ok=True)
+        probe = settings.evidence_dir / ".health_probe"
+        probe.write_text("ok")
+        probe.unlink()
+        storage_status = "ok"
+    except OSError:
+        storage_status = "unreachable"
+
+    return HealthOut(status="ok", database=db_status, storage=storage_status)

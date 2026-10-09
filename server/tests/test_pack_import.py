@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from server.app import models
 from server.app.pack_import import import_pack, import_pack_cli
 
@@ -63,6 +65,27 @@ def test_not_applicable_pc_flag_survives_import(db_session, pack_dir):
         .one()
     )
     assert other_pc.mvp_applicability == "ASSESSABLE"
+
+
+def test_rubric_marks_survive_as_exact_decimal_not_truncated(db_session, pack_dir):
+    """rubric.json has real marks like 5.83 (70/11, N0602's equal split) --
+    these must round-trip exactly through the Numeric(8,2) column, not get
+    silently floored/truncated to an integer."""
+    pack = import_pack(db_session, pack_dir)
+    items = (
+        db_session.query(models.RubricItem)
+        .join(models.PerformanceCriterion)
+        .join(models.NOS)
+        .filter(models.NOS.pack_id == pack.id)
+        .all()
+    )
+    marks_seen = {item.marks for item in items}
+    assert Decimal("5.83") in marks_seen
+    assert Decimal("6.36") in marks_seen
+    assert Decimal("1.67") in marks_seen
+    # None of them silently became whole numbers:
+    assert all(isinstance(m, Decimal) for m in marks_seen)
+    assert not any(m == m.to_integral_value() for m in marks_seen if m in {Decimal("5.83"), Decimal("6.36"), Decimal("1.67"), Decimal("3.89")})
 
 
 def test_import_pack_cli_rejects_a_pack_that_fails_p1_validators(db_session, tmp_path, pack_dir):

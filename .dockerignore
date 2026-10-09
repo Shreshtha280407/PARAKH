@@ -1,0 +1,15 @@
+.git
+server/.venv
+server/data
+server/__pycache__
+server/app/__pycache__
+server/app/routers/__pycache__
+server/tests/__pycache__
+server/alembic/__pycache__
+server/alembic/versions/__pycache__
+**/__pycache__
+**/*.pyc
+.pytest_cache
+apps/dashboard/node_modules
+apps/dashboard/dist
+tests/fixtures

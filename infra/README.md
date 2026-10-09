@@ -1,16 +1,99 @@
 # infra/
 
-`docker-compose.yml` for local development/demo infrastructure. Eventually
-the full demo laptop setup (api + worker + db + dashboard, local Wi-Fi
-router/hotspot, no internet) — for now, P2 only needs `db` (PostgreSQL 16).
+`docker-compose.yml` runs the full demo stack: PostgreSQL, the API, the
+durable worker, and the React assessor dashboard — all from one command.
+
+## Prerequisites
+
+- Docker + Docker Compose v2
+- A `.env` at the repo root: `cp .env.example .env` (fill in real values —
+  see `.env.example` for what each one does; `JWT_SECRET` and
+  `DEV_ASSESSOR_PASSWORD` in particular should not be left at placeholder
+  values outside a throwaway local demo)
+
+## Clean start (fresh clone → healthy stack)
 
 ```
-docker compose -f infra/docker-compose.yml up -d
+cp .env.example .env            # edit if you want real values instead of placeholders
+docker compose -f infra/docker-compose.yml up -d --build
+docker compose -f infra/docker-compose.yml exec api python -m app.seed
 ```
 
-Then point the API at it: `PARAKH_DATABASE_URL=postgresql+psycopg://parakh:parakh@localhost:5432/parakh`
-(this is already the default in `server/app/config.py`).
+`up --build` builds all 4 images (db is pulled, not built), runs
+`migrate` (Alembic, one-shot, `api`/`worker` wait for it to exit 0 before
+they start), then brings up `api`, `worker`, `dashboard`. On a normal
+machine with Docker already installed and a working internet connection
+for the initial image/package pulls, this completes in a few minutes —
+comfortably under the 10-minute budget.
 
-The `api`, `worker`, and `dashboard` services are added once those apps
-exist (P2 backend is run directly via `uvicorn` in dev for now; the
-dashboard is P6).
+Check it's healthy:
+
+```
+docker compose -f infra/docker-compose.yml ps        # api, db, dashboard should show "healthy"
+curl http://localhost:8000/health                     # {"status":"ok","database":"ok","storage":"ok"}
+open http://localhost:5173                            # or curl -I it; log in with the seeded assessor
+```
+
+Seeded assessor login: the email/password you put in `.env`'s
+`DEV_ASSESSOR_EMAIL` / `DEV_ASSESSOR_PASSWORD` (seeding skips setting a
+password, and that account simply can't log in, if you leave
+`DEV_ASSESSOR_PASSWORD` unset).
+
+## Shutdown
+
+```
+docker compose -f infra/docker-compose.yml down
+```
+
+Containers and the network are removed; the `dbdata` and `evidence` named
+volumes are kept (your seeded data survives a restart).
+
+## Full reset (wipe the database and evidence volume too)
+
+```
+docker compose -f infra/docker-compose.yml down -v
+```
+
+Then re-run the clean-start steps above.
+
+## Running the backend test suite
+
+`server/tests/` is not copied into the `api`/`worker` images (see
+`server/.dockerignore`) -- it's not part of the deployed app, and running it
+against this stack's `db` would be mixing test data with your seeded demo
+data. Run it locally instead, against its own ephemeral database
+(in-memory SQLite by default, or a real Postgres via `TEST_DATABASE_URL` --
+see `server/README.md`):
+
+```
+cd server && source .venv/bin/activate && python -m pytest tests
+```
+
+## A note on "offline"
+
+This Docker stack itself is not meant to be fetched or run without
+internet — `docker compose up --build` needs to pull `postgres:16-alpine`,
+`python:3.12-slim`, `node:22-alpine`, `nginx:alpine` and install pip/npm
+packages the first time, same as any other Docker Compose project. **Do
+not read "offline" as "this stack works with no internet connection ever."**
+
+What "offline" actually means in this product (master plan): the worker's
+**Android app** captures declarations and evidence while genuinely
+offline (airplane mode, no connectivity at the job site), queues it
+locally, and syncs to this server once the device reaches a network where
+the server is reachable — whether that's this local Docker stack on a
+laptop at a demo/training site, or a real deployed instance later. The
+server itself is always a normal networked service; it is the *worker's
+capture step* that is offline-first, not the backend's deployment.
+
+## Full command reference
+
+```
+docker compose -f infra/docker-compose.yml up -d --build   # build + start everything
+docker compose -f infra/docker-compose.yml ps               # service status / health
+docker compose -f infra/docker-compose.yml logs -f api       # tail one service's logs
+docker compose -f infra/docker-compose.yml exec api python -m app.seed   # seed demo data
+docker compose -f infra/docker-compose.yml exec api alembic upgrade head # re-run migrations manually
+docker compose -f infra/docker-compose.yml down              # stop, keep volumes
+docker compose -f infra/docker-compose.yml down -v           # stop, wipe volumes (full reset)
+```

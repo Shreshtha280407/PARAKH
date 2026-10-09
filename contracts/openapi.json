@@ -1,0 +1,1286 @@
+{
+  "components": {
+    "schemas": {
+      "AssessmentCreate": {
+        "properties": {
+          "pack_id": {
+            "title": "Pack Id",
+            "type": "integer"
+          },
+          "worker_id": {
+            "title": "Worker Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "worker_id",
+          "pack_id"
+        ],
+        "title": "AssessmentCreate",
+        "type": "object"
+      },
+      "AssessmentCreatedOut": {
+        "description": "Returned once, at creation -- carries the raw worker capability token.\nNever returned again by any other endpoint.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "pack_id": {
+            "title": "Pack Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentTaskOut"
+            },
+            "title": "Tasks",
+            "type": "array"
+          },
+          "worker_id": {
+            "title": "Worker Id",
+            "type": "integer"
+          },
+          "worker_token": {
+            "title": "Worker Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "worker_id",
+          "pack_id",
+          "status",
+          "worker_token",
+          "tasks"
+        ],
+        "title": "AssessmentCreatedOut",
+        "type": "object"
+      },
+      "AssessmentOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "pack_code": {
+            "title": "Pack Code",
+            "type": "string"
+          },
+          "pack_id": {
+            "title": "Pack Id",
+            "type": "integer"
+          },
+          "pack_name": {
+            "title": "Pack Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentTaskOut"
+            },
+            "title": "Tasks",
+            "type": "array"
+          },
+          "total_budget_bytes": {
+            "title": "Total Budget Bytes",
+            "type": "integer"
+          },
+          "total_bytes_used": {
+            "title": "Total Bytes Used",
+            "type": "integer"
+          },
+          "worker_id": {
+            "title": "Worker Id",
+            "type": "integer"
+          },
+          "worker_name": {
+            "title": "Worker Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "worker_id",
+          "worker_name",
+          "pack_id",
+          "pack_code",
+          "pack_name",
+          "status",
+          "total_bytes_used",
+          "total_budget_bytes",
+          "created_at",
+          "tasks"
+        ],
+        "title": "AssessmentOut",
+        "type": "object"
+      },
+      "AssessmentTaskOut": {
+        "properties": {
+          "budget_bytes": {
+            "title": "Budget Bytes",
+            "type": "integer"
+          },
+          "bytes_used": {
+            "title": "Bytes Used",
+            "type": "integer"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EvidenceReceiptOut"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_code": {
+            "title": "Task Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_code",
+          "budget_bytes",
+          "bytes_used",
+          "status"
+        ],
+        "title": "AssessmentTaskOut",
+        "type": "object"
+      },
+      "ChunkAck": {
+        "properties": {
+          "chunk_index": {
+            "title": "Chunk Index",
+            "type": "integer"
+          },
+          "next_chunk_index": {
+            "title": "Next Chunk Index",
+            "type": "integer"
+          },
+          "received_bytes": {
+            "title": "Received Bytes",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_index",
+          "received_bytes",
+          "next_chunk_index",
+          "status"
+        ],
+        "title": "ChunkAck",
+        "type": "object"
+      },
+      "EvidenceReceiptOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "declared_size_bytes": {
+            "title": "Declared Size Bytes",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "mime": {
+            "title": "Mime",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "mime",
+          "declared_size_bytes",
+          "sha256",
+          "created_at"
+        ],
+        "title": "EvidenceReceiptOut",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "database": {
+            "title": "Database",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "storage": {
+            "title": "Storage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "storage"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "MeOut": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "display_name",
+          "email"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "PackImportOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "nos_count": {
+            "title": "Nos Count",
+            "type": "integer"
+          },
+          "pack_version": {
+            "title": "Pack Version",
+            "type": "string"
+          },
+          "pc_count": {
+            "title": "Pc Count",
+            "type": "integer"
+          },
+          "qp_code": {
+            "title": "Qp Code",
+            "type": "string"
+          },
+          "qp_version": {
+            "title": "Qp Version",
+            "type": "string"
+          },
+          "task_count": {
+            "title": "Task Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "qp_code",
+          "qp_version",
+          "pack_version",
+          "nos_count",
+          "pc_count",
+          "task_count"
+        ],
+        "title": "PackImportOut",
+        "type": "object"
+      },
+      "PackImportRequest": {
+        "properties": {
+          "pack_dir": {
+            "default": "packs/ae-con-q0602",
+            "title": "Pack Dir",
+            "type": "string"
+          }
+        },
+        "title": "PackImportRequest",
+        "type": "object"
+      },
+      "QueueItemOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "pack_code": {
+            "title": "Pack Code",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "worker_id": {
+            "title": "Worker Id",
+            "type": "integer"
+          },
+          "worker_name": {
+            "title": "Worker Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "worker_id",
+          "worker_name",
+          "pack_code",
+          "status",
+          "created_at"
+        ],
+        "title": "QueueItemOut",
+        "type": "object"
+      },
+      "RubricItemOut": {
+        "properties": {
+          "anchors": {
+            "additionalProperties": true,
+            "title": "Anchors",
+            "type": "object"
+          },
+          "critical": {
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "evidence_hint": {
+            "title": "Evidence Hint",
+            "type": "string"
+          },
+          "marks": {
+            "title": "Marks",
+            "type": "string"
+          },
+          "pc_full_id": {
+            "title": "Pc Full Id",
+            "type": "string"
+          },
+          "rubric_version": {
+            "title": "Rubric Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pc_full_id",
+          "rubric_version",
+          "marks",
+          "critical",
+          "anchors",
+          "disclaimer",
+          "evidence_hint"
+        ],
+        "title": "RubricItemOut",
+        "type": "object"
+      },
+      "TokenOut": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in_minutes": {
+            "title": "Expires In Minutes",
+            "type": "integer"
+          },
+          "token_type": {
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in_minutes"
+        ],
+        "title": "TokenOut",
+        "type": "object"
+      },
+      "UploadCompleteRequest": {
+        "properties": {
+          "client_sha256": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Client Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_sha256"
+        ],
+        "title": "UploadCompleteRequest",
+        "type": "object"
+      },
+      "UploadReceipt": {
+        "properties": {
+          "byte_count": {
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "completed_at": {
+            "format": "date-time",
+            "title": "Completed At",
+            "type": "string"
+          },
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "mime": {
+            "title": "Mime",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "storage_status": {
+            "const": "stored",
+            "title": "Storage Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "evidence_id",
+          "sha256",
+          "byte_count",
+          "mime",
+          "kind",
+          "storage_status",
+          "completed_at"
+        ],
+        "title": "UploadReceipt",
+        "type": "object"
+      },
+      "UploadSessionCreate": {
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "claimed_size_bytes": {
+            "exclusiveMinimum": 0.0,
+            "title": "Claimed Size Bytes",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "photo",
+              "video"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "mime": {
+            "title": "Mime",
+            "type": "string"
+          },
+          "task_code": {
+            "title": "Task Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "task_code",
+          "kind",
+          "mime",
+          "claimed_size_bytes"
+        ],
+        "title": "UploadSessionCreate",
+        "type": "object"
+      },
+      "UploadSessionOut": {
+        "properties": {
+          "assessment_task_id": {
+            "title": "Assessment Task Id",
+            "type": "integer"
+          },
+          "claimed_size_bytes": {
+            "title": "Claimed Size Bytes",
+            "type": "integer"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "mime": {
+            "title": "Mime",
+            "type": "string"
+          },
+          "next_chunk_index": {
+            "title": "Next Chunk Index",
+            "type": "integer"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "received_bytes": {
+            "title": "Received Bytes",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_bytes_remaining": {
+            "title": "Task Bytes Remaining",
+            "type": "integer"
+          },
+          "total_bytes_remaining": {
+            "title": "Total Bytes Remaining",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "assessment_task_id",
+          "kind",
+          "mime",
+          "claimed_size_bytes",
+          "received_bytes",
+          "next_chunk_index",
+          "status",
+          "opened_at",
+          "expires_at",
+          "task_bytes_remaining",
+          "total_bytes_remaining"
+        ],
+        "title": "UploadSessionOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "KaushalPramaan API",
+    "version": "0.3.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/admin/packs/import": {
+      "post": {
+        "description": "Admin-only. Re-validates with tools/pack_validate.py and\ntools/audit_qp_traceability.py before importing -- see pack_import.py.",
+        "operationId": "import_pack_endpoint_admin_packs_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Pack Endpoint",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/assessments": {
+      "post": {
+        "description": "Open to any caller (the worker app has no login) -- the response\ncarries a fresh, unguessable capability token that every subsequent\nworker-side call on this assessment must present. See\ndocs/worker_capability_tokens.md.",
+        "operationId": "create_assessment_assessments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentCreatedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Assessment",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
+    "/assessments/{assessment_id}": {
+      "get": {
+        "operationId": "get_assessment_assessments__assessment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Assessment",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
+    "/assessments/{assessment_id}/rubric": {
+      "get": {
+        "description": "Assessor/admin only -- the 0-3 anchors for this assessment's pack,\nfor the dashboard's assessment-review page.",
+        "operationId": "get_assessment_rubric_assessments__assessment_id__rubric_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RubricItemOut"
+                  },
+                  "title": "Response Get Assessment Rubric Assessments  Assessment Id  Rubric Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Assessment Rubric",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/queue": {
+      "get": {
+        "description": "Submitted (or further-along) assessments waiting on an assessor,\noldest first. Assessor/admin only -- see server/app/auth.py. No scoring\nhere yet -- that's P6/P7.",
+        "operationId": "assessor_queue_queue_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QueueItemOut"
+                  },
+                  "title": "Response Assessor Queue Queue Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Assessor Queue",
+        "tags": [
+          "queue"
+        ]
+      }
+    },
+    "/uploads": {
+      "post": {
+        "operationId": "open_upload_session_uploads_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open Upload Session",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/uploads/{session_id}": {
+      "get": {
+        "operationId": "get_upload_session_uploads__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Upload Session",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/uploads/{session_id}/chunks/{chunk_index}": {
+      "put": {
+        "operationId": "put_chunk_uploads__session_id__chunks__chunk_index__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "chunk_index",
+            "required": true,
+            "schema": {
+              "title": "Chunk Index",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChunkAck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Chunk",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/uploads/{session_id}/complete": {
+      "post": {
+        "operationId": "complete_upload_uploads__session_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadCompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Upload",
+        "tags": [
+          "uploads"
+        ]
+      }
+    }
+  }
+}
