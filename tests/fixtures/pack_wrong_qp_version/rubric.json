@@ -1,0 +1,1477 @@
+{
+  "rubric_id": "ae-con-q0602@v4.0-r1",
+  "qp_code": "CON/Q0602",
+  "qp_version": "4.0",
+  "status": "draft — pending trade-expert sign-off (P1 exit test)",
+  "rules": {
+    "pc_score": "(level ÷ 3) × PC marks",
+    "nos_percent": "Σ PC scores ÷ NOS max",
+    "pass_thresholds": "Read from the pinned QP file (never hard-coded) — see qp.json minimum_aggregate_passing_percent and per-NOS marks.",
+    "critical_pc": "level < 2 → that NOS cannot be marked competent, regardless of overall NOS %.",
+    "scope": "Anchors cover every PC of the 5 task-evidenced NOS only (CON/N9001, CON/N0602, CON/N0604, CON/N0603, CON/N0605). CON/N8001, CON/N8002 and DGT/VSQ/N0101 are declaration+notes only in the MVP and are out of rubric scope — see tasks.json.not_task_evidenced_nos.",
+    "marks_note": "PC marks are the official per-element practical marks from the QP v4.0 PDF, split EQUALLY across the PCs in that element (the PDF does not publish a per-PC split — CSDCI leaves this to the assessment body). This equal split is an MVP simplification to be reviewed by the trade expert; the per-NOS and per-element totals themselves are verbatim from the PDF.",
+    "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+    "official_status": "This rubric is an MVP assessor-support tool built for this project. It is not issued, endorsed, or reviewed by CSDCI/NCVET/NSQC, and its PC marks/anchors are not an official SSC scoring scheme (see rules.marks_note for the specific equal-split simplification). Nothing it produces is an official pass/fail or certification decision.",
+    "output_contract": {
+      "purpose": "Any future scoring/profile/report code (P2 backend, P6 dashboard, P7 signed report) MUST present these three evidence categories as visibly distinct -- never collapse DECLARATION_OR_ASSESSOR_NOTE or NOT_ASSESSED_IN_MVP into a numeric score alongside DIRECT_TASK_EVIDENCE PCs.",
+      "DIRECT_TASK_EVIDENCE": "PCs present in this file (items[]). Scored 0-3 against anchors from captured T1-T5 evidence. evidence_status field on every item confirms this.",
+      "DECLARATION_OR_ASSESSOR_NOTE": "PCs of CON/N8001, CON/N8002, DGT/VSQ/N0101 -- deliberately absent from this file. No numeric score; render as the worker's self-declaration plus any assessor free-text notes only. See packs/ae-con-q0602/coverage_matrix.json for the full PC list in this category.",
+      "NOT_ASSESSED_IN_MVP": "Must be empty for the pinned CON/Q0602 v4.0 pack (tools/audit_qp_traceability.py's [coverage] check enforces this). If it is ever non-empty for a future pack, those PCs must render as explicitly 'not assessed' -- never silently omitted and never defaulted to a score.",
+      "wording_rule": "No UI, API response, or generated report may use the words 'certified', 'official pass', or 'official certificate'. Use 'NSQF-aligned competency profile and assessor recommendation' (see docs/safety.md section 4)."
+    }
+  },
+  "nos_summary": [
+    {
+      "nos": "CON/N0602",
+      "task": "T2",
+      "pc_count": 11,
+      "nos_max_marks": 69.96
+    },
+    {
+      "nos": "CON/N0603",
+      "task": "T4",
+      "pc_count": 16,
+      "nos_max_marks": 70.01
+    },
+    {
+      "nos": "CON/N0604",
+      "task": "T3",
+      "pc_count": 11,
+      "nos_max_marks": 69.96
+    },
+    {
+      "nos": "CON/N0605",
+      "task": "T5",
+      "pc_count": 16,
+      "nos_max_marks": 70.0
+    },
+    {
+      "nos": "CON/N9001",
+      "task": "T1",
+      "pc_count": 17,
+      "nos_max_marks": 69.99
+    }
+  ],
+  "items": [
+    {
+      "pc_id": "CON/N0602.PC1",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "perform basic checks on power tools prior to use",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"perform basic checks on power tools prior to use\" done partially or incorrectly.",
+        "2": "Mostly correct — \"perform basic checks on power tools prior to use\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"perform basic checks on power tools prior to use\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC2",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "handle hand/power tools for establishing/ terminating electrical connections as per requirement",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"handle hand/power tools for establishing/ terminating electrical connections as per requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"handle hand/power tools for establishing/ terminating electrical connections as per requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"handle hand/power tools for establishing/ terminating electrical connections as per requirement\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC3",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use appropriate tools to trace out short circuits/faults and leakages in electrical wiring",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use appropriate tools to trace out short circuits/faults and leakages in electrical wiring\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use appropriate tools to trace out short circuits/faults and leakages in electrical wiring\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use appropriate tools to trace out short circuits/faults and leakages in electrical wiring\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC4",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use measuring instruments to measure size and dimension of wires, conduits as per electrical installation or maintenance work requirement",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use measuring instruments to measure size and dimension of wires, conduits as per electrical installation or maintenance work requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use measuring instruments to measure size and dimension of wires, conduits as per electrical installation or maintenance work requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use measuring instruments to measure size and dimension of wires, conduits as per electrical installation or maintenance work requirement\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC5",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use hand/ power tools to cut, and bend wire and conduit as per electrical installation or maintenance work requirement",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use hand/ power tools to cut, and bend wire and conduit as per electrical installation or maintenance work requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use hand/ power tools to cut, and bend wire and conduit as per electrical installation or maintenance work requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use hand/ power tools to cut, and bend wire and conduit as per electrical installation or maintenance work requirement\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC6",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use appropriate tools to splice wires by stripping insulation from terminal leads and twisting wires together",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use appropriate tools to splice wires by stripping insulation from terminal leads and twisting wires together\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use appropriate tools to splice wires by stripping insulation from terminal leads and twisting wires together\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use appropriate tools to splice wires by stripping insulation from terminal leads and twisting wires together\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC7",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use appropriate hand/power tools to thread conduit ends, connect couplings, and fabricate and secure conduit support brackets",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use appropriate hand/power tools to thread conduit ends, connect couplings, and fabricate and secure conduit support brackets\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use appropriate hand/power tools to thread conduit ends, connect couplings, and fabricate and secure conduit support brackets\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use appropriate hand/power tools to thread conduit ends, connect couplings, and fabricate and secure conduit support brackets\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC8",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use appropriate electrical measuring devices like ammmeter, voltmeter, meggers etc. to examine electrical units for power interruptions/ continuity",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use appropriate electrical measuring devices like ammmeter, voltmeter, meggers etc. to examine electrical units for power interruptions/ continuity\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use appropriate electrical measuring devices like ammmeter, voltmeter, meggers etc. to examine electrical units for power interruptions/ continuity\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use appropriate electrical measuring devices like ammmeter, voltmeter, meggers etc. to examine electrical units for power interruptions/ continuity\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC9",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use electrical devices such as starters, circuit breakers, relays as per equipment/ wiring installation rating or current rating",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use electrical devices such as starters, circuit breakers, relays as per equipment/ wiring installation rating or current rating\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use electrical devices such as starters, circuit breakers, relays as per equipment/ wiring installation rating or current rating\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use electrical devices such as starters, circuit breakers, relays as per equipment/ wiring installation rating or current rating\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC10",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "use diagnostic devices like multi-meter, tong tester, earth tester or similar devices to install, repair power connections",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"use diagnostic devices like multi-meter, tong tester, earth tester or similar devices to install, repair power connections\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use diagnostic devices like multi-meter, tong tester, earth tester or similar devices to install, repair power connections\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use diagnostic devices like multi-meter, tong tester, earth tester or similar devices to install, repair power connections\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0602.PC11",
+      "nos": "CON/N0602",
+      "element": "Handle hand/power tools for electrical works.",
+      "text": "perform maintenance and upkeep of relevant tools and devices after use",
+      "tasks": [
+        "T2"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"perform maintenance and upkeep of relevant tools and devices after use\" done partially or incorrectly.",
+        "2": "Mostly correct — \"perform maintenance and upkeep of relevant tools and devices after use\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"perform maintenance and upkeep of relevant tools and devices after use\"."
+      },
+      "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC1",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "check cable, conduits, lights, sockets, temporary power distribution panels at power source and other required fixtures and accessories as per manufacturers guidelines and specification",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"check cable, conduits, lights, sockets, temporary power distribution panels at power source and other required fixtures and accessories as per manufacturers guidelines and specification\" done partially or incorrectly.",
+        "2": "Mostly correct — \"check cable, conduits, lights, sockets, temporary power distribution panels at power source and other required fixtures and accessories as per manufacturers guidelines and specification\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"check cable, conduits, lights, sockets, temporary power distribution panels at power source and other required fixtures and accessories as per manufacturers guidelines and specification\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC2",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "lay cables through ducts or conduits, underground or through poles (overhead) as per plans and instructions",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"lay cables through ducts or conduits, underground or through poles (overhead) as per plans and instructions\" done partially or incorrectly.",
+        "2": "Mostly correct — \"lay cables through ducts or conduits, underground or through poles (overhead) as per plans and instructions\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"lay cables through ducts or conduits, underground or through poles (overhead) as per plans and instructions\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC3",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "select the type and wattage of lights considering illumination requirement at worksite and install them at secured positions",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"select the type and wattage of lights considering illumination requirement at worksite and install them at secured positions\" done partially or incorrectly.",
+        "2": "Mostly correct — \"select the type and wattage of lights considering illumination requirement at worksite and install them at secured positions\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"select the type and wattage of lights considering illumination requirement at worksite and install them at secured positions\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC4",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "fix lights and its accessories, brackets, bulkheads with screws and bolts or by other standard means, pull wires through conduit leading to connection boxes, temporary panels/ distribution boards or other temporary electrical terminals",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"fix lights and its accessories, brackets, bulkheads with screws and bolts or by other standard means, pull wires through conduit leading to connection boxes, temporary panels/ distribution boards or other temporary electrical terminals\" done partially or incorrectly.",
+        "2": "Mostly correct — \"fix lights and its accessories, brackets, bulkheads with screws and bolts or by other standard means, pull wires through conduit leading to connection boxes, temporary panels/ distribution boards or other temporary electrical terminals\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"fix lights and its accessories, brackets, bulkheads with screws and bolts or by other standard means, pull wires through conduit leading to connection boxes, temporary panels/ distribution boards or other temporary electrical terminals\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC5",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "extend/ join LV electrical cable using straight through joints, splicing them together and secure joints by applying PVC insulation tapes, caps or by other safe method as and when necessary",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"extend/ join LV electrical cable using straight through joints, splicing them together and secure joints by applying PVC insulation tapes, caps or by other safe method as and when necessary\" done partially or incorrectly.",
+        "2": "Mostly correct — \"extend/ join LV electrical cable using straight through joints, splicing them together and secure joints by applying PVC insulation tapes, caps or by other safe method as and when necessary\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"extend/ join LV electrical cable using straight through joints, splicing them together and secure joints by applying PVC insulation tapes, caps or by other safe method as and when necessary\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC6",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "carry out termination of LV cables selecting the right method as per standard practice",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out termination of LV cables selecting the right method as per standard practice\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out termination of LV cables selecting the right method as per standard practice\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out termination of LV cables selecting the right method as per standard practice\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC7",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "work safely as per electrical safety guidelines provided by manufacturer, standard safety practice or organizational safety norms while establishing or disconnecting live electrical connections",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"work safely as per electrical safety guidelines provided by manufacturer, standard safety practice or organizational safety norms while establishing or disconnecting live electrical connections\" done partially or incorrectly.",
+        "2": "Mostly correct — \"work safely as per electrical safety guidelines provided by manufacturer, standard safety practice or organizational safety norms while establishing or disconnecting live electrical connections\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"work safely as per electrical safety guidelines provided by manufacturer, standard safety practice or organizational safety norms while establishing or disconnecting live electrical connections\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC8",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "upkeep of all relevant key electrical tools and fixtures",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"upkeep of all relevant key electrical tools and fixtures\" done partially or incorrectly.",
+        "2": "Mostly correct — \"upkeep of all relevant key electrical tools and fixtures\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"upkeep of all relevant key electrical tools and fixtures\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC9",
+      "nos": "CON/N0603",
+      "element": "Installation of temporary lighting arrangement at construction sites",
+      "text": "tag embedded, exposed electrical lines and other key equipment appropriately",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 3.89,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"tag embedded, exposed electrical lines and other key equipment appropriately\" done partially or incorrectly.",
+        "2": "Mostly correct — \"tag embedded, exposed electrical lines and other key equipment appropriately\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"tag embedded, exposed electrical lines and other key equipment appropriately\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC10",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "shift light at various locations during construction activity as per requirement",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"shift light at various locations during construction activity as per requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"shift light at various locations during construction activity as per requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"shift light at various locations during construction activity as per requirement\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC11",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "repair and replace light arrangements as per instruction or requirement",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"repair and replace light arrangements as per instruction or requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"repair and replace light arrangements as per instruction or requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"repair and replace light arrangements as per instruction or requirement\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC12",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "replace burned out bulbs, light units and ballast in light fixtures as needed",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"replace burned out bulbs, light units and ballast in light fixtures as needed\" done partially or incorrectly.",
+        "2": "Mostly correct — \"replace burned out bulbs, light units and ballast in light fixtures as needed\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"replace burned out bulbs, light units and ballast in light fixtures as needed\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC13",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "carry out relevant tests to trace out power interruptions/ continuity at lighting arrangements",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out relevant tests to trace out power interruptions/ continuity at lighting arrangements\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out relevant tests to trace out power interruptions/ continuity at lighting arrangements\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out relevant tests to trace out power interruptions/ continuity at lighting arrangements\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC14",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "replace damaged cable, other relevant parts as and when necessary",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"replace damaged cable, other relevant parts as and when necessary\" done partially or incorrectly.",
+        "2": "Mostly correct — \"replace damaged cable, other relevant parts as and when necessary\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"replace damaged cable, other relevant parts as and when necessary\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC15",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "replace faulty circuit breakers, fuses, switches, electrical and electronic components and wire as per requirement",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"replace faulty circuit breakers, fuses, switches, electrical and electronic components and wire as per requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"replace faulty circuit breakers, fuses, switches, electrical and electronic components and wire as per requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"replace faulty circuit breakers, fuses, switches, electrical and electronic components and wire as per requirement\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0603.PC16",
+      "nos": "CON/N0603",
+      "element": "Maintenance of installed lighting arrangements",
+      "text": "perform preventive maintenance on diesel generators at site provided for temporary lighting (if any) at scheduled intervals as per direction of concerned authority",
+      "tasks": [
+        "T4"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"perform preventive maintenance on diesel generators at site provided for temporary lighting (if any) at scheduled intervals as per direction of concerned authority\" done partially or incorrectly.",
+        "2": "Mostly correct — \"perform preventive maintenance on diesel generators at site provided for temporary lighting (if any) at scheduled intervals as per direction of concerned authority\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"perform preventive maintenance on diesel generators at site provided for temporary lighting (if any) at scheduled intervals as per direction of concerned authority\"."
+      },
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC1",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "select house wiring components (such as wires flexible and rigid conduits, PVC raceways wooden battens, clamps etc) according to their specification size",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"select house wiring components (such as wires flexible and rigid conduits, PVC raceways wooden battens, clamps etc) according to their specification size\" done partially or incorrectly.",
+        "2": "Mostly correct — \"select house wiring components (such as wires flexible and rigid conduits, PVC raceways wooden battens, clamps etc) according to their specification size\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"select house wiring components (such as wires flexible and rigid conduits, PVC raceways wooden battens, clamps etc) according to their specification size\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC2",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "read and interpret single phase LV wiring diagram",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"read and interpret single phase LV wiring diagram\" done partially or incorrectly.",
+        "2": "Mostly correct — \"read and interpret single phase LV wiring diagram\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"read and interpret single phase LV wiring diagram\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC3",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "carry out necessary linear measurement to cut bend join conduits and cables and use them as per requirement or instruction",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out necessary linear measurement to cut bend join conduits and cables and use them as per requirement or instruction\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out necessary linear measurement to cut bend join conduits and cables and use them as per requirement or instruction\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out necessary linear measurement to cut bend join conduits and cables and use them as per requirement or instruction\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC4",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "lay conduit through RCC structures (slabs beams walls) or through chased wall (brick wall) surface as per instruction",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"lay conduit through RCC structures (slabs beams walls) or through chased wall (brick wall) surface as per instruction\" done partially or incorrectly.",
+        "2": "Mostly correct — \"lay conduit through RCC structures (slabs beams walls) or through chased wall (brick wall) surface as per instruction\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"lay conduit through RCC structures (slabs beams walls) or through chased wall (brick wall) surface as per instruction\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC5",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "lock conduit pipe in its location by means of clamp or other standard means as per instruction",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"lock conduit pipe in its location by means of clamp or other standard means as per instruction\" done partially or incorrectly.",
+        "2": "Mostly correct — \"lock conduit pipe in its location by means of clamp or other standard means as per instruction\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"lock conduit pipe in its location by means of clamp or other standard means as per instruction\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC6",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "pull, push wires through conduits in order to expose them at desired locations as per requirement",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"pull, push wires through conduits in order to expose them at desired locations as per requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"pull, push wires through conduits in order to expose them at desired locations as per requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"pull, push wires through conduits in order to expose them at desired locations as per requirement\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC7",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "perform drilling and cutting using appropriate tools as per requirement",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"perform drilling and cutting using appropriate tools as per requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"perform drilling and cutting using appropriate tools as per requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"perform drilling and cutting using appropriate tools as per requirement\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC8",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "handle shift and assist in fixing electrical fixtures and fittings as per instructions",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"handle shift and assist in fixing electrical fixtures and fittings as per instructions\" done partially or incorrectly.",
+        "2": "Mostly correct — \"handle shift and assist in fixing electrical fixtures and fittings as per instructions\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"handle shift and assist in fixing electrical fixtures and fittings as per instructions\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC9",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "carry out termination of cables safely as per instruction",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"carry out termination of cables safely as per instruction\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out termination of cables safely as per instruction\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out termination of cables safely as per instruction\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC10",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "test electrical circuit during and post wiring activity using appropriate tools as per direction of electrician",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"test electrical circuit during and post wiring activity using appropriate tools as per direction of electrician\" done partially or incorrectly.",
+        "2": "Mostly correct — \"test electrical circuit during and post wiring activity using appropriate tools as per direction of electrician\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"test electrical circuit during and post wiring activity using appropriate tools as per direction of electrician\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0604.PC11",
+      "nos": "CON/N0604",
+      "element": "Provide assistance for LV electrical wiring work in permanent structures",
+      "text": "assist in carrying out electrical earthing work by installing earthing components as per instructions",
+      "tasks": [
+        "T3"
+      ],
+      "marks": 6.36,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"assist in carrying out electrical earthing work by installing earthing components as per instructions\" done partially or incorrectly.",
+        "2": "Mostly correct — \"assist in carrying out electrical earthing work by installing earthing components as per instructions\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"assist in carrying out electrical earthing work by installing earthing components as per instructions\"."
+      },
+      "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC1",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "read relevant SLDs (Single Line Diagrams), instructions, safety guidelines, manufacturers specifications prior to assembling temporary panel/ distribution boards",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"read relevant SLDs (Single Line Diagrams), instructions, safety guidelines, manufacturers specifications prior to assembling temporary panel/ distribution boards\" done partially or incorrectly.",
+        "2": "Mostly correct — \"read relevant SLDs (Single Line Diagrams), instructions, safety guidelines, manufacturers specifications prior to assembling temporary panel/ distribution boards\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"read relevant SLDs (Single Line Diagrams), instructions, safety guidelines, manufacturers specifications prior to assembling temporary panel/ distribution boards\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC2",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "install required fixtures like power sockets, switches, wires, MCBs (Miniature Circuit Breakers) of appropriate specification as per circuit load requirement",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"install required fixtures like power sockets, switches, wires, MCBs (Miniature Circuit Breakers) of appropriate specification as per circuit load requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"install required fixtures like power sockets, switches, wires, MCBs (Miniature Circuit Breakers) of appropriate specification as per circuit load requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"install required fixtures like power sockets, switches, wires, MCBs (Miniature Circuit Breakers) of appropriate specification as per circuit load requirement\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC3",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "ensure tightness and safe working condition of wires, fixtures prior to the connection of the assembly with power source",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"ensure tightness and safe working condition of wires, fixtures prior to the connection of the assembly with power source\" done partially or incorrectly.",
+        "2": "Mostly correct — \"ensure tightness and safe working condition of wires, fixtures prior to the connection of the assembly with power source\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"ensure tightness and safe working condition of wires, fixtures prior to the connection of the assembly with power source\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC4",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "connect DB (Distribution Board) to main power cable and perform standard tests to ensure its safe and desired working",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"connect DB (Distribution Board) to main power cable and perform standard tests to ensure its safe and desired working\" done partially or incorrectly.",
+        "2": "Mostly correct — \"connect DB (Distribution Board) to main power cable and perform standard tests to ensure its safe and desired working\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"connect DB (Distribution Board) to main power cable and perform standard tests to ensure its safe and desired working\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC5",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "place and secure the distribution board against external damaging agents like water, fire etc",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"place and secure the distribution board against external damaging agents like water, fire etc\" done partially or incorrectly.",
+        "2": "Mostly correct — \"place and secure the distribution board against external damaging agents like water, fire etc\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"place and secure the distribution board against external damaging agents like water, fire etc\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC6",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "carry out proper termination of cables as per standard practice while connecting to the sockets of the panel",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out proper termination of cables as per standard practice while connecting to the sockets of the panel\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out proper termination of cables as per standard practice while connecting to the sockets of the panel\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out proper termination of cables as per standard practice while connecting to the sockets of the panel\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC7",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "carry out earthing of the panels as per standard procedure",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out earthing of the panels as per standard procedure\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out earthing of the panels as per standard procedure\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out earthing of the panels as per standard procedure\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC8",
+      "nos": "CON/N0605",
+      "element": "Assemble temporary LV power distribution panels (distribution boards)",
+      "text": "check and ensure necessary tagging and barrication near the live/ active electrical distribution boards",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 5.0,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"check and ensure necessary tagging and barrication near the live/ active electrical distribution boards\" done partially or incorrectly.",
+        "2": "Mostly correct — \"check and ensure necessary tagging and barrication near the live/ active electrical distribution boards\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"check and ensure necessary tagging and barrication near the live/ active electrical distribution boards\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC9",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "carry out visual inspection of the live/ active board regularly to ensure safe working condition of all components",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out visual inspection of the live/ active board regularly to ensure safe working condition of all components\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out visual inspection of the live/ active board regularly to ensure safe working condition of all components\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out visual inspection of the live/ active board regularly to ensure safe working condition of all components\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC10",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "ensure that the live connections get discontinued after completion of daily construction works in order to minimize energy wastage and enhance working efficiency of electrical units",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"ensure that the live connections get discontinued after completion of daily construction works in order to minimize energy wastage and enhance working efficiency of electrical units\" done partially or incorrectly.",
+        "2": "Mostly correct — \"ensure that the live connections get discontinued after completion of daily construction works in order to minimize energy wastage and enhance working efficiency of electrical units\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"ensure that the live connections get discontinued after completion of daily construction works in order to minimize energy wastage and enhance working efficiency of electrical units\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC11",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "respond promptly to failure/ damage or malfunctioning of panel or any of its components",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"respond promptly to failure/ damage or malfunctioning of panel or any of its components\" done partially or incorrectly.",
+        "2": "Mostly correct — \"respond promptly to failure/ damage or malfunctioning of panel or any of its components\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"respond promptly to failure/ damage or malfunctioning of panel or any of its components\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC12",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "carry out necessary tests in order to determine root cause of failure",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"carry out necessary tests in order to determine root cause of failure\" done partially or incorrectly.",
+        "2": "Mostly correct — \"carry out necessary tests in order to determine root cause of failure\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"carry out necessary tests in order to determine root cause of failure\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC13",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "notify concerned authorities prior to shut down, deactivation or repair of the electrical unit",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"notify concerned authorities prior to shut down, deactivation or repair of the electrical unit\" done partially or incorrectly.",
+        "2": "Mostly correct — \"notify concerned authorities prior to shut down, deactivation or repair of the electrical unit\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"notify concerned authorities prior to shut down, deactivation or repair of the electrical unit\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC14",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "replace/ repair faulty components as per SLD, instructions, safety guidelines and manufacturers specifications",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"replace/ repair faulty components as per SLD, instructions, safety guidelines and manufacturers specifications\" done partially or incorrectly.",
+        "2": "Mostly correct — \"replace/ repair faulty components as per SLD, instructions, safety guidelines and manufacturers specifications\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"replace/ repair faulty components as per SLD, instructions, safety guidelines and manufacturers specifications\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC15",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "document and keep records relevant to maintenance/ repair of panels as per organizational norms",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"document and keep records relevant to maintenance/ repair of panels as per organizational norms\" done partially or incorrectly.",
+        "2": "Mostly correct — \"document and keep records relevant to maintenance/ repair of panels as per organizational norms\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"document and keep records relevant to maintenance/ repair of panels as per organizational norms\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N0605.PC16",
+      "nos": "CON/N0605",
+      "element": "Repair/ replace faulty parts/ fixtures as per requirement",
+      "text": "isolate the panel safely and shift to another location as per requirement",
+      "tasks": [
+        "T5"
+      ],
+      "marks": 3.75,
+      "critical": false,
+      "anchors": {
+        "0": "Not shown, or not attempted.",
+        "1": "Attempted but with clear errors or omissions — \"isolate the panel safely and shift to another location as per requirement\" done partially or incorrectly.",
+        "2": "Mostly correct — \"isolate the panel safely and shift to another location as per requirement\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"isolate the panel safely and shift to another location as per requirement\"."
+      },
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC1",
+      "nos": "CON/N9001",
+      "element": "Follow safety norms as defined by the organization",
+      "text": "identify and report any hazards, risks or breaches in site safety to the appropriate authority",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 2.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"identify and report any hazards, risks or breaches in site safety to the appropriate authority\" done partially or incorrectly.",
+        "2": "Mostly correct — \"identify and report any hazards, risks or breaches in site safety to the appropriate authority\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"identify and report any hazards, risks or breaches in site safety to the appropriate authority\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC2",
+      "nos": "CON/N9001",
+      "element": "Follow safety norms as defined by the organization",
+      "text": "follow emergency and evacuation procedures in case of accidents, fires, natural calamities",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 2.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"follow emergency and evacuation procedures in case of accidents, fires, natural calamities\" done partially or incorrectly.",
+        "2": "Mostly correct — \"follow emergency and evacuation procedures in case of accidents, fires, natural calamities\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"follow emergency and evacuation procedures in case of accidents, fires, natural calamities\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC3",
+      "nos": "CON/N9001",
+      "element": "Follow safety norms as defined by the organization",
+      "text": "follow recommended safe practices in handling construction materials, including chemical and hazardous material whenever applicable",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 2.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"follow recommended safe practices in handling construction materials, including chemical and hazardous material whenever applicable\" done partially or incorrectly.",
+        "2": "Mostly correct — \"follow recommended safe practices in handling construction materials, including chemical and hazardous material whenever applicable\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"follow recommended safe practices in handling construction materials, including chemical and hazardous material whenever applicable\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC4",
+      "nos": "CON/N9001",
+      "element": "Follow safety norms as defined by the organization",
+      "text": "follow all the protocols and safety techniques conveyed during safety awareness programs like Tool Box Talks, safety demonstrations and mock drills conducted at the site",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 2.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"follow all the protocols and safety techniques conveyed during safety awareness programs like Tool Box Talks, safety demonstrations and mock drills conducted at the site\" done partially or incorrectly.",
+        "2": "Mostly correct — \"follow all the protocols and safety techniques conveyed during safety awareness programs like Tool Box Talks, safety demonstrations and mock drills conducted at the site\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"follow all the protocols and safety techniques conveyed during safety awareness programs like Tool Box Talks, safety demonstrations and mock drills conducted at the site\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC5",
+      "nos": "CON/N9001",
+      "element": "Follow safety norms as defined by the organization",
+      "text": "select and operate different types of fire extinguishers corresponding to various types of fires as per EHS guideline",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 2.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"select and operate different types of fire extinguishers corresponding to various types of fires as per EHS guideline\" done partially or incorrectly.",
+        "2": "Mostly correct — \"select and operate different types of fire extinguishers corresponding to various types of fires as per EHS guideline\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"select and operate different types of fire extinguishers corresponding to various types of fires as per EHS guideline\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC6",
+      "nos": "CON/N9001",
+      "element": "Follow safety norms as defined by the organization",
+      "text": "identify near miss, unsafe condition and unsafe act",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 2.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"identify near miss, unsafe condition and unsafe act\" done partially or incorrectly.",
+        "2": "Mostly correct — \"identify near miss, unsafe condition and unsafe act\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"identify near miss, unsafe condition and unsafe act\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC7",
+      "nos": "CON/N9001",
+      "element": "Adopt healthy & safe work practices",
+      "text": "use appropriate Personal Protective Equipment (PPE) as per work requirements for: Head Protection, Ear protection, Fall Protection, Foot Protection, Face and Eye Protection, Hand and Body Protection, and Respiratory Protection (if required)",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 5.83,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"use appropriate Personal Protective Equipment (PPE) as per work requirements for: Head Protection, Ear protection, Fall Protection, Foot Protection, Face and Eye Protection, Hand and Body Protection, and Respiratory Protection (if required)\" done partially or incorrectly.",
+        "2": "Mostly correct — \"use appropriate Personal Protective Equipment (PPE) as per work requirements for: Head Protection, Ear protection, Fall Protection, Foot Protection, Face and Eye Protection, Hand and Body Protection, and Respiratory Protection (if required)\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"use appropriate Personal Protective Equipment (PPE) as per work requirements for: Head Protection, Ear protection, Fall Protection, Foot Protection, Face and Eye Protection, Hand and Body Protection, and Respiratory Protection (if required)\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC8",
+      "nos": "CON/N9001",
+      "element": "Adopt healthy & safe work practices",
+      "text": "handle all required tools, tackles, materials and equipment safely",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 5.83,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"handle all required tools, tackles, materials and equipment safely\" done partially or incorrectly.",
+        "2": "Mostly correct — \"handle all required tools, tackles, materials and equipment safely\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"handle all required tools, tackles, materials and equipment safely\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC9",
+      "nos": "CON/N9001",
+      "element": "Adopt healthy & safe work practices",
+      "text": "follow safe disposal of waste, harmful and hazardous materials as per EHS guidelines",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 5.83,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"follow safe disposal of waste, harmful and hazardous materials as per EHS guidelines\" done partially or incorrectly.",
+        "2": "Mostly correct — \"follow safe disposal of waste, harmful and hazardous materials as per EHS guidelines\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"follow safe disposal of waste, harmful and hazardous materials as per EHS guidelines\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC10",
+      "nos": "CON/N9001",
+      "element": "Adopt healthy & safe work practices",
+      "text": "check and install all safety equipment as per standard guidelines",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 5.83,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"check and install all safety equipment as per standard guidelines\" done partially or incorrectly.",
+        "2": "Mostly correct — \"check and install all safety equipment as per standard guidelines\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"check and install all safety equipment as per standard guidelines\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC11",
+      "nos": "CON/N9001",
+      "element": "Adopt healthy & safe work practices",
+      "text": "follow safety protocols and practices as laid down by site EHS department",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 5.83,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"follow safety protocols and practices as laid down by site EHS department\" done partially or incorrectly.",
+        "2": "Mostly correct — \"follow safety protocols and practices as laid down by site EHS department\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"follow safety protocols and practices as laid down by site EHS department\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC12",
+      "nos": "CON/N9001",
+      "element": "Adopt healthy & safe work practices",
+      "text": "obtain \"height pass\" clearance for working at heights",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 5.83,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"obtain \"height pass\" clearance for working at heights\" done partially or incorrectly.",
+        "2": "Mostly correct — \"obtain \"height pass\" clearance for working at heights\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"obtain \"height pass\" clearance for working at heights\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC13",
+      "nos": "CON/N9001",
+      "element": "Implement good housekeeping practices",
+      "text": "collect, segregate and deposit construction waste into appropriate containers based on their toxicity or hazardous nature",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 7.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"collect, segregate and deposit construction waste into appropriate containers based on their toxicity or hazardous nature\" done partially or incorrectly.",
+        "2": "Mostly correct — \"collect, segregate and deposit construction waste into appropriate containers based on their toxicity or hazardous nature\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"collect, segregate and deposit construction waste into appropriate containers based on their toxicity or hazardous nature\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC14",
+      "nos": "CON/N9001",
+      "element": "Implement good housekeeping practices",
+      "text": "apply ergonomic principles wherever required",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 7.5,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"apply ergonomic principles wherever required\" done partially or incorrectly.",
+        "2": "Mostly correct — \"apply ergonomic principles wherever required\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"apply ergonomic principles wherever required\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC15",
+      "nos": "CON/N9001",
+      "element": "Follow infection control guidelines as per applicability",
+      "text": "follow recommended personal hygiene, workplace hygiene and sanitization practices",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 1.67,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"follow recommended personal hygiene, workplace hygiene and sanitization practices\" done partially or incorrectly.",
+        "2": "Mostly correct — \"follow recommended personal hygiene, workplace hygiene and sanitization practices\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"follow recommended personal hygiene, workplace hygiene and sanitization practices\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC16",
+      "nos": "CON/N9001",
+      "element": "Follow infection control guidelines as per applicability",
+      "text": "clean and disinfect all materials, tools and supplies before and after use",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 1.67,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"clean and disinfect all materials, tools and supplies before and after use\" done partially or incorrectly.",
+        "2": "Mostly correct — \"clean and disinfect all materials, tools and supplies before and after use\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"clean and disinfect all materials, tools and supplies before and after use\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    },
+    {
+      "pc_id": "CON/N9001.PC17",
+      "nos": "CON/N9001",
+      "element": "Follow infection control guidelines as per applicability",
+      "text": "report immediately to concerned authorities regarding signs and symptoms of illness of self and others",
+      "tasks": [
+        "T1"
+      ],
+      "marks": 1.67,
+      "critical": true,
+      "anchors": {
+        "0": "Not shown, not attempted, or done unsafely (skipped isolation/tester-check, worked on a live circuit, no PPE).",
+        "1": "Attempted but with clear errors or omissions — \"report immediately to concerned authorities regarding signs and symptoms of illness of self and others\" done partially or incorrectly.",
+        "2": "Mostly correct — \"report immediately to concerned authorities regarding signs and symptoms of illness of self and others\" — but with minor issues (untidy, minor omission, not fully verified).",
+        "3": "Done correctly, safely and neatly, verified where applicable — \"report immediately to concerned authorities regarding signs and symptoms of illness of self and others\"."
+      },
+      "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
+      "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+      "evidence_status": "DIRECT_TASK_EVIDENCE"
+    }
+  ]
+}

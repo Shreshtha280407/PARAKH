@@ -1,0 +1,24 @@
+{
+  "qp_code": "CON/Q0602",
+  "qp_name": "Assistant Electrician",
+  "qp_version": "4.0",
+  "sector_body": "Construction Skill Development Council of India (CSDCI)",
+  "NSQF_level": 3,
+  "nqr_reference": "QG-03-CO-03951-2025-V2-CSDCI",
+  "nqr_version": "4.0",
+  "nsqc_approval_date": "2025-05-08",
+  "official_source_url": "https://s3.ap-south-1.amazonaws.com/nsdcproddocuments/qpPdf/CON_Q0602_v4.0.pdf",
+  "local_pdf_path": "packs/ae-con-q0602/qp_v4.0.pdf",
+  "sha256": "27ef7dc3dfdcaad536bee7c1ebd73fcf7cb381e570f009cbb1b39f1060e514ad",
+  "sha256_verified_on": "2026-10-09",
+  "sha256_verification_command": "sha256sum packs/ae-con-q0602/qp_v4.0.pdf",
+  "downloaded_on": "2026-10-09",
+  "pdf_pages": 53,
+  "canonical_source_note": "This pinned PDF (local_pdf_path, matched by sha256) is the SOLE canonical source for every NOS code, PC id, PC text, mark, and credit value used anywhere in P1 — qp.json, tasks.json, rubric.json, packs/ae-con-q0602/mapping/*.json, and every tool/validator under tools/ and ml/mapping/. No other Assistant Electrician document, no other QP revision, and no NQR portal listing may be used to add, correct, or override any field derived from this pack. If NSDC publishes a newer version, it is pulled in as a new pack version (e.g. v5.0-r1) with its own pinned PDF and its own sha256 — never merged into this one. See docs/qp_source_reconciliation.md for why the public NQR record can look different from this file without that being a discrepancy to 'fix'.",
+  "do_not_mix": [
+    "Do not substitute PC text, marks, or NOS codes from any other Assistant Electrician document version (e.g. v2.0, v3.0) even if it is still published somewhere.",
+    "Do not substitute data from a different NQR entry revision of the same QP code.",
+    "Do not substitute data from a different QP code entirely, even within the same sector (Construction).",
+    "A thresholds.json match-coverage value (0.60 / 0.35) is an MVP matching heuristic invented for this project — it is not and must never be presented as an official NQR/CSDCI pass threshold. See packs/ae-con-q0602/mapping/thresholds.json.mvp_disclaimer."
+  ]
+}

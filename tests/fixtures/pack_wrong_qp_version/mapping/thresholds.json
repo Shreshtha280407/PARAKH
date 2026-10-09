@@ -1,0 +1,45 @@
+{
+  "match_rules_id": "match-rules@r1",
+  "qp_code": "CON/Q0602",
+  "qp_version": "4.0",
+  "status": "starting values per master plan §4.2 — frozen here for P1; to be tuned once against the full 60 labelled declarations at IC-1 (2026-10-17), then frozen again under a new rules id if changed",
+  "answer_strength": { "often": 1.0, "sometimes": 0.6, "never": 0.0 },
+  "practical_nos_for_matching": [
+    { "nos": "CON/N0602", "credits": 2 },
+    { "nos": "CON/N0603", "credits": 2 },
+    { "nos": "CON/N0604", "credits": 2 },
+    { "nos": "CON/N0605", "credits": 3 }
+  ],
+  "nos_coverage_formula": "coverage(NOS) = sum(effective_claim(pc) for pc in linked_pcs(NOS)) / count(linked_pcs(NOS)), where effective_claim(pc) = max over links touching pc of (answer_strength(card_or_tool_answer) x link.weight), clamped to [0,1]. PCs with no card/tool link (see links.json.known_gaps) are excluded from both sides of this ratio.",
+  "overall_coverage_formula": "overall = sum(coverage(nos) x credits(nos) for nos in practical_nos_for_matching) / sum(credits(nos) for nos in practical_nos_for_matching)",
+  "experience_rule": "A practical NOS counts as 'has declared experience' only if at least one card/tool linked to one of its PCs was answered 'sometimes' or 'often' (i.e. effective_claim > 0 for at least one linked PC).",
+  "match_result_rules": [
+    {
+      "result": "appropriate_match",
+      "label": "Appropriate match",
+      "condition": "overall >= 0.60 AND every NOS in practical_nos_for_matching has declared experience"
+    },
+    {
+      "result": "partial_match",
+      "label": "Partial match — gaps",
+      "condition": "0.35 <= overall < 0.60, OR (overall >= 0.60 AND one or more practical NOS has no declared experience). Assessment can still proceed; gaps are shown to worker and assessor."
+    },
+    {
+      "result": "not_appropriate_match",
+      "label": "Not an appropriate match",
+      "condition": "overall < 0.35. Worker is told plainly; the assessor can still choose to open an assessment."
+    }
+  ],
+  "output_contract": {
+    "match_result": "one of appropriate_match | partial_match | not_appropriate_match",
+    "overall_coverage": "float 0-1",
+    "nos_coverage": "per-NOS float 0-1, plus has_declared_experience bool",
+    "because": "list of short human-readable reasons naming the cards/tools and NOS that drove the result",
+    "gap_nos": "list of NOS codes below their own appropriate-match bar or with no declared experience",
+    "applicable_tasks": "T1-T5 always listed; tasks whose NOS is in gap_nos are marked extra_evidence_needed=true",
+    "rules_version": "match-rules@r1"
+  },
+  "never_decides_competence": "This matcher only explains how a self-declaration relates to CON/Q0602 v4.0 and which tasks need the most evidence. It never outputs pass/fail or a PC score — only a human assessor scores competence (see rubric.json). It explains fit and gaps and prioritises which tasks need the most evidence; it does not decide, score, or certify competence.",
+  "mvp_disclaimer": "The 0.60 and 0.35 coverage thresholds above (and the answer_strength values 1.0/0.6/0.0) are MVP matching heuristics invented for this project to route a self-declaration to appropriate_match / partial_match / not_appropriate_match. They are NOT official NQR, NCVET, or CSDCI pass/competency thresholds — CON/Q0602 v4.0 (qp_v4.0.pdf) defines no such self-declaration-matching concept at all; its own pass rule is 'Minimum Aggregate Passing % at QP Level: 50' for a full formal assessment (qp.json.minimum_aggregate_passing_percent), which this matcher does not implement or approximate. Any UI, report, or document that shows a match result MUST make clear it is a heuristic routing/triage signal, not an official qualification outcome.",
+  "labelled_data_warning": "ml/mapping/data/labelled_60.jsonl is a SYNTHETIC harness fixture (see its HARNESS_ONLY_NOT_FIELD_VALIDATION marker and ml/mapping/data/README.md). Any agreement percentage computed against it is a code-correctness smoke test only. It must never be printed, screenshotted, or cited as IC-1 field-validation evidence, an accuracy claim, or an expert-agreement result -- ml/mapping/eval.py refuses to run against that file without --i-understand-this-is-not-field-validation for exactly this reason."
+}

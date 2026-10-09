@@ -1,0 +1,1074 @@
+{
+  "qp_code": "CON/Q0602",
+  "qp_name": "Assistant Electrician",
+  "version": "4.0",
+  "nsqf_level": 3,
+  "sector": "Construction",
+  "sub_sector": "Real Estate and Infrastructure construction",
+  "occupation": "Construction Electrical Works",
+  "credits": 13,
+  "awarding_body": "Construction Skill Development Council of India (CSDCI)",
+  "nqr_reference": "QG-03-CO-03951-2025-V2-CSDCI",
+  "nqr_version": "4.0",
+  "nsqc_approval_date": "2025-05-08",
+  "last_reviewed_on": "2025-03-31",
+  "next_review_date": "2028-04-30",
+  "minimum_aggregate_passing_percent": 50,
+  "source_pdf": {
+    "path": "packs/ae-con-q0602/qp_v4.0.pdf",
+    "origin_url": "https://s3.ap-south-1.amazonaws.com/nsdcproddocuments/qpPdf/CON_Q0602_v4.0.pdf",
+    "sha256": "27ef7dc3dfdcaad536bee7c1ebd73fcf7cb381e570f009cbb1b39f1060e514ad",
+    "pages": 53,
+    "retrieved_on": "2026-10-09",
+    "note": "Official NSDC-hosted Qualification Pack PDF, NSQC approved. NOS/PC text below is transcribed verbatim from this file. Pin-the-source P1 exit test requires a human to spot-check 10 random PCs against this PDF."
+  },
+  "nos": [
+    {
+      "code": "CON/N0602",
+      "title": "Handle hand and power tools relevant to construction electrical works",
+      "nos_version": "5.0",
+      "nsqf_level": 3,
+      "credits": 2,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 20,
+      "practical": true,
+      "assessed_via": "task",
+      "task": "T2",
+      "elements": [
+        {
+          "name": "Handle hand/power tools for electrical works.",
+          "theory_marks": 30,
+          "practical_marks": 70,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "perform basic checks on power tools prior to use",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "handle hand/power tools for establishing/ terminating electrical connections as per requirement",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "use appropriate tools to trace out short circuits/faults and leakages in electrical wiring",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "use measuring instruments to measure size and dimension of wires, conduits as per electrical installation or maintenance work requirement",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "use hand/ power tools to cut, and bend wire and conduit as per electrical installation or maintenance work requirement",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "use appropriate tools to splice wires by stripping insulation from terminal leads and twisting wires together",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC6"
+            },
+            {
+              "id": "PC7",
+              "text": "use appropriate hand/power tools to thread conduit ends, connect couplings, and fabricate and secure conduit support brackets",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "use appropriate electrical measuring devices like ammmeter, voltmeter, meggers etc. to examine electrical units for power interruptions/ continuity",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC8"
+            },
+            {
+              "id": "PC9",
+              "text": "use electrical devices such as starters, circuit breakers, relays as per equipment/ wiring installation rating or current rating",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "use diagnostic devices like multi-meter, tong tester, earth tester or similar devices to install, repair power connections",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "perform maintenance and upkeep of relevant tools and devices after use",
+              "source_page": 5,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, CON/N0602.PC11"
+            }
+          ]
+        }
+      ],
+      "source_page": 5,
+      "nos_parameters_page": 8,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.5, \"CON/N0602: Handle hand and power tools relevant to construction electrical works\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.8)"
+    },
+    {
+      "code": "CON/N0603",
+      "title": "Install temporary lighting arrangement at construction sites",
+      "nos_version": "5.0",
+      "nsqf_level": 3,
+      "credits": 2,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 20,
+      "practical": true,
+      "assessed_via": "task",
+      "task": "T4",
+      "elements": [
+        {
+          "name": "Installation of temporary lighting arrangement at construction sites",
+          "theory_marks": 15,
+          "practical_marks": 35,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "check cable, conduits, lights, sockets, temporary power distribution panels at power source and other required fixtures and accessories as per manufacturers guidelines and specification",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "lay cables through ducts or conduits, underground or through poles (overhead) as per plans and instructions",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "select the type and wattage of lights considering illumination requirement at worksite and install them at secured positions",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "fix lights and its accessories, brackets, bulkheads with screws and bolts or by other standard means, pull wires through conduit leading to connection boxes, temporary panels/ distribution boards or other temporary electrical terminals",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "extend/ join LV electrical cable using straight through joints, splicing them together and secure joints by applying PVC insulation tapes, caps or by other safe method as and when necessary",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "carry out termination of LV cables selecting the right method as per standard practice",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC6"
+            },
+            {
+              "id": "PC7",
+              "text": "work safely as per electrical safety guidelines provided by manufacturer, standard safety practice or organizational safety norms while establishing or disconnecting live electrical connections",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "upkeep of all relevant key electrical tools and fixtures",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC8"
+            },
+            {
+              "id": "PC9",
+              "text": "tag embedded, exposed electrical lines and other key equipment appropriately",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC9"
+            }
+          ]
+        },
+        {
+          "name": "Maintenance of installed lighting arrangements",
+          "theory_marks": 15,
+          "practical_marks": 35,
+          "performance_criteria": [
+            {
+              "id": "PC10",
+              "text": "shift light at various locations during construction activity as per requirement",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "repair and replace light arrangements as per instruction or requirement",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC11"
+            },
+            {
+              "id": "PC12",
+              "text": "replace burned out bulbs, light units and ballast in light fixtures as needed",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC12"
+            },
+            {
+              "id": "PC13",
+              "text": "carry out relevant tests to trace out power interruptions/ continuity at lighting arrangements",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC13"
+            },
+            {
+              "id": "PC14",
+              "text": "replace damaged cable, other relevant parts as and when necessary",
+              "source_page": 9,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.9, CON/N0603.PC14"
+            },
+            {
+              "id": "PC15",
+              "text": "replace faulty circuit breakers, fuses, switches, electrical and electronic components and wire as per requirement",
+              "source_page": 10,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.10, CON/N0603.PC15"
+            },
+            {
+              "id": "PC16",
+              "text": "perform preventive maintenance on diesel generators at site provided for temporary lighting (if any) at scheduled intervals as per direction of concerned authority",
+              "source_page": 10,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.10, CON/N0603.PC16"
+            }
+          ]
+        }
+      ],
+      "source_page": 9,
+      "nos_parameters_page": 14,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf pp.9-10, \"CON/N0603: Install temporary lighting arrangement at construction sites\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.14)"
+    },
+    {
+      "code": "CON/N0604",
+      "title": "Assist in LV (Low Voltage) electrical wiring at permanent structures",
+      "nos_version": "5.0",
+      "nsqf_level": 3,
+      "credits": 2,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 20,
+      "practical": true,
+      "assessed_via": "task",
+      "task": "T3",
+      "elements": [
+        {
+          "name": "Provide assistance for LV electrical wiring work in permanent structures",
+          "theory_marks": 30,
+          "practical_marks": 70,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "select house wiring components (such as wires flexible and rigid conduits, PVC raceways wooden battens, clamps etc) according to their specification size",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "read and interpret single phase LV wiring diagram",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "carry out necessary linear measurement to cut bend join conduits and cables and use them as per requirement or instruction",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "lay conduit through RCC structures (slabs beams walls) or through chased wall (brick wall) surface as per instruction",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "lock conduit pipe in its location by means of clamp or other standard means as per instruction",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "pull, push wires through conduits in order to expose them at desired locations as per requirement",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC6"
+            },
+            {
+              "id": "PC7",
+              "text": "perform drilling and cutting using appropriate tools as per requirement",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "handle shift and assist in fixing electrical fixtures and fittings as per instructions",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC8"
+            },
+            {
+              "id": "PC9",
+              "text": "carry out termination of cables safely as per instruction",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "test electrical circuit during and post wiring activity using appropriate tools as per direction of electrician",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "assist in carrying out electrical earthing work by installing earthing components as per instructions",
+              "source_page": 15,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, CON/N0604.PC11"
+            }
+          ]
+        }
+      ],
+      "source_page": 15,
+      "nos_parameters_page": 19,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.15, \"CON/N0604: Assist in LV (Low Voltage) electrical wiring at permanent structures\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.19)"
+    },
+    {
+      "code": "CON/N0605",
+      "title": "Assemble, install and maintain temporary LV electrical panels (distribution boards) at construction site",
+      "nos_version": "5.0",
+      "nsqf_level": 3,
+      "credits": 3,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 20,
+      "practical": true,
+      "assessed_via": "task",
+      "task": "T5",
+      "elements": [
+        {
+          "name": "Assemble temporary LV power distribution panels (distribution boards)",
+          "theory_marks": 20,
+          "practical_marks": 40,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "read relevant SLDs (Single Line Diagrams), instructions, safety guidelines, manufacturers specifications prior to assembling temporary panel/ distribution boards",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "install required fixtures like power sockets, switches, wires, MCBs (Miniature Circuit Breakers) of appropriate specification as per circuit load requirement",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "ensure tightness and safe working condition of wires, fixtures prior to the connection of the assembly with power source",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "connect DB (Distribution Board) to main power cable and perform standard tests to ensure its safe and desired working",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "place and secure the distribution board against external damaging agents like water, fire etc",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "carry out proper termination of cables as per standard practice while connecting to the sockets of the panel",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC6"
+            },
+            {
+              "id": "PC7",
+              "text": "carry out earthing of the panels as per standard procedure",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "check and ensure necessary tagging and barrication near the live/ active electrical distribution boards",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC8"
+            }
+          ]
+        },
+        {
+          "name": "Repair/ replace faulty parts/ fixtures as per requirement",
+          "theory_marks": 10,
+          "practical_marks": 30,
+          "performance_criteria": [
+            {
+              "id": "PC9",
+              "text": "carry out visual inspection of the live/ active board regularly to ensure safe working condition of all components",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "ensure that the live connections get discontinued after completion of daily construction works in order to minimize energy wastage and enhance working efficiency of electrical units",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "respond promptly to failure/ damage or malfunctioning of panel or any of its components",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC11"
+            },
+            {
+              "id": "PC12",
+              "text": "carry out necessary tests in order to determine root cause of failure",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC12"
+            },
+            {
+              "id": "PC13",
+              "text": "notify concerned authorities prior to shut down, deactivation or repair of the electrical unit",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC13"
+            },
+            {
+              "id": "PC14",
+              "text": "replace/ repair faulty components as per SLD, instructions, safety guidelines and manufacturers specifications",
+              "source_page": 20,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.20, CON/N0605.PC14"
+            },
+            {
+              "id": "PC15",
+              "text": "document and keep records relevant to maintenance/ repair of panels as per organizational norms",
+              "source_page": 21,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.21, CON/N0605.PC15"
+            },
+            {
+              "id": "PC16",
+              "text": "isolate the panel safely and shift to another location as per requirement",
+              "source_page": 21,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.21, CON/N0605.PC16"
+            }
+          ]
+        }
+      ],
+      "source_page": 20,
+      "nos_parameters_page": 25,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf pp.20-21, \"CON/N0605: Assemble, install and maintain temporary LV electrical panels (distribution boards) at construction site\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.25)"
+    },
+    {
+      "code": "CON/N9001",
+      "title": "Work according to personal health, safety and environment protocols at construction site",
+      "nos_version": "3.0",
+      "nsqf_level": 4,
+      "credits": 1,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 5,
+      "practical": true,
+      "assessed_via": "task",
+      "task": "T1",
+      "elements": [
+        {
+          "name": "Follow safety norms as defined by the organization",
+          "theory_marks": 5,
+          "practical_marks": 15,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "identify and report any hazards, risks or breaches in site safety to the appropriate authority",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "follow emergency and evacuation procedures in case of accidents, fires, natural calamities",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "follow recommended safe practices in handling construction materials, including chemical and hazardous material whenever applicable",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "follow all the protocols and safety techniques conveyed during safety awareness programs like Tool Box Talks, safety demonstrations and mock drills conducted at the site",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "select and operate different types of fire extinguishers corresponding to various types of fires as per EHS guideline",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "identify near miss, unsafe condition and unsafe act",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC6"
+            }
+          ]
+        },
+        {
+          "name": "Adopt healthy & safe work practices",
+          "theory_marks": 15,
+          "practical_marks": 35,
+          "performance_criteria": [
+            {
+              "id": "PC7",
+              "text": "use appropriate Personal Protective Equipment (PPE) as per work requirements for: Head Protection, Ear protection, Fall Protection, Foot Protection, Face and Eye Protection, Hand and Body Protection, and Respiratory Protection (if required)",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "handle all required tools, tackles, materials and equipment safely",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC8"
+            },
+            {
+              "id": "PC9",
+              "text": "follow safe disposal of waste, harmful and hazardous materials as per EHS guidelines",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "check and install all safety equipment as per standard guidelines",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "follow safety protocols and practices as laid down by site EHS department",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC11"
+            },
+            {
+              "id": "PC12",
+              "text": "obtain \"height pass\" clearance for working at heights",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC12"
+            }
+          ]
+        },
+        {
+          "name": "Implement good housekeeping practices",
+          "theory_marks": 5,
+          "practical_marks": 15,
+          "performance_criteria": [
+            {
+              "id": "PC13",
+              "text": "collect, segregate and deposit construction waste into appropriate containers based on their toxicity or hazardous nature",
+              "source_page": 26,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.26, CON/N9001.PC13"
+            },
+            {
+              "id": "PC14",
+              "text": "apply ergonomic principles wherever required",
+              "source_page": 27,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.27, CON/N9001.PC14"
+            }
+          ]
+        },
+        {
+          "name": "Follow infection control guidelines as per applicability",
+          "theory_marks": 5,
+          "practical_marks": 5,
+          "performance_criteria": [
+            {
+              "id": "PC15",
+              "text": "follow recommended personal hygiene, workplace hygiene and sanitization practices",
+              "source_page": 27,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.27, CON/N9001.PC15"
+            },
+            {
+              "id": "PC16",
+              "text": "clean and disinfect all materials, tools and supplies before and after use",
+              "source_page": 27,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.27, CON/N9001.PC16"
+            },
+            {
+              "id": "PC17",
+              "text": "report immediately to concerned authorities regarding signs and symptoms of illness of self and others",
+              "source_page": 27,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.27, CON/N9001.PC17"
+            }
+          ]
+        }
+      ],
+      "source_page": 26,
+      "nos_parameters_page": 31,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf pp.26-27, \"CON/N9001: Work according to personal health, safety and environment protocols at construction site\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.31)"
+    },
+    {
+      "code": "CON/N8001",
+      "title": "Work effectively in a team to deliver desired results at the workplace",
+      "nos_version": "3.0",
+      "nsqf_level": 4,
+      "credits": 1,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 5,
+      "practical": false,
+      "assessed_via": "declaration_and_assessor_questions",
+      "task": null,
+      "elements": [
+        {
+          "name": "Interact and communicate in an effective manner",
+          "theory_marks": 20,
+          "practical_marks": 40,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "pass on work related information/ requirement clearly to the team members",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "inform co-workers and superiors about any kind of deviations from work",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "report any unresolved problem to the supervisor immediately",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "obtain instructions from superiors and respond on the same",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "communicate to team members/subordinates for appropriate work technique and method",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "seek clarification and advice as per the requirement",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC6"
+            }
+          ]
+        },
+        {
+          "name": "Support co-workers to execute the project requirements",
+          "theory_marks": 5,
+          "practical_marks": 15,
+          "performance_criteria": [
+            {
+              "id": "PC7",
+              "text": "hand over the required material, tools, tackles, equipment and work fronts timely to interfacing teams",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "work together with co-workers in a synchronized manner",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC8"
+            }
+          ]
+        },
+        {
+          "name": "Practice inclusion",
+          "theory_marks": 5,
+          "practical_marks": 15,
+          "performance_criteria": [
+            {
+              "id": "PC9",
+              "text": "maintain cultural inclusivity at work place",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "maintain disability friendly work practices",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "follow gender neutral practices at workplace",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC11"
+            },
+            {
+              "id": "PC12",
+              "text": "address discriminatory and offensive behaviour in a professional manner as per organizational policy",
+              "source_page": 32,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, CON/N8001.PC12"
+            }
+          ]
+        }
+      ],
+      "source_page": 32,
+      "nos_parameters_page": 35,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.32, \"CON/N8001: Work effectively in a team to deliver desired results at the workplace\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.35)"
+    },
+    {
+      "code": "CON/N8002",
+      "title": "Plan and organize work to meet expected outcomes",
+      "nos_version": "4.0",
+      "nsqf_level": 4,
+      "credits": 1,
+      "theory_marks": 30,
+      "practical_marks": 70,
+      "weightage": 5,
+      "practical": false,
+      "assessed_via": "declaration_and_assessor_questions",
+      "task": null,
+      "elements": [
+        {
+          "name": "Plan and prepare for work",
+          "theory_marks": 10,
+          "practical_marks": 20,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "identify the targets and timelines set by superiors",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC1"
+            },
+            {
+              "id": "PC2",
+              "text": "determine the work requirements corresponding to task (drawings/schedules/instructions/methodology), safety, tools and equipment prior to commencement of task",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC2"
+            },
+            {
+              "id": "PC3",
+              "text": "plan the work by analyzing the required outcomes, work procedures, allotted time, resource availability and known priorities",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC3"
+            },
+            {
+              "id": "PC4",
+              "text": "prepare the work areas in coordination with team members",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC4"
+            },
+            {
+              "id": "PC5",
+              "text": "plan for waste collection and disposal prior to and after completion of work",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC5"
+            }
+          ]
+        },
+        {
+          "name": "Organise required resources as per work plan",
+          "theory_marks": 5,
+          "practical_marks": 15,
+          "performance_criteria": [
+            {
+              "id": "PC6",
+              "text": "arrange the required manpower prior to commencement of work",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC6"
+            },
+            {
+              "id": "PC7",
+              "text": "organize the required materials, tools and tackles required for the task",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC7"
+            }
+          ]
+        },
+        {
+          "name": "Complete work as per the plan",
+          "theory_marks": 15,
+          "practical_marks": 35,
+          "performance_criteria": [
+            {
+              "id": "PC8",
+              "text": "engage allocated manpower in an appropriate manner",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC8"
+            },
+            {
+              "id": "PC9",
+              "text": "employ correct tools, tackles and equipment for the desired work",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "provide guidance to the subordinates to obtain desired outcome",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "use resources in an optimum manner to avoid any unnecessary wastage",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC11"
+            },
+            {
+              "id": "PC12",
+              "text": "use tools, tackles and equipment carefully to avoid damage",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC12"
+            },
+            {
+              "id": "PC13",
+              "text": "ensure the work processes adopted are in line with the specified standards and instructions",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC13"
+            },
+            {
+              "id": "PC14",
+              "text": "complete the work with the allocated resources within specified time",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC14"
+            },
+            {
+              "id": "PC15",
+              "text": "clean and organise the workplace after completion of task",
+              "source_page": 36,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, CON/N8002.PC15"
+            }
+          ]
+        }
+      ],
+      "source_page": 36,
+      "nos_parameters_page": 40,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.36, \"CON/N8002: Plan and organize work to meet expected outcomes\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.40)"
+    },
+    {
+      "code": "DGT/VSQ/N0101",
+      "title": "Employability Skills (30 Hours)",
+      "nos_version": "1.0",
+      "nsqf_level": 2,
+      "credits": 1,
+      "theory_marks": 20,
+      "practical_marks": 30,
+      "weightage": 5,
+      "practical": false,
+      "assessed_via": "declaration_and_assessor_questions",
+      "task": null,
+      "elements": [
+        {
+          "name": "Introduction to Employability Skills",
+          "theory_marks": 1,
+          "practical_marks": 1,
+          "performance_criteria": [
+            {
+              "id": "PC1",
+              "text": "understand the significance of employability skills in meeting the job requirements",
+              "source_page": 41,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.41, DGT/VSQ/N0101.PC1"
+            }
+          ]
+        },
+        {
+          "name": "Constitutional values – Citizenship",
+          "theory_marks": 1,
+          "practical_marks": 1,
+          "performance_criteria": [
+            {
+              "id": "PC2",
+              "text": "identify constitutional values, civic rights, duties, personal values and ethics and environmentally sustainable practices",
+              "source_page": 41,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.41, DGT/VSQ/N0101.PC2"
+            }
+          ]
+        },
+        {
+          "name": "Becoming a Professional in the 21st Century",
+          "theory_marks": 1,
+          "practical_marks": 3,
+          "performance_criteria": [
+            {
+              "id": "PC3",
+              "text": "explain 21st Century Skills such as Self-Awareness, Behavior Skills, Positive attitude, self-motivation, problem-solving, creative thinking, time management, social and cultural awareness, emotional awareness, continuous learning mindset etc.",
+              "source_page": 41,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.41, DGT/VSQ/N0101.PC3"
+            }
+          ]
+        },
+        {
+          "name": "Basic English Skills",
+          "theory_marks": 2,
+          "practical_marks": 3,
+          "performance_criteria": [
+            {
+              "id": "PC4",
+              "text": "speak with others using some basic English phrases or sentences",
+              "source_page": 41,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.41, DGT/VSQ/N0101.PC4"
+            }
+          ]
+        },
+        {
+          "name": "Communication Skills",
+          "theory_marks": 1,
+          "practical_marks": 1,
+          "performance_criteria": [
+            {
+              "id": "PC5",
+              "text": "follow good manners while communicating with others",
+              "source_page": 41,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.41, DGT/VSQ/N0101.PC5"
+            },
+            {
+              "id": "PC6",
+              "text": "work with others in a team",
+              "source_page": 41,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.41, DGT/VSQ/N0101.PC6"
+            }
+          ]
+        },
+        {
+          "name": "Diversity & Inclusion",
+          "theory_marks": 1,
+          "practical_marks": 1,
+          "performance_criteria": [
+            {
+              "id": "PC7",
+              "text": "communicate and behave appropriately with all genders and PwD",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC7"
+            },
+            {
+              "id": "PC8",
+              "text": "report any issues related to sexual harassment",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC8"
+            }
+          ]
+        },
+        {
+          "name": "Financial and Legal Literacy",
+          "theory_marks": 3,
+          "practical_marks": 4,
+          "performance_criteria": [
+            {
+              "id": "PC9",
+              "text": "use various financial products and services safely and securely",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC9"
+            },
+            {
+              "id": "PC10",
+              "text": "calculate income, expenses, savings etc.",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC10"
+            },
+            {
+              "id": "PC11",
+              "text": "approach the concerned authorities for any exploitation as per legal rights and laws",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC11"
+            }
+          ]
+        },
+        {
+          "name": "Essential Digital Skills",
+          "theory_marks": 4,
+          "practical_marks": 6,
+          "performance_criteria": [
+            {
+              "id": "PC12",
+              "text": "operate digital devices and use its features and applications securely and safely",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC12"
+            },
+            {
+              "id": "PC13",
+              "text": "use internet and social media platforms securely and safely",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC13"
+            }
+          ]
+        },
+        {
+          "name": "Entrepreneurship",
+          "theory_marks": 3,
+          "practical_marks": 5,
+          "performance_criteria": [
+            {
+              "id": "PC14",
+              "text": "identify and assess opportunities for potential business",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC14"
+            },
+            {
+              "id": "PC15",
+              "text": "identify sources for arranging money and associated financial and legal challenges",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC15"
+            }
+          ]
+        },
+        {
+          "name": "Customer Service",
+          "theory_marks": 2,
+          "practical_marks": 2,
+          "performance_criteria": [
+            {
+              "id": "PC16",
+              "text": "identify different types of customers",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC16"
+            },
+            {
+              "id": "PC17",
+              "text": "identify customer needs and address them appropriately",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC17"
+            },
+            {
+              "id": "PC18",
+              "text": "follow appropriate hygiene and grooming standards",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC18"
+            }
+          ]
+        },
+        {
+          "name": "Getting ready for apprenticeship & Jobs",
+          "theory_marks": 1,
+          "practical_marks": 3,
+          "performance_criteria": [
+            {
+              "id": "PC19",
+              "text": "create a basic biodata",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC19"
+            },
+            {
+              "id": "PC20",
+              "text": "search for suitable jobs and apply",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC20"
+            },
+            {
+              "id": "PC21",
+              "text": "identify and register apprenticeship opportunities as per requirement",
+              "source_page": 42,
+              "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf p.42, DGT/VSQ/N0101.PC21"
+            }
+          ]
+        }
+      ],
+      "source_page": 41,
+      "nos_parameters_page": 45,
+      "source_reference": "packs/ae-con-q0602/qp_v4.0.pdf pp.41-42, \"DGT/VSQ/N0101: Employability Skills (30 Hours)\" — Elements and Performance Criteria (NOS Parameters table confirming code/credits/version on p.45)"
+    }
+  ]
+}

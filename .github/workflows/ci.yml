@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pack-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify pinned QP PDF hash
+        run: |
+          echo "27ef7dc3dfdcaad536bee7c1ebd73fcf7cb381e570f009cbb1b39f1060e514ad  packs/ae-con-q0602/qp_v4.0.pdf" | sha256sum -c -
+      - name: Validate the CON/Q0602 pack
+        run: python tools/pack_validate.py packs/ae-con-q0602
+      - name: Audit QP source traceability
+        run: python tools/audit_qp_traceability.py packs/ae-con-q0602
+      - name: Negative fixtures must fail their one targeted check
+        run: |
+          ! python tools/pack_validate.py tests/fixtures/pack_121mb
+          ! python tools/pack_validate.py tests/fixtures/pack_missing_pc_task
+          ! python tools/audit_qp_traceability.py tests/fixtures/pack_missing_pc_task
+          ! python tools/audit_qp_traceability.py tests/fixtures/pack_wrong_qp_version
+          ! python tools/audit_qp_traceability.py tests/fixtures/pack_unknown_pc_ref
+      - name: Matcher self-check + golden-vector parity
+        run: |
+          python ml/mapping/test_matcher.py
+          python ml/mapping/test_golden_vectors.py
+      - name: Matcher eval, harness mode (P1 gate: must run without errors)
+        run: python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl
+      - name: Harness data must refuse field-validation mode
+        run: |
+          ! python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl --mode field
