@@ -13,11 +13,20 @@
     "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
     "official_status": "This rubric is an MVP assessor-support tool built for this project. It is not issued, endorsed, or reviewed by CSDCI/NCVET/NSQC, and its PC marks/anchors are not an official SSC scoring scheme (see rules.marks_note for the specific equal-split simplification). Nothing it produces is an official pass/fail or certification decision.",
     "output_contract": {
-      "purpose": "Any future scoring/profile/report code (P2 backend, P6 dashboard, P7 signed report) MUST present these three evidence categories as visibly distinct -- never collapse DECLARATION_OR_ASSESSOR_NOTE or NOT_ASSESSED_IN_MVP into a numeric score alongside DIRECT_TASK_EVIDENCE PCs.",
-      "DIRECT_TASK_EVIDENCE": "PCs present in this file (items[]). Scored 0-3 against anchors from captured T1-T5 evidence. evidence_status field on every item confirms this.",
-      "DECLARATION_OR_ASSESSOR_NOTE": "PCs of CON/N8001, CON/N8002, DGT/VSQ/N0101 -- deliberately absent from this file. No numeric score; render as the worker's self-declaration plus any assessor free-text notes only. See packs/ae-con-q0602/coverage_matrix.json for the full PC list in this category.",
-      "NOT_ASSESSED_IN_MVP": "Must be empty for the pinned CON/Q0602 v4.0 pack (tools/audit_qp_traceability.py's [coverage] check enforces this). If it is ever non-empty for a future pack, those PCs must render as explicitly 'not assessed' -- never silently omitted and never defaulted to a score.",
-      "wording_rule": "No UI, API response, or generated report may use the words 'certified', 'official pass', or 'official certificate'. Use 'NSQF-aligned competency profile and assessor recommendation' (see docs/safety.md section 4)."
+      "purpose": "Two separate axes. Axis 1 (this file, pack-design-time, same for every assessment): which EVIDENCE PATHWAY exists for a PC in the fixed T1-T5 structure. Axis 2 (assessment-time, per real submitted evidence, P2/P6 scope -- not yet implemented, this is the contract for it): what the assessor actually recorded for THIS worker's THIS submission. A PC being on the TASK_EVIDENCE_PATHWAY is NOT proof it was demonstrated -- it only means an assessor CAN judge it from T1-T5 evidence if that evidence shows it.",
+      "axis_1_pathway": {
+        "TASK_EVIDENCE_PATHWAY": "PC is linked to >=1 of T1-T5 (tasks.json linked_pcs). An assessor MAY score it 0-3 from captured evidence -- IF that evidence actually shows it (see axis 2).",
+        "DECLARATION_OR_ASSESSOR_NOTE": "PC belongs to CON/N8001, CON/N8002 or DGT/VSQ/N0101. Self-declaration + up to 3 assessor questions only. Never enters axis 2 at all -- there is no 0-3 score to withhold or grant.",
+        "NOT_ASSESSED_IN_MVP": "No pathway at all. Must be empty for the pinned pack."
+      },
+      "axis_2_assessor_outcome_contract_for_p2": {
+        "applies_to": "TASK_EVIDENCE_PATHWAY PCs only, recorded per assessment (not per pack)",
+        "DEMONSTRATED": "Assessor reviewed the submitted T1-T5 evidence and it clearly shows this PC; scored 0-3 against rubric.json anchors.",
+        "NOT_OBSERVABLE": "PC is on the TASK_EVIDENCE_PATHWAY and evidence was submitted for that task, but it does not show this specific PC (bad angle, skipped step, too short, etc). No score; drives a reassessment request (see master plan Fig.5), not a 0.",
+        "NOT_APPLICABLE_IN_MVP": "PC's mvp_applicability is NOT_APPLICABLE_IN_MVP (axis-1 pack data) -- pre-set, not assessor-judged per submission, because no evidence setup could ever show it in this MVP. Never scored, never requested for reassessment.",
+        "required_api_distinction": "Any profile/report/API output MUST render these as 4 visibly distinct categories, never collapsed into one score list: demonstrated (axis2=DEMONSTRATED), declaration-only (axis1=DECLARATION_OR_ASSESSOR_NOTE), not-observable (axis2=NOT_OBSERVABLE), not-applicable (axis2=NOT_APPLICABLE_IN_MVP / axis1 mvp_applicability=NOT_APPLICABLE_IN_MVP)."
+      },
+      "wording_rule": "No UI, API response, or generated report may use 'certified', 'official pass', or 'official certificate'. Use 'NSQF-aligned competency profile and assessor recommendation'."
     }
   },
   "nos_summary": [
@@ -71,7 +80,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC2",
@@ -91,7 +101,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC3",
@@ -111,7 +122,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC4",
@@ -131,7 +143,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC5",
@@ -151,7 +164,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC6",
@@ -171,7 +185,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC7",
@@ -191,7 +206,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC8",
@@ -211,7 +227,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC9",
@@ -231,7 +248,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC10",
@@ -251,7 +269,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0602.PC11",
@@ -271,7 +290,8 @@
       },
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC1",
@@ -291,7 +311,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC2",
@@ -311,7 +332,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC3",
@@ -331,7 +353,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC4",
@@ -351,7 +374,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC5",
@@ -371,7 +395,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC6",
@@ -391,7 +416,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC7",
@@ -411,7 +437,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC8",
@@ -431,7 +458,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC9",
@@ -451,7 +479,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC10",
@@ -471,7 +500,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC11",
@@ -491,7 +521,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC12",
@@ -511,7 +542,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC13",
@@ -531,7 +563,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC14",
@@ -551,7 +584,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC15",
@@ -571,7 +605,8 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0603.PC16",
@@ -591,7 +626,9 @@
       },
       "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "NOT_APPLICABLE_IN_MVP",
+      "caveat": "NOT_APPLICABLE_IN_MVP -- no diesel generator on the training board. These anchors are retained for future use (see coverage_matrix.json) but must never be used to score an assessment while mvp_applicability is NOT_APPLICABLE_IN_MVP."
     },
     {
       "pc_id": "CON/N0604.PC1",
@@ -611,7 +648,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC2",
@@ -631,7 +669,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC3",
@@ -651,7 +690,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC4",
@@ -671,7 +711,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC5",
@@ -691,7 +732,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC6",
@@ -711,7 +753,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC7",
@@ -731,7 +774,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC8",
@@ -751,7 +795,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC9",
@@ -771,7 +816,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC10",
@@ -791,7 +837,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0604.PC11",
@@ -811,7 +858,8 @@
       },
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC1",
@@ -831,7 +879,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC2",
@@ -851,7 +900,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC3",
@@ -871,7 +921,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC4",
@@ -891,7 +942,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC5",
@@ -911,7 +963,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC6",
@@ -931,7 +984,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC7",
@@ -951,7 +1005,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC8",
@@ -971,7 +1026,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC9",
@@ -991,7 +1047,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC10",
@@ -1011,7 +1068,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC11",
@@ -1031,7 +1089,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC12",
@@ -1051,7 +1110,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC13",
@@ -1071,7 +1131,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC14",
@@ -1091,7 +1152,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC15",
@@ -1111,7 +1173,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N0605.PC16",
@@ -1131,7 +1194,8 @@
       },
       "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC1",
@@ -1151,7 +1215,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC2",
@@ -1171,7 +1236,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC3",
@@ -1191,7 +1257,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC4",
@@ -1211,7 +1278,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC5",
@@ -1231,7 +1299,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC6",
@@ -1251,7 +1320,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC7",
@@ -1271,7 +1341,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC8",
@@ -1291,7 +1362,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC9",
@@ -1311,7 +1383,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC10",
@@ -1331,7 +1404,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC11",
@@ -1351,7 +1425,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC12",
@@ -1371,7 +1446,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC13",
@@ -1391,7 +1467,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC14",
@@ -1411,7 +1488,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC15",
@@ -1431,7 +1509,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC16",
@@ -1451,7 +1530,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     },
     {
       "pc_id": "CON/N9001.PC17",
@@ -1471,7 +1551,8 @@
       },
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
-      "evidence_status": "DIRECT_TASK_EVIDENCE"
+      "evidence_pathway": "TASK_EVIDENCE_PATHWAY",
+      "mvp_applicability": "ASSESSABLE"
     }
   ]
 }
