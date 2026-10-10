@@ -36,6 +36,8 @@ jobs:
         run: python tools/pack_validate.py packs/ae-con-q0602
       - name: Audit QP source traceability
         run: python tools/audit_qp_traceability.py packs/ae-con-q0602
+      - name: Android EN/HI string parity and declaration-contract drift check
+        run: python tools/check_android_string_parity.py
       - name: Negative fixtures must fail their one targeted check
         run: |
           expect_fail() { if "$@"; then echo "ERROR: expected this to fail but it exited 0: $*"; exit 1; fi; }
