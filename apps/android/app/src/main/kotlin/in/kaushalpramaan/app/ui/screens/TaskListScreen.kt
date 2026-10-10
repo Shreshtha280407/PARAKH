@@ -4,6 +4,7 @@ import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
 import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
+import `in`.kaushalpramaan.app.ui.components.SafetyNoticeCard
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import `in`.kaushalpramaan.app.ui.components.formatMb
 import androidx.compose.foundation.clickable
@@ -53,7 +54,12 @@ fun TaskListScreen(
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize()) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(stringResource(R.string.tasks_subtitle), style = MaterialTheme.typography.bodyMedium)
+                SafetyNoticeCard()
+                Text(
+                    stringResource(R.string.tasks_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
                 Text(
                     stringResource(R.string.tasks_budget_total, formatMb(totalUsed), formatMb(totalBudget)),
                     style = MaterialTheme.typography.titleSmall,
@@ -65,7 +71,9 @@ fun TaskListScreen(
                 )
             }
 
-            LazyColumn(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
+            LazyColumn(
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp).testTag("task_list_lazy_column"),
+            ) {
                 items(tasks, key = { it.id }) { task ->
                     val used = uiState.taskEvidenceBytes(task.id)
                     Card(
@@ -84,7 +92,11 @@ fun TaskListScreen(
                                     modifier = Modifier.weight(1f),
                                 )
                                 if (task.id in gapTaskIds) {
-                                    AssistChip(onClick = { onOpenTask(task.id) }, label = { Text(stringResource(R.string.task_gap_badge)) })
+                                    AssistChip(
+                                        onClick = { onOpenTask(task.id) },
+                                        label = { Text(stringResource(R.string.task_gap_badge)) },
+                                        modifier = Modifier.testTag("task_gap_badge_${task.id}"),
+                                    )
                                 }
                             }
                             Text(

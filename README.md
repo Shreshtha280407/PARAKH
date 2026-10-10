@@ -15,4 +15,8 @@ Prior-skill Assessment &amp; Recognition through AI-driven Knowledge
 Independent assessor-agreement validation (the original master-plan IC-1
 ≥90%-agreement study) was **not performed** and is not claimed anywhere in
 this repository — see `docs/gates/IC1A.md` for the honest limitation
-statement and what IC-1A proves instead.
+statement and what IC-1A proves instead. Likewise, no human usability study
+(e.g. an independent non-team person completing the Android flow in Hindi
+unaided) was performed — `docs/gates/P3.md`'s `HindiFlowTest` is an
+automated UI test only. Both are outside the approved technical IC-1A
+scope; not claimed as completed.

@@ -6,6 +6,7 @@ import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.MockEvidence
 import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
+import `in`.kaushalpramaan.app.ui.components.SafetyNoticeCard
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import `in`.kaushalpramaan.app.ui.components.formatMb
 import android.icu.text.DateFormat
@@ -19,10 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -62,19 +61,7 @@ fun TaskDetailScreen(viewModel: AppViewModel, taskId: String, onBack: () -> Unit
         onBack = onBack,
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Warning, contentDescription = null)
-                    Text(
-                        stringResource(R.string.task_detail_safety_warning),
-                        modifier = Modifier.padding(start = 8.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
+            SafetyNoticeCard()
 
             Text(
                 stringResource(R.string.task_detail_guide_title),

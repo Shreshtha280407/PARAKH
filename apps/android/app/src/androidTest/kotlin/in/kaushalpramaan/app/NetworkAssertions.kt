@@ -12,12 +12,14 @@ import org.junit.Assert.assertEquals
  * build-time check for the static half of this guarantee). */
 object NetworkAssertions {
     fun assertAppHasNoInternetCapability(context: Context) {
-        val granted = context.packageManager.checkPermission(
-            android.Manifest.permission.INTERNET,
-            context.packageName,
-        )
+        assertPermissionDenied(context, android.Manifest.permission.INTERNET)
+        assertPermissionDenied(context, android.Manifest.permission.ACCESS_NETWORK_STATE)
+    }
+
+    private fun assertPermissionDenied(context: Context, permission: String) {
+        val granted = context.packageManager.checkPermission(permission, context.packageName)
         assertEquals(
-            "app must NOT hold android.permission.INTERNET -- P-3 is offline-only",
+            "app must NOT hold $permission -- P-3 is offline-only",
             PackageManager.PERMISSION_DENIED,
             granted,
         )

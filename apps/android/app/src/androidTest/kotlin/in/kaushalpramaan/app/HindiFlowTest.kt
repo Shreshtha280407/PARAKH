@@ -11,10 +11,16 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * P-3 exit test (master plan p.18): "A non-team person completes the flow
- * in Hindi without help." Drives the full journey with Hindi selected at
- * the language screen and asserts Hindi text renders at each major
- * checkpoint, ending at the sealed-locally state.
+ * Automated end-to-end check only -- NOT a human usability study and NOT
+ * evidence that an independent non-team person has completed this flow
+ * unaided. This is a scripted Espresso/Compose UI test: it drives the full
+ * journey with Hindi selected at the language screen and asserts that real
+ * Hindi strings render at each major checkpoint, ending at the
+ * sealed-locally state. The master plan's original P-3 exit criterion ("a
+ * non-team person completes the flow in Hindi without help") describes a
+ * human usability study, which is outside the approved technical IC-1A
+ * scope; not claimed as completed here or anywhere in this codebase -- see
+ * docs/gates/IC1A.md and docs/gates/P3.md.
  */
 @RunWith(AndroidJUnit4::class)
 class HindiFlowTest {

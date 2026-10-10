@@ -2,9 +2,12 @@ package `in`.kaushalpramaan.app
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +40,14 @@ class PartialMatchFlowTest {
 
         composeRule.tapTag("btn_view_tasks")
 
-        composeRule.onAllNodesWithText("Extra evidence needed").assertCountEquals(5)
+        // The task list is a LazyColumn -- only the items that fit the viewport
+        // are composed at once, so each task's gap badge must be scrolled to
+        // individually (same reasoning as tapInLazyColumn in TestFlows.kt)
+        // rather than counted with a single onAllNodesWithText across the
+        // whole (virtualized) screen.
+        for (taskId in listOf("T1", "T2", "T3", "T4", "T5")) {
+            composeRule.onNodeWithTag("task_list_lazy_column").performScrollToNode(hasTestTag("task_gap_badge_$taskId"))
+            composeRule.onNodeWithTag("task_gap_badge_$taskId").assertIsDisplayed()
+        }
     }
 }

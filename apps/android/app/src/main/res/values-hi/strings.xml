@@ -75,7 +75,7 @@
     <string name="action_preview">पूर्वावलोकन और सबमिट करें</string>
 
     <!-- Task detail screen -->
-    <string name="task_detail_safety_warning">सुरक्षा: केवल बंद (डी-एनर्जाइज़्ड) ट्रेनिंग बोर्ड या निगरानी वाली ट्रेनिंग जगह का उपयोग करें। यह ऐप कभी भी लाइव बिजली के काम का निर्देश नहीं देता।</string>
+    <string name="safety_notice_text">सुरक्षा पहले: किसी भी तार को छूने से पहले ट्रेनिंग बोर्ड को आइसोलेट करें और स्वीकृत टेस्टर से यह सुनिश्चित करें कि वह डी-एनर्जाइज़्ड (बिजली बंद) है। लाइव सर्किट पर काम न करें या उसे एनर्जाइज़ न करें। कोई भी पावर्ड टेस्ट केवल अधिकृत ट्रेनिंग-बोर्ड सुपरवाइज़र द्वारा ही किया जाता है।</string>
     <string name="task_detail_guide_title">यह कार्य कैसे करें</string>
     <string name="task_detail_evidence_hint_title">क्या रिकॉर्ड करना है</string>
     <string name="task_detail_evidence_title">आपका प्रमाण</string>

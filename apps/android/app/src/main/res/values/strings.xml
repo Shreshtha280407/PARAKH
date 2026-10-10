@@ -75,7 +75,7 @@
     <string name="action_preview">Preview and submit</string>
 
     <!-- Task detail screen -->
-    <string name="task_detail_safety_warning">Safety: use a de-energised (powered-off) training board or a supervised training setting only. This app never instructs live electrical work.</string>
+    <string name="safety_notice_text">Safety first: the training board must be isolated and confirmed de-energised with the approved tester before you touch any conductor. Do not energise or work on a live circuit. Any powered test is performed only by the authorised training-board supervisor.</string>
     <string name="task_detail_guide_title">How to do this task</string>
     <string name="task_detail_evidence_hint_title">What to capture</string>
     <string name="task_detail_evidence_title">Your evidence</string>
