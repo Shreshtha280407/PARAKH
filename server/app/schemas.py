@@ -91,9 +91,14 @@ class AssessmentOut(BaseModel):
     pack_code: str
     pack_name: str
     status: str
+    assessor_id: int | None = None
     total_bytes_used: int
     total_budget_bytes: int
     created_at: datetime.datetime
+    submitted_at: datetime.datetime | None = None
+    decision: str | None = None
+    decision_notes: str | None = None
+    reassessment_of_id: int | None = None
     tasks: list[AssessmentTaskOut]
 
 
@@ -171,6 +176,105 @@ class RubricItemOut(BaseModel):
     anchors: dict
     disclaimer: str
     evidence_hint: str
+
+
+# ---- scoring (assessor review) ----
+
+EvidenceStatus = Literal["DEMONSTRATED", "NOT_OBSERVABLE", "NOT_APPLICABLE_IN_MVP"]
+
+
+class CriterionScoreIn(BaseModel):
+    pc_full_id: str
+    score_level: int = Field(ge=0, le=3)
+    evidence_status: EvidenceStatus
+    assessor_comment: str | None = None
+    # Optimistic lock: 0 means "I believe this PC has never been scored
+    # before"; otherwise must equal the version last read from GET /review.
+    expected_version: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def _comment_required_when_not_demonstrated(self) -> "CriterionScoreIn":
+        if self.evidence_status != "DEMONSTRATED" and not (self.assessor_comment and self.assessor_comment.strip()):
+            raise ValueError(
+                f"assessor_comment is required when evidence_status is '{self.evidence_status}'"
+            )
+        return self
+
+
+class CriterionScoreOut(BaseModel):
+    pc_full_id: str
+    score_level: int
+    evidence_status: str
+    assessor_comment: str | None
+    marks_awarded: Decimal
+    rubric_version: str
+    assessor_id: int | None
+    scored_at: datetime.datetime | None
+    version: int
+
+
+class CriterionReviewItemOut(BaseModel):
+    """One rubric item merged with its current score, if any -- the review
+    screen's unit of work."""
+    pc_full_id: str
+    rubric_version: str
+    marks: Decimal
+    critical: bool
+    anchors: dict
+    disclaimer: str
+    evidence_hint: str
+    score: CriterionScoreOut | None = None
+
+
+class NosProfileOut(BaseModel):
+    nos_code: str
+    nos_title: str
+    marks_awarded: Decimal
+    marks_possible: Decimal
+    percent: float
+
+
+COMPETENCY_PROFILE_DISCLAIMER = (
+    "Decision support only — final certification/recommendation remains with the human assessor."
+)
+
+
+class CompetencyProfileOut(BaseModel):
+    assessment_id: int
+    overall_marks_awarded: Decimal
+    overall_marks_possible: Decimal
+    overall_percent: float
+    minimum_aggregate_passing_percent: int
+    meets_minimum_threshold: bool
+    pcs_scored: int
+    pcs_total: int
+    nos_breakdown: list[NosProfileOut]
+    disclaimer: str = COMPETENCY_PROFILE_DISCLAIMER
+
+
+# ---- signed reports ----
+
+class SignedReportOut(BaseModel):
+    assessment_id: int
+    sha256: str
+    signature: str
+    key_id: str
+    signed_at: datetime.datetime
+
+
+class ReportVerifyOut(BaseModel):
+    assessment_id: int
+    valid: bool
+    key_id: str
+    signed_at: datetime.datetime
+
+
+# ---- worker token rotation/revocation ----
+
+class WorkerTokenOut(BaseModel):
+    assessment_id: int
+    worker_token: str | None  # None on revoke -- there is no longer a usable raw token
+    status: str
 
 
 # ---- admin ----

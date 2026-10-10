@@ -11,6 +11,7 @@ import logging
 import os
 import signal
 import socket
+import subprocess
 import time
 
 from . import jobs, models
@@ -51,8 +52,57 @@ def _verify_evidence(db, job: models.Job) -> None:
     logger.info("verified evidence id=%s sha256=%s", evidence_id, actual)
 
 
+def _generate_thumbnail(db, job: models.Job) -> None:
+    """ffmpeg-based video thumbnail extraction -- one frame, written as a
+    JPEG alongside the source. Deliberately NOT CV/AI inference: pure frame
+    extraction for a UI preview, nothing about the evidence's content is
+    analysed (see docs/evidence_quality_result.md). Missing ffmpeg, a
+    corrupt video, or an extraction timeout are a graceful "unavailable" --
+    never a raised exception -- because the original evidence must always
+    stay servable regardless of thumbnail outcome, and these aren't
+    transient failures worth retrying."""
+    evidence_id = job.payload["evidence_item_id"]
+    evidence = db.get(models.EvidenceItem, evidence_id)
+    if evidence is None:
+        raise RuntimeError(f"evidence item {evidence_id} not found")
+    if evidence.kind != "video":
+        evidence.thumbnail_status = "not_applicable"
+        return
+
+    storage = LocalDiskStorage(settings.evidence_dir)
+    source_path = storage.path_for(evidence.storage_key)
+    thumbnail_key = evidence.storage_key + ".thumb.jpg"
+    thumbnail_path = storage.path_for(thumbnail_key)
+
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y", "-i", str(source_path), "-ss", "00:00:00.5",
+                "-frames:v", "1", "-vf", "scale=320:-1", str(thumbnail_path),
+            ],
+            capture_output=True, timeout=30,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        evidence.thumbnail_status = "unavailable"
+        logger.warning("thumbnail extraction unavailable for evidence id=%s: %s", evidence_id, e)
+        return
+
+    if result.returncode != 0 or not thumbnail_path.exists():
+        evidence.thumbnail_status = "unavailable"
+        logger.warning(
+            "thumbnail extraction failed for evidence id=%s: %s",
+            evidence_id, result.stderr.decode(errors="replace")[:500],
+        )
+        return
+
+    evidence.thumbnail_status = "completed"
+    evidence.thumbnail_key = thumbnail_key
+    logger.info("generated thumbnail for evidence id=%s key=%s", evidence_id, thumbnail_key)
+
+
 JOB_HANDLERS = {
     "verify_evidence": _verify_evidence,
+    "generate_thumbnail": _generate_thumbnail,
 }
 
 
@@ -86,6 +136,9 @@ def main() -> None:
     while _running:
         db = SessionLocal()
         try:
+            recovered = jobs.recover_stale_jobs(db)
+            if recovered:
+                logger.warning("recovered %s stale job(s) from a crashed worker", recovered)
             processed = run_once(db)
         finally:
             db.close()

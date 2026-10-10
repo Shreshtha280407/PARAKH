@@ -3,6 +3,7 @@ module docstring for why the concurrency test below requires a real
 PostgreSQL connection (TEST_DATABASE_URL) and fails loudly rather than
 skipping when one isn't available.
 """
+import datetime
 import threading
 
 import pytest
@@ -75,6 +76,59 @@ def test_mark_failed_retries_until_max_attempts(db_session):
     assert claimed2.finished_at is not None
 
     assert jobs.claim_job(db_session, "worker-c") is None  # failed jobs are never reclaimed
+
+
+def test_recover_stale_jobs_is_a_no_op_when_nothing_is_stale(db_session):
+    assert jobs.recover_stale_jobs(db_session) == 0
+
+    jobs.enqueue(db_session, "verify_evidence", {"n": 1})
+    claimed = jobs.claim_job(db_session, "worker-a")  # fresh lease, not expired
+    assert jobs.recover_stale_jobs(db_session) == 0
+    db_session.refresh(claimed)
+    assert claimed.status == "running"
+
+
+def test_recover_stale_jobs_requeues_a_crashed_workers_job(db_session):
+    """Simulates a worker that claimed a job, then crashed before calling
+    mark_succeeded/mark_failed -- the lease (set at claim time) expires,
+    and the next sweep must notice and requeue it for another worker."""
+    job = jobs.enqueue(db_session, "verify_evidence", {"n": 1}, max_attempts=3)
+    claimed = jobs.claim_job(db_session, "worker-that-crashes")
+    assert claimed.attempts == 1
+
+    # Backdate the lease to simulate it having expired (no sleep needed).
+    claimed.lease_expires_at = jobs.utcnow() - datetime.timedelta(seconds=1)
+    db_session.commit()
+
+    recovered = jobs.recover_stale_jobs(db_session)
+    assert recovered == 1
+
+    db_session.refresh(claimed)
+    assert claimed.status == "queued"
+    assert claimed.locked_by is None
+    assert claimed.locked_at is None
+    assert claimed.attempts == 1  # recovery itself doesn't count as a new attempt
+    assert "crashed" in claimed.last_error
+
+    # A different worker can now pick it up and will see attempt 2.
+    reclaimed = jobs.claim_job(db_session, "worker-b")
+    assert reclaimed.id == job.id
+    assert reclaimed.attempts == 2
+
+
+def test_recover_stale_jobs_fails_permanently_once_attempts_are_exhausted(db_session):
+    jobs.enqueue(db_session, "verify_evidence", {"n": 1}, max_attempts=1)
+    claimed = jobs.claim_job(db_session, "worker-that-crashes")
+    assert claimed.attempts == 1  # already at max_attempts after this one claim
+
+    claimed.lease_expires_at = jobs.utcnow() - datetime.timedelta(seconds=1)
+    db_session.commit()
+
+    assert jobs.recover_stale_jobs(db_session) == 1
+    db_session.refresh(claimed)
+    assert claimed.status == "failed"
+    assert claimed.finished_at is not None
+    assert jobs.claim_job(db_session, "worker-b") is None  # never reclaimed
 
 
 def test_concurrent_claims_never_double_process(db_session):

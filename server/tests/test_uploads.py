@@ -2,6 +2,10 @@
 module docstring for the ordered-sequential-chunks protocol this exercises.
 """
 import hashlib
+import threading
+
+import pytest
+from fastapi import HTTPException
 
 WT_HEADER = "X-Worker-Token"
 
@@ -240,6 +244,216 @@ def test_quota_released_is_consumed_by_evidence_after_completion(client, importe
     # Opening a second session on T2 only has budget - already-used room.
     second = _open_session(client, token, a["id"], task_code="T2", size=16 * 1024 * 1024)
     assert second.status_code == 409  # 20 MB budget - 5 MB used = 15 MB remaining, 16 MB requested
+
+
+def _fail_without_postgres(db_session):
+    if db_session.bind.dialect.name != "postgresql":
+        pytest.fail(
+            "this test requires TEST_DATABASE_URL to point at a real PostgreSQL database -- "
+            "SQLite has no row-level locking, so the SELECT FOR UPDATE guarantee cannot be "
+            "demonstrated against it. See server/README.md for how to run against the "
+            "dockerized Postgres."
+        )
+
+
+def _two_sessions_against(db_session):
+    """Two independent engines/sessions against the same real database, like
+    two real concurrent requests -- mirrors test_jobs.py's
+    test_concurrent_claims_never_double_process pattern."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    # NOT str(url) -- that redacts the password.
+    url = db_session.bind.url.render_as_string(hide_password=False)
+    engine_a = create_engine(url)
+    engine_b = create_engine(url)
+    return engine_a, engine_b, sessionmaker(bind=engine_a), sessionmaker(bind=engine_b)
+
+
+def test_concurrent_reservations_on_same_task_never_jointly_exceed_its_budget(client, db_session, imported_pack, worker):
+    """Real two-thread, two-connection proof that POST /uploads locks a
+    stable parent row before reserving quota (routers/uploads.py's
+    open_upload_session) -- unlike
+    test_two_open_sessions_on_same_task_cannot_jointly_exceed_its_budget
+    above, which only proves the check holds across two *sequential* calls,
+    this fires both at once and proves the race is actually closed."""
+    _fail_without_postgres(db_session)
+    from server.app import schemas
+    from server.app.routers import uploads as uploads_router
+
+    a = _new_assessment(client, imported_pack, worker)  # T1 budget 15 MB
+    token = a["worker_token"]
+    engine_a, engine_b, SessionA, SessionB = _two_sessions_against(db_session)
+
+    results = {}
+    barrier = threading.Barrier(2)
+
+    def _reserve(session_factory, key):
+        barrier.wait()
+        s = session_factory()
+        try:
+            body = schemas.UploadSessionCreate(
+                assessment_id=a["id"], task_code="T1", kind="video", mime="video/mp4",
+                claimed_size_bytes=10 * 1024 * 1024,
+            )
+            out = uploads_router.open_upload_session(body=body, x_worker_token=token, db=s)
+            results[key] = ("ok", out.status)
+        except HTTPException as e:
+            results[key] = ("error", e.status_code)
+        finally:
+            s.close()
+
+    t_a = threading.Thread(target=_reserve, args=(SessionA, "a"))
+    t_b = threading.Thread(target=_reserve, args=(SessionB, "b"))
+    t_a.start()
+    t_b.start()
+    t_a.join(timeout=30)
+    t_b.join(timeout=30)
+    engine_a.dispose()
+    engine_b.dispose()
+
+    outcomes = [results["a"], results["b"]]
+    successes = [o for o in outcomes if o[0] == "ok"]
+    rejections = [o for o in outcomes if o == ("error", 409)]
+    assert len(successes) == 1, f"expected exactly one 201 (reservation accepted), got {outcomes}"
+    assert len(rejections) == 1, f"expected exactly one 409 (reservation rejected), got {outcomes}"
+
+
+def test_concurrent_identical_chunk_puts_never_double_append(client, db_session, imported_pack, worker):
+    """Two threads PUT the exact same chunk_index=0 at once. Without the row
+    lock in _put_chunk, both could read next_chunk_index=0 before either
+    commits, both treat it as new (not a replay), and both append to the
+    storage file -- corrupting it -- even though one would then fail a
+    unique-constraint insert on upload_chunks. With the lock, the second
+    thread blocks, then (seeing committed state) correctly recognises its
+    index as an already-received replay and skips the append entirely."""
+    _fail_without_postgres(db_session)
+    from server.app import models
+    from server.app.routers.uploads import _put_chunk
+
+    a = _new_assessment(client, imported_pack, worker)
+    token = a["worker_token"]
+    data = b"x" * 20
+    opened = _open_session(client, token, a["id"], size=len(data)).json()
+    engine_a, engine_b, SessionA, SessionB = _two_sessions_against(db_session)
+
+    results = {}
+    barrier = threading.Barrier(2)
+
+    def _put(session_factory, key):
+        barrier.wait()
+        s = session_factory()
+        try:
+            ack = _put_chunk(opened["id"], 0, data, token, s)
+            results[key] = ("ok", ack.received_bytes)
+        except HTTPException as e:
+            results[key] = ("error", e.status_code)
+        finally:
+            s.close()
+
+    t_a = threading.Thread(target=_put, args=(SessionA, "a"))
+    t_b = threading.Thread(target=_put, args=(SessionB, "b"))
+    t_a.start()
+    t_b.start()
+    t_a.join(timeout=30)
+    t_b.join(timeout=30)
+    engine_a.dispose()
+    engine_b.dispose()
+
+    assert results["a"] == ("ok", len(data)), results
+    assert results["b"] == ("ok", len(data)), results
+
+    session = db_session.get(models.UploadSession, opened["id"])
+    db_session.refresh(session)
+    assert session.received_bytes == len(data), "bytes were appended more than once"
+    chunk_count = db_session.query(models.UploadChunk).filter_by(
+        upload_session_id=opened["id"], chunk_index=0
+    ).count()
+    assert chunk_count == 1
+
+
+def test_concurrent_complete_calls_never_create_two_evidence_items(client, db_session, imported_pack, worker):
+    """Two threads call POST .../complete on the same fully-uploaded session
+    at once. Without the row lock, both could read status="open" before
+    either commits and both create an EvidenceItem; with it, the second
+    blocks, then sees status="completed" and returns the idempotent receipt
+    instead of creating a second one."""
+    _fail_without_postgres(db_session)
+    from server.app import models, schemas
+    from server.app.routers.uploads import complete_upload
+
+    a = _new_assessment(client, imported_pack, worker)
+    token = a["worker_token"]
+    data = b"concurrent complete bytes"
+    opened = _open_session(client, token, a["id"], size=len(data)).json()
+    _upload_all_chunks(client, token, opened["id"], data)
+    sha = hashlib.sha256(data).hexdigest()
+    engine_a, engine_b, SessionA, SessionB = _two_sessions_against(db_session)
+
+    results = {}
+    barrier = threading.Barrier(2)
+
+    def _complete(session_factory, key):
+        barrier.wait()
+        s = session_factory()
+        try:
+            receipt = complete_upload(opened["id"], schemas.UploadCompleteRequest(client_sha256=sha), token, s)
+            results[key] = ("ok", receipt.evidence_id)
+        except HTTPException as e:
+            results[key] = ("error", e.status_code)
+        finally:
+            s.close()
+
+    t_a = threading.Thread(target=_complete, args=(SessionA, "a"))
+    t_b = threading.Thread(target=_complete, args=(SessionB, "b"))
+    t_a.start()
+    t_b.start()
+    t_a.join(timeout=30)
+    t_b.join(timeout=30)
+    engine_a.dispose()
+    engine_b.dispose()
+
+    assert results["a"][0] == "ok" and results["b"][0] == "ok", results
+    assert results["a"][1] == results["b"][1], "two different EvidenceItems were created for one completion"
+
+    task_id = db_session.get(models.UploadSession, opened["id"]).assessment_task_id
+    count = db_session.query(models.EvidenceItem).filter_by(assessment_task_id=task_id).count()
+    assert count == 1
+
+
+def test_evidence_finalisation_and_job_creation_are_atomic(client, db_session, imported_pack, worker, monkeypatch):
+    """If enqueueing the verification job blows up, the whole completion
+    must roll back -- no EvidenceItem, no task/assessment byte-counter
+    update, no session status change. Proves complete_upload folds evidence
+    finalisation and job creation into one transaction (jobs.enqueue(...,
+    commit=False) followed by a single db.commit())."""
+    from server.app import models
+    from server.app.routers import uploads as uploads_router
+
+    a = _new_assessment(client, imported_pack, worker)
+    token = a["worker_token"]
+    data = b"atomicity check bytes"
+    opened = _open_session(client, token, a["id"], task_code="T1", size=len(data)).json()
+    _upload_all_chunks(client, token, opened["id"], data)
+    sha = hashlib.sha256(data).hexdigest()
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("simulated enqueue failure")
+
+    monkeypatch.setattr(uploads_router.jobs, "enqueue", _boom)
+
+    with pytest.raises(RuntimeError, match="simulated enqueue failure"):
+        client.post(f"/uploads/{opened['id']}/complete", json={"client_sha256": sha}, headers={WT_HEADER: token})
+
+    db_session.rollback()
+    session = db_session.get(models.UploadSession, opened["id"])
+    db_session.refresh(session)
+    assert session.status == "open", "session must not be marked completed if the job enqueue failed"
+    task = db_session.get(models.AssessmentTask, session.assessment_task_id)
+    db_session.refresh(task)
+    assert task.bytes_used == 0, "task byte counter must not be updated if the transaction rolled back"
+    count = db_session.query(models.EvidenceItem).filter_by(assessment_task_id=task.id).count()
+    assert count == 0, "no EvidenceItem must exist if the completion transaction rolled back"
 
 
 def test_completed_upload_appears_as_an_evidence_receipt_on_assessment_detail(client, imported_pack, worker):

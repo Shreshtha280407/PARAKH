@@ -7,6 +7,7 @@ tables, Android sync, CV/AI inference -- those land in later phases.
 """
 import datetime
 import enum
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -124,7 +125,7 @@ class RubricItem(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     pc_id: Mapped[int] = mapped_column(ForeignKey("performance_criteria.id"), unique=True)
     rubric_version: Mapped[str] = mapped_column(String(60))
-    marks: Mapped[float] = mapped_column(Numeric(8, 2))
+    marks: Mapped[Decimal] = mapped_column(Numeric(8, 2))
     critical: Mapped[bool] = mapped_column(Boolean)
     anchors: Mapped[dict] = mapped_column(JSON)  # {"0": "...", "1": "...", "2": "...", "3": "..."}
     disclaimer: Mapped[str] = mapped_column(Text)
@@ -173,8 +174,23 @@ class Assessment(Base):
     # Opaque capability token (see docs/worker_capability_tokens.md) -- only
     # its SHA-256 is stored; the raw token is returned once, at creation.
     worker_token_hash: Mapped[str] = mapped_column(String(64), index=True)
+    # "active" | "revoked" -- a rotated/revoked token's hash still sits in
+    # worker_token_hash (overwritten on rotation) but a revoked one must
+    # never authorize anything again even if somehow still matched.
+    worker_token_status: Mapped[str] = mapped_column(String(20), default="active")
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     submitted_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Decision support only -- never an official certificate (see
+    # docs/evidence_status_model.md / the competency-profile disclaimer).
+    # "recommended" | "needs_reassessment", set once by decide_assessment.
+    decision: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    decision_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    decided_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    decided_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Set on the NEW assessment created by POST /assessments/{id}/reassess --
+    # points back at the original. The original is left untouched (all its
+    # data, scores, and report are preserved, never overwritten in place).
+    reassessment_of_id: Mapped[int | None] = mapped_column(ForeignKey("assessments.id"), nullable=True)
 
     worker: Mapped[User] = relationship(foreign_keys=[worker_id])
     assessor: Mapped[User | None] = relationship(foreign_keys=[assessor_id])
@@ -217,6 +233,16 @@ class EvidenceItem(Base):
     storage_key: Mapped[str] = mapped_column(String(300))
     sha256: Mapped[str] = mapped_column(String(64))  # server-computed, never trusted from client alone
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Video only -- a background job extracts one ffmpeg frame. Photos serve
+    # their own bytes directly as their thumbnail, no job needed.
+    # not_applicable (photo) | queued | completed | unavailable (ffmpeg
+    # missing or extraction failed -- never blocks serving the original).
+    thumbnail_status: Mapped[str] = mapped_column(String(20), default="not_applicable")
+    thumbnail_key: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # Stable contract for a future CV/AI quality-check integration -- no
+    # model exists or runs in this phase, see docs/evidence_quality_result.md.
+    # not_run | queued | completed | unavailable.
+    quality_check_status: Mapped[str] = mapped_column(String(20), default="not_run")
 
     assessment_task: Mapped[AssessmentTask] = relationship(back_populates="evidence_items")
 
@@ -291,3 +317,72 @@ class Job(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     started_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Lease/heartbeat for crash recovery (P2.2 section 9): a job stuck in
+    # "running" past lease_expires_at is assumed to belong to a dead worker
+    # and gets swept back to "queued" -- see jobs.recover_stale_jobs.
+    lease_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AuditLog(Base):
+    """Append-only. No code anywhere updates or deletes a row -- see
+    docs/gates/P2_2.md section 1. One row per lifecycle-affecting action on
+    an assessment (submit, review start, score, decision, reassessment,
+    token rotation/revocation)."""
+
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    actor_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    actor_role: Mapped[str] = mapped_column(String(20))  # worker | assessor | admin | system
+    action: Mapped[str] = mapped_column(String(60))
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AssessmentCriterionScore(Base):
+    """One row per (assessment, PC) that has a TASK_EVIDENCE_PATHWAY rubric
+    item -- see docs/evidence_status_model.md. score_level is a human
+    assessor's 0-3 judgement against the rubric anchors; evidence_status is
+    axis 2 of that doc (DEMONSTRATED / NOT_OBSERVABLE /
+    NOT_APPLICABLE_IN_MVP), never auto-derived from uploaded bytes alone.
+    version is an optimistic-lock counter: a PUT must send back the version
+    it last read, or it's rejected (409) -- two assessors scoring the same
+    assessment at once must not silently clobber each other."""
+
+    __tablename__ = "assessment_criterion_scores"
+    __table_args__ = (UniqueConstraint("assessment_id", "pc_id", name="uq_score_assessment_pc"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    pc_id: Mapped[int] = mapped_column(ForeignKey("performance_criteria.id"))
+    rubric_version: Mapped[str] = mapped_column(String(60))  # snapshot at scoring time
+    score_level: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 0-3, None until scored
+    evidence_status: Mapped[str] = mapped_column(String(30), default="NOT_OBSERVABLE")
+    # Mandatory whenever evidence_status is NOT_OBSERVABLE or
+    # NOT_APPLICABLE_IN_MVP -- enforced in schemas/routers, not the DB.
+    assessor_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    marks_awarded: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
+    assessor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    scored_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+
+    pc: Mapped[PerformanceCriterion] = relationship()
+
+
+class SignedReport(Base):
+    """Tamper-evident competency profile + assessor recommendation (never an
+    official NCVET/MSDE certificate). canonical_json is the exact byte
+    sequence that was hashed and signed -- re-serializing the same data
+    differently must never be mistaken for the signed artifact, so we store
+    the literal signed bytes rather than re-deriving them from live rows."""
+
+    __tablename__ = "signed_reports"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), unique=True)
+    canonical_json: Mapped[str] = mapped_column(Text)
+    sha256: Mapped[str] = mapped_column(String(64))
+    signature: Mapped[str] = mapped_column(Text)  # hex-encoded Ed25519 signature
+    key_id: Mapped[str] = mapped_column(String(60))
+    signed_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

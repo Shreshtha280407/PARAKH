@@ -14,6 +14,14 @@ ENV PYTHONPATH=/code
 ENV PARAKH_REPO_ROOT=/code
 
 COPY server/requirements.txt .
+# ffmpeg: the worker's generate_thumbnail job needs the real binary (see
+# server/app/worker.py) -- without it every video thumbnail gracefully
+# falls back to "unavailable" rather than crashing, but a real deployment
+# should actually have thumbnails. Shared base image for api/migrate/worker
+# (see infra/docker-compose.yml), so it's installed once here rather than
+# maintaining a second image just for the worker.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/app ./app

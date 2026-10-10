@@ -112,6 +112,7 @@ jobs:
       - name: Create .env for the stack
         run: |
           cat > .env <<'EOF'
+          APP_ENV=development
           DATABASE_URL=postgresql+psycopg://parakh:parakh_dev_pw@db:5432/parakh
           JWT_SECRET=ci-smoke-test-secret-not-for-real-use
           JWT_ALGORITHM=HS256
@@ -124,8 +125,12 @@ jobs:
           UPLOAD_CHUNK_MAX_BYTES=2097152
           JOB_POLL_INTERVAL_SECONDS=2.0
           JOB_MAX_ATTEMPTS=3
+          JOB_LEASE_SECONDS=300
           DEV_ASSESSOR_EMAIL=assessor.demo@parakh.test
           DEV_ASSESSOR_PASSWORD=ci-smoke-test-pw
+          REPORT_SIGNING_PRIVATE_KEY=c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1
+          REPORT_SIGNING_KEY_ID=ci-smoke-test-key
+          CORS_ALLOW_ORIGINS=http://localhost:5173
           POSTGRES_USER=parakh
           POSTGRES_PASSWORD=parakh_dev_pw
           POSTGRES_DB=parakh
@@ -160,26 +165,10 @@ jobs:
           code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/queue)
           test "$code" = "401"
           echo "unauthenticated request correctly rejected (401)"
-      - name: Upload a small evidence fixture and verify the SHA-256 receipt
+      - name: Full P2.2 lifecycle end-to-end (create -> upload -> submit -> review -> score -> recommend -> signed report -> verify -> reassess -> token rotate/revoke)
         run: |
-          set -e
-          TOKEN=$(curl -sf -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" \
-            -d '{"email":"assessor.demo@parakh.test","password":"ci-smoke-test-pw"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
-          CREATED=$(curl -sf -X POST http://localhost:8000/assessments -H "Content-Type: application/json" -d '{"worker_id": 2, "pack_id": 1}')
-          AID=$(echo "$CREATED" | python3 -c "import sys,json;print(json.load(sys.stdin)['id'])")
-          WT=$(echo "$CREATED" | python3 -c "import sys,json;print(json.load(sys.stdin)['worker_token'])")
-          head -c 65536 /dev/urandom > fixture.jpg
-          SHA=$(sha256sum fixture.jpg | cut -d' ' -f1)
-          SESSION=$(curl -sf -X POST http://localhost:8000/uploads -H "Content-Type: application/json" -H "X-Worker-Token: $WT" \
-            -d "{\"assessment_id\": $AID, \"task_code\": \"T1\", \"kind\": \"photo\", \"mime\": \"image/jpeg\", \"claimed_size_bytes\": 65536}")
-          SID=$(echo "$SESSION" | python3 -c "import sys,json;print(json.load(sys.stdin)['id'])")
-          curl -sf -X PUT "http://localhost:8000/uploads/$SID/chunks/0" -H "X-Worker-Token: $WT" --data-binary @fixture.jpg > /dev/null
-          RECEIPT=$(curl -sf -X POST "http://localhost:8000/uploads/$SID/complete" -H "Content-Type: application/json" -H "X-Worker-Token: $WT" \
-            -d "{\"client_sha256\": \"$SHA\"}")
-          echo "$RECEIPT"
-          RECEIPT_SHA=$(echo "$RECEIPT" | python3 -c "import sys,json;print(json.load(sys.stdin)['sha256'])")
-          test "$RECEIPT_SHA" = "$SHA"
-          echo "receipt sha256 matches the real file hash"
+          python3 tools/docker_e2e_smoke.py --base-url http://localhost:8000 \
+            --assessor-email assessor.demo@parakh.test --assessor-password ci-smoke-test-pw
       - name: Dashboard is reachable
         run: curl -sf -o /dev/null http://localhost:5173/
       - name: Shut down cleanly

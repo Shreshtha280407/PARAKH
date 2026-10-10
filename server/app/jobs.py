@@ -17,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import models
+from .config import settings
 
 logger = logging.getLogger("parakh.jobs")
 
@@ -25,11 +26,16 @@ def utcnow() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
-def enqueue(db: Session, job_type: str, payload: dict, max_attempts: int = 3) -> models.Job:
+def enqueue(db: Session, job_type: str, payload: dict, max_attempts: int = 3, commit: bool = True) -> models.Job:
+    """commit=False lets a caller fold job creation into a larger atomic
+    transaction (e.g. evidence finalisation) instead of it committing on its
+    own -- the caller is then responsible for the eventual db.commit()."""
     job = models.Job(type=job_type, payload=payload, max_attempts=max_attempts)
     db.add(job)
-    db.commit()
-    db.refresh(job)
+    db.flush()
+    if commit:
+        db.commit()
+        db.refresh(job)
     logger.info("job enqueued id=%s type=%s", job.id, job_type)
     return job
 
@@ -54,6 +60,7 @@ def claim_job(db: Session, worker_id: str) -> models.Job | None:
     job.locked_by = worker_id
     job.started_at = utcnow()
     job.attempts += 1
+    job.lease_expires_at = utcnow() + datetime.timedelta(seconds=settings.job_lease_seconds)
     db.commit()
     db.refresh(job)
     logger.info("job claimed id=%s type=%s worker=%s attempt=%s", job.id, job.type, worker_id, job.attempts)
@@ -80,3 +87,38 @@ def mark_failed(db: Session, job: models.Job, error: str) -> None:
         job.locked_by = None
         logger.warning("job attempt failed, will retry id=%s type=%s attempts=%s error=%s", job.id, job.type, job.attempts, error)
     db.commit()
+
+
+def recover_stale_jobs(db: Session) -> int:
+    """Crash recovery: a job stuck in 'running' past its lease
+    (lease_expires_at, set at claim time) belongs to a worker that was
+    killed or crashed mid-job -- it will never call mark_succeeded/
+    mark_failed itself. Treated exactly like a failed attempt: retried if
+    attempts haven't hit max_attempts yet, permanently failed otherwise.
+    Call this once per poll cycle (see worker.py's main loop) -- a plain
+    UPDATE-style sweep, cheap and almost always a no-op in the normal case.
+
+    Row-locks each candidate (FOR UPDATE SKIP LOCKED) so two worker
+    processes sweeping at the same moment can't both reset the same job.
+    """
+    stmt = (
+        select(models.Job)
+        .where(models.Job.status == "running", models.Job.lease_expires_at < utcnow())
+        .with_for_update(skip_locked=True)
+    )
+    stale_jobs = db.execute(stmt).scalars().all()
+    for job in stale_jobs:
+        job.last_error = "worker lease expired -- presumed crashed before finishing this job"
+        job.lease_expires_at = None
+        if job.attempts >= job.max_attempts:
+            job.status = "failed"
+            job.finished_at = utcnow()
+            logger.error("stale job recovered as permanently failed id=%s type=%s attempts=%s", job.id, job.type, job.attempts)
+        else:
+            job.status = "queued"
+            job.locked_at = None
+            job.locked_by = None
+            logger.warning("stale job recovered and requeued id=%s type=%s attempts=%s", job.id, job.type, job.attempts)
+    if stale_jobs:
+        db.commit()
+    return len(stale_jobs)

@@ -58,6 +58,46 @@ def test_get_assessment_with_assessor_token_succeeds(client, imported_pack, work
     assert r.status_code == 200
 
 
+def test_get_assessment_with_assessor_session_cookie_succeeds(client, imported_pack, worker, assessor):
+    """_assessor_or_worker_token must accept the dashboard's cookie-based
+    session, not just a Bearer header -- found via live browser testing:
+    the cookie path was wired into auth.get_current_user but this
+    endpoint's separate dependency didn't know about it yet."""
+    created = client.post("/assessments", json={"worker_id": worker.id, "pack_id": imported_pack.id}).json()
+    login = client.post("/auth/login", json={"email": assessor.email, "password": "correct horse battery staple"})
+    assert login.status_code == 200
+
+    r = client.get(f"/assessments/{created['id']}")  # no Authorization header -- cookie jar supplies it
+    assert r.status_code == 200
+    assert r.json()["id"] == created["id"]
+
+
+def test_get_assessment_with_token_for_deleted_assessor_is_rejected(
+    client, imported_pack, worker, assessor, assessor_token, db_session
+):
+    """A JWT's role claim is a snapshot from login time -- if the user is
+    deleted afterward, access must be revoked immediately, not whenever the
+    token happens to expire (see routers/assessments.py's
+    _assessor_or_worker_token, which re-checks the live DB row)."""
+    created = client.post("/assessments", json={"worker_id": worker.id, "pack_id": imported_pack.id}).json()
+    db_session.delete(assessor)
+    db_session.commit()
+    r = client.get(f"/assessments/{created['id']}", headers={"Authorization": f"Bearer {assessor_token}"})
+    assert r.status_code == 401
+
+
+def test_get_assessment_with_token_for_demoted_assessor_is_rejected(
+    client, imported_pack, worker, assessor, assessor_token, db_session
+):
+    """Same as above, but demoted rather than deleted -- the JWT still
+    claims role=assessor, but the live DB row says otherwise."""
+    created = client.post("/assessments", json={"worker_id": worker.id, "pack_id": imported_pack.id}).json()
+    assessor.role = "worker"
+    db_session.commit()
+    r = client.get(f"/assessments/{created['id']}", headers={"Authorization": f"Bearer {assessor_token}"})
+    assert r.status_code == 401
+
+
 def test_assessment_rubric_requires_assessor_role(client, imported_pack, worker):
     created = client.post("/assessments", json={"worker_id": worker.id, "pack_id": imported_pack.id}).json()
     r = client.get(f"/assessments/{created['id']}/rubric")

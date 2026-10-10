@@ -7,7 +7,7 @@ from server.app import jobs, models, worker
 from server.app.storage import LocalDiskStorage
 
 
-def _make_evidence(db_session, storage_root, data: bytes) -> models.EvidenceItem:
+def _make_evidence(db_session, storage_root, data: bytes, kind: str = "photo", mime: str = "image/jpeg") -> models.EvidenceItem:
     """Minimal real evidence row + real bytes on disk, enough for
     _verify_evidence to have something genuine to check."""
     user = models.User(role="worker", display_name="W", phone="9000000077")
@@ -27,12 +27,13 @@ def _make_evidence(db_session, storage_root, data: bytes) -> models.EvidenceItem
     db_session.add(task)
     db_session.flush()
 
+    ext = "jpg" if kind == "photo" else "mp4"
     storage = LocalDiskStorage(storage_root)
-    key = f"assessments/{assessment.id}/T1/evidence.jpg"
+    key = f"assessments/{assessment.id}/T1/evidence.{ext}"
     storage.write(key, data)
 
     evidence = models.EvidenceItem(
-        assessment_task_id=task.id, kind="photo", mime="image/jpeg",
+        assessment_task_id=task.id, kind=kind, mime=mime,
         declared_size_bytes=len(data), storage_key=key, sha256=hashlib.sha256(data).hexdigest(),
     )
     db_session.add(evidence)
@@ -106,3 +107,81 @@ def test_unknown_job_type_fails_cleanly_without_crashing_the_worker(db_session):
     job = db_session.query(models.Job).one()
     assert job.status in ("queued", "failed")  # retried or given up, never silently dropped
     assert "unknown job type" in job.last_error
+
+
+def _synthetic_mp4(duration_seconds: float = 1.0) -> bytes:
+    """A genuinely valid, tiny MP4 -- ffmpeg's lavfi test source, no
+    external fixture file needed."""
+    import subprocess
+    import tempfile
+    from pathlib import Path
+
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "synthetic.mp4"
+        subprocess.run(
+            [
+                "ffmpeg", "-y", "-f", "lavfi", "-i", f"testsrc=duration={duration_seconds}:size=64x64:rate=10",
+                "-pix_fmt", "yuv420p", str(out),
+            ],
+            capture_output=True, timeout=30, check=True,
+        )
+        return out.read_bytes()
+
+
+def test_generate_thumbnail_extracts_a_real_frame_from_a_real_video(db_session, tmp_path, monkeypatch):
+    monkeypatch.setattr(worker.settings, "evidence_dir", tmp_path)
+    video_bytes = _synthetic_mp4()
+    evidence = _make_evidence(db_session, tmp_path, video_bytes, kind="video", mime="video/mp4")
+
+    jobs.enqueue(db_session, "generate_thumbnail", {"evidence_item_id": evidence.id})
+    claimed = jobs.claim_job(db_session, "test-worker")
+    worker.process_job(db_session, claimed)  # must not raise
+
+    assert evidence.thumbnail_status == "completed"
+    assert evidence.thumbnail_key is not None
+    thumb_path = LocalDiskStorage(tmp_path).path_for(evidence.thumbnail_key)
+    assert thumb_path.exists()
+    assert thumb_path.read_bytes()[:3] == b"\xff\xd8\xff"  # real JPEG magic bytes
+
+
+def test_generate_thumbnail_is_not_applicable_for_photos(db_session, tmp_path, monkeypatch):
+    monkeypatch.setattr(worker.settings, "evidence_dir", tmp_path)
+    evidence = _make_evidence(db_session, tmp_path, b"photo bytes", kind="photo", mime="image/jpeg")
+
+    jobs.enqueue(db_session, "generate_thumbnail", {"evidence_item_id": evidence.id})
+    claimed = jobs.claim_job(db_session, "test-worker")
+    worker.process_job(db_session, claimed)
+
+    assert evidence.thumbnail_status == "not_applicable"
+    assert evidence.thumbnail_key is None
+
+
+def test_generate_thumbnail_falls_back_gracefully_when_ffmpeg_is_missing(db_session, tmp_path, monkeypatch):
+    """Missing ffmpeg must never crash the worker or fail the job -- it's a
+    graceful 'unavailable', not a retryable error (the original evidence
+    stays servable regardless)."""
+    monkeypatch.setattr(worker.settings, "evidence_dir", tmp_path)
+    evidence = _make_evidence(db_session, tmp_path, _synthetic_mp4(), kind="video", mime="video/mp4")
+
+    def _raise_not_found(*args, **kwargs):
+        raise FileNotFoundError("ffmpeg not found")
+
+    monkeypatch.setattr(worker.subprocess, "run", _raise_not_found)
+
+    jobs.enqueue(db_session, "generate_thumbnail", {"evidence_item_id": evidence.id})
+    claimed = jobs.claim_job(db_session, "test-worker")
+    worker.process_job(db_session, claimed)  # must not raise
+
+    assert evidence.thumbnail_status == "unavailable"
+    assert evidence.thumbnail_key is None
+
+
+def test_generate_thumbnail_falls_back_gracefully_on_a_corrupt_video(db_session, tmp_path, monkeypatch):
+    monkeypatch.setattr(worker.settings, "evidence_dir", tmp_path)
+    evidence = _make_evidence(db_session, tmp_path, b"not a real video file", kind="video", mime="video/mp4")
+
+    jobs.enqueue(db_session, "generate_thumbnail", {"evidence_item_id": evidence.id})
+    claimed = jobs.claim_job(db_session, "test-worker")
+    worker.process_job(db_session, claimed)  # must not raise
+
+    assert evidence.thumbnail_status == "unavailable"

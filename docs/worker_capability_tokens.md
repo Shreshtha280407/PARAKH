@@ -1,4 +1,4 @@
-# Worker capability tokens (P2.1)
+# Worker capability tokens (P2.1, rotation/revocation added P2.2)
 
 Product decision: the worker mobile app has no conventional login/signup.
 Only assessors/admins get a web login (email + password, argon2 + JWT --
@@ -28,10 +28,34 @@ scoped to:
 - `GET /assessments/{id}` (read own progress — this one also accepts an
   assessor/admin JWT, since assessors need to read the same endpoint for
   review)
+- `POST /assessments/{id}/submit` (worker declares evidence capture done)
+- `GET /assessments/{id}/report` (download own signed report, once one exists)
 
 A raw numeric id alone (e.g. `assessment_id=42`) is never sufficient to act
 on an assessment — a guess or an off-by-one on another device gets a 401,
 not someone else's evidence.
+
+## Rotation and revocation (P2.2)
+
+An assessor/admin can now invalidate the current token and/or issue a
+fresh one, via `server/app/routers/tokens.py`:
+
+- `POST /assessments/{id}/worker-token/rotate` — overwrites
+  `worker_token_hash` with a freshly generated token's hash and returns the
+  new raw value once (same "returned exactly once" contract as creation).
+  The old raw value stops working immediately, before the response is even
+  sent back (the hash it matched no longer exists).
+- `POST /assessments/{id}/worker-token/revoke` — sets
+  `assessments.worker_token_status = "revoked"`. Every worker-token check
+  across the API (`_require_worker_token_for_session`,
+  `_assessor_or_worker_token`, `open_upload_session`, `submit_assessment`)
+  verifies `worker_token_status == "active"` in addition to the hash match,
+  so a revoked token is rejected even if its hash would otherwise still
+  match. Rotating after a revoke reactivates the assessment with a fresh
+  token (sets status back to `"active"`).
+
+Both actions write an `AuditLog` row (`token_rotated` / `token_revoked`) --
+see `docs/gates/P2_2.md` section 1.
 
 ## What this is not
 
@@ -39,11 +63,11 @@ This is a **bearer capability**, not an identity. Whoever holds the token
 can act as that assessment's worker. It does not prove *which* worker, does
 not prove liveness, and is not tied to a device fingerprint.
 
-## Boundaries — deliberately deferred, revisit before pilot
+## Boundaries — still deliberately deferred, revisit before pilot
 
-- **No rotation, no revocation, no expiry.** A token is valid for the
-  assessment's entire lifetime. There is no way to invalidate a leaked
-  token short of abandoning the assessment.
+- **No expiry.** A token is valid for the assessment's entire lifetime
+  unless an assessor explicitly rotates or revokes it -- there's still no
+  automatic time-based invalidation.
 - **No recovery.** If the token is lost (app uninstalled, phone lost) before
   the assessment reaches `submitted`, there is currently no flow to recover
   access to that assessment's draft evidence. A fresh `POST /assessments`

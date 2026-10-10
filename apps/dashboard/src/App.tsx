@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { me } from "./api";
-import { clearToken, getToken } from "./auth";
+import { logout as apiLogout, me } from "./api";
 import { LoginPage } from "./pages/LoginPage";
 import { QueuePage } from "./pages/QueuePage";
 import { AssessmentDetailPage } from "./pages/AssessmentDetailPage";
@@ -19,10 +18,8 @@ function App() {
   }, []);
 
   function checkAuth() {
-    if (!getToken()) {
-      setAuthState("signed-out");
-      return;
-    }
+    // No local token to check first -- the session lives in an HttpOnly
+    // cookie the browser attaches automatically; just ask the server.
     setAuthState("checking");
     me()
       .then((result) => {
@@ -30,14 +27,17 @@ function App() {
         setAuthState("signed-in");
       })
       .catch(() => {
-        // token missing/expired/invalid -- back to login, no error toast needed
-        clearToken();
+        // not signed in / cookie missing or expired -- back to login, no error toast needed
         setAuthState("signed-out");
       });
   }
 
-  function handleLogout() {
-    clearToken();
+  async function handleLogout() {
+    try {
+      await apiLogout(); // clears the HttpOnly cookie server-side -- JS can't touch it directly
+    } catch {
+      // best-effort -- still reset local UI state even if the request failed
+    }
     setUser(null);
     setAuthState("signed-out");
     window.location.hash = "#/queue";

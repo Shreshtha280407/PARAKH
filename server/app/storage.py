@@ -90,6 +90,14 @@ class LocalDiskStorage(Storage):
         if path.exists():
             path.unlink()
 
+    def path_for(self, key: str) -> Path:
+        """Real filesystem path for this key -- only meaningful for a local
+        disk backend (a future S3/MinIO Storage wouldn't have one). Used
+        where something genuinely needs a path: serving via Starlette's
+        FileResponse (Range-request support, see routers/evidence.py) and
+        invoking ffmpeg as a subprocess (see worker.py)."""
+        return self._path(key)
+
 
 _EXTENSION_BY_MIME = {
     "image/jpeg": ".jpg",

@@ -49,9 +49,14 @@ export interface AssessmentOut {
   pack_code: string;
   pack_name: string;
   status: string;
+  assessor_id: number | null;
   total_bytes_used: number;
   total_budget_bytes: number;
   created_at: string;
+  submitted_at: string | null;
+  decision: string | null;
+  decision_notes: string | null;
+  reassessment_of_id: number | null;
   tasks: AssessmentTaskOut[];
 }
 
@@ -63,6 +68,87 @@ export interface RubricItemOut {
   anchors: Record<string, string>;
   disclaimer: string;
   evidence_hint: string;
+}
+
+// ---- scoring ----
+
+export type EvidenceStatus = "DEMONSTRATED" | "NOT_OBSERVABLE" | "NOT_APPLICABLE_IN_MVP";
+
+export interface CriterionScoreIn {
+  pc_full_id: string;
+  score_level: number;
+  evidence_status: EvidenceStatus;
+  assessor_comment: string | null;
+  expected_version: number;
+}
+
+export interface CriterionScoreOut {
+  pc_full_id: string;
+  score_level: number;
+  evidence_status: string;
+  assessor_comment: string | null;
+  marks_awarded: string;
+  rubric_version: string;
+  assessor_id: number | null;
+  scored_at: string | null;
+  version: number;
+}
+
+export interface CriterionReviewItemOut {
+  pc_full_id: string;
+  rubric_version: string;
+  marks: string;
+  critical: boolean;
+  anchors: Record<string, string>;
+  disclaimer: string;
+  evidence_hint: string;
+  score: CriterionScoreOut | null;
+}
+
+export interface NosProfileOut {
+  nos_code: string;
+  nos_title: string;
+  marks_awarded: string;
+  marks_possible: string;
+  percent: number;
+}
+
+export interface CompetencyProfileOut {
+  assessment_id: number;
+  overall_marks_awarded: string;
+  overall_marks_possible: string;
+  overall_percent: number;
+  minimum_aggregate_passing_percent: number;
+  meets_minimum_threshold: boolean;
+  pcs_scored: number;
+  pcs_total: number;
+  nos_breakdown: NosProfileOut[];
+  disclaimer: string;
+}
+
+// ---- signed reports ----
+
+export interface SignedReportOut {
+  assessment_id: number;
+  sha256: string;
+  signature: string;
+  key_id: string;
+  signed_at: string;
+}
+
+export interface ReportVerifyOut {
+  assessment_id: number;
+  valid: boolean;
+  key_id: string;
+  signed_at: string;
+}
+
+// ---- worker tokens ----
+
+export interface WorkerTokenOut {
+  assessment_id: number;
+  worker_token: string | null;
+  status: string;
 }
 
 export class ApiError extends Error {

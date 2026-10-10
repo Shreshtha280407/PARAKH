@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { login } from "../api";
-import { setToken } from "../auth";
 import { ApiError } from "../types";
 
 export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
@@ -14,8 +13,9 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
     setError(null);
     setSubmitting(true);
     try {
-      const token = await login(email, password);
-      setToken(token.access_token);
+      // The server sets the session as an HttpOnly cookie on this response
+      // -- nothing for the client to store itself.
+      await login(email, password);
       onLoggedIn();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server.");
