@@ -18,6 +18,23 @@ This is a stricter, source-integrity-focused companion to pack_validate.py
   [coverage] coverage_matrix.json matches qp.json/tasks.json and no PC in a
              practical NOS is NOT_ASSESSED_IN_MVP (fails the build if a
              practical PC has no T1-T5 task coverage)
+  [decl]     every NOS listed in mapping/thresholds.json's
+             practical_nos_for_matching has >= 1 card/tool link in
+             mapping/links.json (catches a scored NOS silently missing a
+             declaration signal, e.g. the CON/N9001 gap found at Q-1
+             completion where Safety/T1 never appeared in match output)
+  [contract] mapping/links.json has EXACTLY the card_count/tool_count pinned
+             in mapping/thresholds.json's declaration_contract (catches an
+             edit that silently grows the worker-facing declaration past the
+             approved 20-card + 6-tool worker-flow design), no duplicate
+             card/tool ids, and no card/tool is linked to CON/N8001 or
+             CON/N8002 (those two NOS are out of declaration scope by design
+             under match-rules@r3, not an oversight -- see links.json status)
+  [safety]   every task in tasks.json has step_guide[0] equal to
+             tasks.json's own safety_first_step verbatim, and no step_guide
+             anywhere in tasks.json contains an unsafe-electrical-work phrase
+             (catches wording that implies a worker should energise a live
+             training-board circuit -- see docs/gates/P3.md)
 """
 import argparse
 import json
@@ -229,6 +246,128 @@ def check_coverage_matrix(qp: dict, tasks: dict, pack_dir: Path):
     return False, "[coverage] " + "; ".join(bad_status) + " ✗"
 
 
+def check_declaration_coverage(pack_dir: Path):
+    """Every NOS the matcher actually scores (thresholds.practical_nos_for_matching)
+    must have >= 1 card/tool link in mapping/links.json. A practical NOS with zero
+    declaration signals silently gets coverage=0 / has_experience=False for every
+    worker forever (see match_rules@r1 -> r2: CON/N9001 had no cards at all, so T1
+    never appeared in applicable_tasks even though it's a real, task-evidenced NOS)."""
+    thresholds_path = pack_dir / "mapping" / "thresholds.json"
+    links_path = pack_dir / "mapping" / "links.json"
+    if not thresholds_path.exists() or not links_path.exists():
+        return False, "[decl]   mapping/thresholds.json or mapping/links.json missing ✗"
+
+    thresholds = json.loads(thresholds_path.read_text())
+    links = json.loads(links_path.read_text())
+
+    linked_nos = set()
+    for group in ("cards", "tools"):
+        for item in links.get(group, []):
+            for link in item.get("links", []):
+                linked_nos.add(link["nos"])
+
+    scored_nos = [e["nos"] for e in thresholds.get("practical_nos_for_matching", [])]
+    missing = [nos for nos in scored_nos if nos not in linked_nos]
+    if not missing:
+        return True, (f"[decl]   every scored NOS ({len(scored_nos)}) has >= 1 declaration "
+                       f"card/tool link ✓")
+    return False, f"[decl]   scored NOS with zero declaration signals: {', '.join(missing)} ✗"
+
+
+def check_declaration_contract(pack_dir: Path):
+    """Enforce the exact 20-card + 6-tool worker-flow contract pinned in
+    thresholds.json.declaration_contract. Fails loudly on: a count drift,
+    a duplicate card/tool id, or any link that reaches CON/N8001/CON/N8002
+    (those two NOS were deliberately dropped from the declaration's scope
+    in the r2->r3 reduction -- a link reappearing would silently reintroduce
+    a declaration_only side-channel this project decided to remove)."""
+    thresholds_path = pack_dir / "mapping" / "thresholds.json"
+    links_path = pack_dir / "mapping" / "links.json"
+    if not thresholds_path.exists() or not links_path.exists():
+        return False, "[contract] mapping/thresholds.json or mapping/links.json missing ✗"
+
+    thresholds = json.loads(thresholds_path.read_text())
+    links = json.loads(links_path.read_text())
+    contract = thresholds.get("declaration_contract", {})
+    want_cards = contract.get("card_count")
+    want_tools = contract.get("tool_count")
+    if want_cards is None or want_tools is None:
+        return False, "[contract] thresholds.json missing declaration_contract.card_count/tool_count ✗"
+
+    cards = links.get("cards", [])
+    tools = links.get("tools", [])
+    problems = []
+    if len(cards) != want_cards:
+        problems.append(f"card_count={len(cards)}, expected {want_cards}")
+    if len(tools) != want_tools:
+        problems.append(f"tool_count={len(tools)}, expected {want_tools}")
+
+    card_ids = [c["id"] for c in cards]
+    tool_ids = [t["id"] for t in tools]
+    dupe_cards = sorted({i for i in card_ids if card_ids.count(i) > 1})
+    dupe_tools = sorted({i for i in tool_ids if tool_ids.count(i) > 1})
+    if dupe_cards:
+        problems.append(f"duplicate card id(s): {', '.join(dupe_cards)}")
+    if dupe_tools:
+        problems.append(f"duplicate tool id(s): {', '.join(dupe_tools)}")
+
+    out_of_scope_nos = {"CON/N8001", "CON/N8002"}
+    leaked = sorted({
+        f"{item['id']} -> {link['nos']}"
+        for group in (cards, tools)
+        for item in group
+        for link in item.get("links", [])
+        if link["nos"] in out_of_scope_nos
+    })
+    if leaked:
+        problems.append(f"link(s) to out-of-scope NOS: {', '.join(leaked)}")
+
+    if not problems:
+        return True, (f"[contract] exactly {want_cards} cards + {want_tools} tools, no duplicate "
+                       f"ids, no CON/N8001/CON/N8002 links ✓")
+    return False, "[contract] " + "; ".join(problems) + " ✗"
+
+
+# Electrical-work phrases that must never appear in a step_guide, matched as a
+# case-insensitive substring. These are deliberately the exact unsafe phrases
+# found and removed during the P-3 safety fix (see docs/gates/P3.md) -- a
+# regression guard, not a general "contains the word energise" filter, since
+# the REQUIRED safe wording itself legitimately contains words like "energise"
+# and "supply" inside a negation ("Do not energise the board yourself"; "Do
+# not reconnect the supply yourself"). A substring filter can't distinguish an
+# instruction from its own negation, so this list only holds phrases that are
+# unsafe in both polarities.
+UNSAFE_PHRASES = (
+    "live-ready", "power check confirming the fix", "tag the board as live", "live tag",
+)
+
+
+def check_task_safety_wording(pack_dir: Path, tasks: dict):
+    """Every task's step_guide[0] must equal tasks.json's own safety_first_step
+    verbatim (not a paraphrase -- a paraphrase could silently drop "isolated"
+    or "de-energised" or the tester-first requirement), and no step anywhere
+    may contain an UNSAFE_PHRASES entry."""
+    safety_first_step = tasks.get("safety_first_step")
+    if not safety_first_step:
+        return False, "[safety] tasks.json missing top-level safety_first_step ✗"
+
+    problems = []
+    for t in tasks["tasks"]:
+        guide = t.get("step_guide", [])
+        if not guide or guide[0] != safety_first_step:
+            problems.append(f"{t['id']}: step_guide[0] != safety_first_step verbatim")
+        for step in guide:
+            lowered = step.lower()
+            for phrase in UNSAFE_PHRASES:
+                if phrase in lowered:
+                    problems.append(f"{t['id']}: unsafe phrase '{phrase}' found in step_guide")
+
+    if not problems:
+        return True, (f"[safety] all {len(tasks['tasks'])} tasks start with the safety_first_step "
+                       f"verbatim, no unsafe phrase present ✓")
+    return False, "[safety] " + "; ".join(problems) + " ✗"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("pack_dir", type=Path)
@@ -251,6 +390,9 @@ def main():
         check_source_pages(qp),
         check_cross_references(qp, pack_dir),
         check_coverage_matrix(qp, tasks, pack_dir),
+        check_declaration_coverage(pack_dir),
+        check_declaration_contract(pack_dir),
+        check_task_safety_wording(pack_dir, tasks),
     ]
 
     failed = 0

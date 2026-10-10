@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  English card/tool labels, one per declaration item in
+  packs/ae-con-q0602/mapping/links.json (id lowercased for the resource
+  name). Text here is kept verbatim-identical to that file's "label" field —
+  see DeclarationLabels.kt, whose own comment is the reproducible check.
+  r3: exactly 20 cards (C01-C20) + 6 tools (TL01-TL06); see links.json's
+  status field for the old-id to new-id mapping this file carries forward.
+-->
+<resources>
+    <string name="card_label_c01">Fixed a loose wire or switch at home/site</string>
+    <string name="card_label_c02">Used a tester or multimeter to check if a wire has power</string>
+    <string name="card_label_c03">Used hand tools (pliers, screwdriver, wire stripper) for wiring work</string>
+    <string name="card_label_c04">Found and fixed a short circuit or no-power fault</string>
+    <string name="card_label_c05">Selected an MCB/breaker of the right rating for a circuit</string>
+    <string name="card_label_c06">Fitted a new light point or tube light</string>
+    <string name="card_label_c07">Fixed an MCB or fuse that had tripped/blown</string>
+    <string name="card_label_c08">Shifted or moved a temporary light/board to another spot</string>
+    <string name="card_label_c09">Worked with isolated/switched-off power before touching wires</string>
+    <string name="card_label_c10">Laid or ran a wire/conduit through a wall or ceiling</string>
+    <string name="card_label_c11">Connected a switch and socket</string>
+    <string name="card_label_c12">Connected an earth wire</string>
+    <string name="card_label_c13">Read a wiring diagram or connection chart</string>
+    <string name="card_label_c14">Assembled or wired a small distribution board / meter board</string>
+    <string name="card_label_c15">Inspected a panel/board for damage or wear</string>
+    <string name="card_label_c16">Mounted/secured a distribution board so it\'s protected from water, dust or damage</string>
+    <string name="card_label_c17">Wore full PPE (helmet, gloves, goggles, safety shoes) for the job</string>
+    <string name="card_label_c18">Took part in a safety briefing or Tool Box Talk before starting work</string>
+    <string name="card_label_c19">Knew the evacuation/emergency procedure for fire or accident at the site</string>
+    <string name="card_label_c20">Checked safety equipment (first-aid box, barricades, fire point) before starting work</string>
+    <string name="card_label_tl01">Multimeter</string>
+    <string name="card_label_tl02">Line tester / voltage tester</string>
+    <string name="card_label_tl03">Wire stripper/cutter</string>
+    <string name="card_label_tl04">Combination pliers</string>
+    <string name="card_label_tl05">Hand/power drill</string>
+    <string name="card_label_tl06">Tong tester (clamp meter)</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="card_label_c01">घर/साइट पर ढीला तार या स्विच ठीक किया</string>
+    <string name="card_label_c02">तार में करंट है या नहीं जांचने के लिए टेस्टर या मल्टीमीटर इस्तेमाल किया</string>
+    <string name="card_label_c03">वायरिंग के काम के लिए हाथ के औज़ार (प्लायर, पेचकस, वायर स्ट्रिपर) इस्तेमाल किए</string>
+    <string name="card_label_c04">शॉर्ट सर्किट या करंट न आने की समस्या ढूंढकर ठीक की</string>
+    <string name="card_label_c05">सर्किट के लिए सही रेटिंग का एमसीबी/ब्रेकर चुना</string>
+    <string name="card_label_c06">नया लाइट पॉइंट या ट्यूबलाइट लगाई</string>
+    <string name="card_label_c07">ट्रिप हुआ एमसीबी या उड़ा हुआ फ्यूज़ ठीक किया</string>
+    <string name="card_label_c08">अस्थायी लाइट/बोर्ड को दूसरी जगह शिफ्ट किया</string>
+    <string name="card_label_c09">तार छूने से पहले बिजली बंद/आइसोलेट करके काम किया</string>
+    <string name="card_label_c10">दीवार या छत में तार/कंड्यूट बिछाया</string>
+    <string name="card_label_c11">स्विच और सॉकेट जोड़ा</string>
+    <string name="card_label_c12">अर्थ वायर जोड़ा</string>
+    <string name="card_label_c13">वायरिंग डायग्राम या कनेक्शन चार्ट पढ़ा</string>
+    <string name="card_label_c14">छोटा डिस्ट्रीब्यूशन बोर्ड / मीटर बोर्ड जोड़ा या वायर किया</string>
+    <string name="card_label_c15">पैनल/बोर्ड में खराबी या घिसावट के लिए जांच की</string>
+    <string name="card_label_c16">डिस्ट्रीब्यूशन बोर्ड को इस तरह लगाया कि वह पानी, धूल या नुकसान से सुरक्षित रहे</string>
+    <string name="card_label_c17">काम के लिए पूरा पीपीई (हेलमेट, दस्ताने, चश्मा, सेफ्टी जूते) पहना</string>
+    <string name="card_label_c18">काम शुरू करने से पहले सुरक्षा ब्रीफिंग या टूल बॉक्स टॉक में भाग लिया</string>
+    <string name="card_label_c19">साइट पर आग या दुर्घटना की स्थिति में निकासी/आपातकालीन प्रक्रिया पता थी</string>
+    <string name="card_label_c20">काम शुरू करने से पहले सुरक्षा उपकरण (फर्स्ट एड बॉक्स, बैरिकेड, फायर पॉइंट) जांचे</string>
+    <string name="card_label_tl01">मल्टीमीटर</string>
+    <string name="card_label_tl02">लाइन टेस्टर / वोल्टेज टेस्टर</string>
+    <string name="card_label_tl03">वायर स्ट्रिपर/कटर</string>
+    <string name="card_label_tl04">कॉम्बिनेशन प्लायर</string>
+    <string name="card_label_tl05">हाथ/पावर ड्रिल</string>
+    <string name="card_label_tl06">टोंग टेस्टर (क्लैम्प मीटर)</string>
+</resources>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KaushalPramaan</string>
+
+    <!-- Language screen -->
+    <string name="language_title">Choose your language</string>
+    <string name="language_subtitle">You can change this later from any screen.</string>
+    <string name="language_english">English</string>
+    <string name="language_hindi">हिन्दी (Hindi)</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_change_language">Change language</string>
+
+    <!-- Consent screen -->
+    <string name="consent_title">Before you start</string>
+    <string name="consent_body">KaushalPramaan will ask you about your past electrical work experience and let you record practice evidence on this phone. Nothing leaves this phone in this version of the app — there is no internet upload here. Your answers help a human assessor understand your experience; they do not certify, qualify, pass or fail you. You can stop at any time.</string>
+    <string name="consent_play_audio">Play this out loud</string>
+    <string name="consent_audio_unavailable">Audio playback is not available on this device right now — you can still read the text above.</string>
+    <string name="consent_checkbox">I have read or heard this and I agree to continue.</string>
+    <string name="consent_continue_disabled_hint">Please agree to the consent above to continue.</string>
+
+    <!-- Registration screen -->
+    <string name="registration_title">Register</string>
+    <string name="registration_phone_label">Phone number</string>
+    <string name="registration_pin_label">4-digit PIN (to protect your entries on this phone)</string>
+    <string name="registration_pin_confirm_label">Re-enter PIN</string>
+    <string name="registration_error_phone">Enter a valid 10-digit phone number.</string>
+    <string name="registration_error_pin">PIN must be exactly 4 digits.</string>
+    <string name="registration_error_pin_mismatch">PINs do not match.</string>
+    <string name="registration_action_register">Register and continue</string>
+    <string name="registration_id_label">Your worker ID (saved on this phone)</string>
+
+    <!-- Declaration screen -->
+    <string name="declaration_title">Tell us about your experience</string>
+    <string name="declaration_instructions">For each statement, choose how often it describes your work. This is only to help route you to the right practice tasks — it is not a test.</string>
+    <string name="declaration_section_tools">Electrical &amp; safety practical experience</string>
+    <string name="declaration_section_tools_grid">Which of these tools have you used?</string>
+    <string name="declaration_years_label">Years of experience (any electrical-related work)</string>
+    <string name="declaration_work_setting_label">Where have you mostly worked?</string>
+    <string name="declaration_prior_training_label">Have you had any formal electrical training?</string>
+    <string name="declaration_not_scored_note">Optional — for the assessor\'s context only. This does not change your match result.</string>
+    <string name="work_setting_construction_site">Construction site</string>
+    <string name="work_setting_domestic_household">Domestic/household work</string>
+    <string name="work_setting_workshop_or_iti">Workshop or ITI</string>
+    <string name="work_setting_other">Other</string>
+    <string name="prior_training_iti_or_formal_course">ITI or other formal course</string>
+    <string name="prior_training_informal_on_the_job">Informal, learned on the job</string>
+    <string name="prior_training_none">No formal or informal training</string>
+    <string name="prior_training_other">Other</string>
+    <string name="declaration_free_text_label">Anything else you want to add? (optional)</string>
+    <string name="declaration_free_text_hint">You can type in English, Hindi or a mix — e.g. \"maine earthing kiya\"</string>
+    <string name="answer_often">Often</string>
+    <string name="answer_sometimes">Sometimes</string>
+    <string name="answer_never">Never</string>
+    <string name="action_see_match">See my match result</string>
+
+    <!-- Match result screen -->
+    <string name="match_title">Your match with Assistant Electrician</string>
+    <string name="match_result_appropriate">Appropriate match</string>
+    <string name="match_result_partial">Partial match — some gaps</string>
+    <string name="match_result_not_appropriate">Not an appropriate match right now</string>
+    <string name="match_disclaimer">This only suggests whether your declared experience fits practical assessment for Assistant Electrician (CON/Q0602). It is not a certificate, pass, fail, or qualification — a human assessor makes the final decision after reviewing your practice evidence.</string>
+    <string name="match_because_title">Why this result</string>
+    <string name="match_gaps_title">Areas with less declared experience</string>
+    <string name="match_no_gaps">No gap areas — nice work declaring experience across all areas.</string>
+    <string name="match_coverage_label">Overall declared-experience coverage: %1$d%%</string>
+    <string name="action_view_tasks">View practice tasks</string>
+
+    <!-- Task list screen -->
+    <string name="tasks_title">Practice tasks</string>
+    <string name="tasks_subtitle">Record practice evidence for each task on a de-energised training board, under supervision. These are practice tasks, not a live-work instruction.</string>
+    <string name="tasks_budget_total">Total evidence used: %1$s of %2$s</string>
+    <string name="task_gap_badge">Extra evidence needed</string>
+    <string name="task_budget_label">Evidence used: %1$s of %2$s</string>
+    <string name="action_open_task">Open task</string>
+    <string name="action_preview">Preview and submit</string>
+
+    <!-- Task detail screen -->
+    <string name="safety_notice_text">Safety first: the training board must be isolated and confirmed de-energised with the approved tester before you touch any conductor. Do not energise or work on a live circuit. Any powered test is performed only by the authorised training-board supervisor.</string>
+    <string name="task_detail_guide_title">How to do this task</string>
+    <string name="task_detail_evidence_hint_title">What to capture</string>
+    <string name="task_detail_evidence_title">Your evidence</string>
+    <string name="task_detail_no_evidence">No evidence added yet.</string>
+    <string name="action_add_evidence">Add evidence</string>
+    <string name="action_replace">Replace</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_back_to_tasks">Back to task list</string>
+
+    <!-- Add evidence dialog -->
+    <string name="add_evidence_title">Add mock evidence</string>
+    <string name="add_evidence_type_label">Evidence type</string>
+    <string name="evidence_type_photo">Photo</string>
+    <string name="evidence_type_video">Video</string>
+    <string name="add_evidence_size_label">File size (mock): %1$s</string>
+    <string name="add_evidence_remaining_task">Remaining for this task: %1$s</string>
+    <string name="add_evidence_remaining_total">Remaining overall: %1$s</string>
+    <string name="add_evidence_error_task_budget">This would go over this task\'s evidence budget. Reduce the size or remove other evidence first.</string>
+    <string name="add_evidence_error_total_budget">This would go over the total 120 MB evidence budget. Reduce the size or remove other evidence first.</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Preview screen -->
+    <string name="preview_title">Preview before submitting</string>
+    <string name="preview_task_usage">%1$s of %2$s used</string>
+    <string name="preview_total_usage">Total: %1$s of %2$s</string>
+    <string name="preview_empty_task">No evidence added for this task.</string>
+    <string name="attestation_title">Before you submit</string>
+    <string name="attestation_text">This evidence shows my own work.</string>
+    <string name="action_submit">Submit</string>
+    <string name="action_submit_disabled_hint">Please confirm the attestation above to submit.</string>
+
+    <!-- Submitted screen -->
+    <string name="submitted_title">Sealed locally — waiting for sync</string>
+    <string name="submitted_body">Your declaration, match result and practice evidence have been sealed on this phone. This offline demo build does not upload, encrypt, hash or sync anything to a server — that happens in a later phase. Nothing has left this device.</string>
+    <string name="submitted_worker_id">Worker ID: %1$s</string>
+    <string name="action_view_preview_again">View my sealed submission</string>
+
+    <!-- Common -->
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_language_switch">Change language</string>
+    <string name="content_desc_task_icon">Task icon</string>
+    <string name="content_desc_photo_evidence">Photo evidence item</string>
+    <string name="content_desc_video_evidence">Video evidence item</string>
+    <string name="loading">Loading…</string>
+    <string name="offline_badge">Offline — no internet needed</string>
+</resources>

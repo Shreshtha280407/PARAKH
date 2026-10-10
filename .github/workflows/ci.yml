@@ -36,6 +36,8 @@ jobs:
         run: python tools/pack_validate.py packs/ae-con-q0602
       - name: Audit QP source traceability
         run: python tools/audit_qp_traceability.py packs/ae-con-q0602
+      - name: Android EN/HI string parity and declaration-contract drift check
+        run: python tools/check_android_string_parity.py
       - name: Negative fixtures must fail their one targeted check
         run: |
           expect_fail() { if "$@"; then echo "ERROR: expected this to fail but it exited 0: $*"; exit 1; fi; }
@@ -87,6 +89,76 @@ jobs:
         run: python -m pytest server/tests -v
       - name: OpenAPI contract must be up to date
         run: python tools/export_openapi.py --check
+
+  android-core-mapping-tests:
+    name: Q-1/P-3 Kotlin matcher parity (core:mapping)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+      - name: Golden-vector parity, Kotlin vs Python (100/100)
+        working-directory: apps/android
+        run: ./gradlew :core:mapping:test --tests "*GoldenVectorsTest*" --tests "*MatcherTest*" --console=plain
+      - name: Upload core:mapping test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-mapping-test-report
+          path: apps/android/core/mapping/build/reports/tests/test
+          if-no-files-found: ignore
+
+  android-app-build:
+    name: P-3 Android debug build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+      - name: Install current Android SDK components
+        # Do not use android-actions/setup-android@v3 here: its default
+        # package list contains the obsolete SDK package named "tools", which
+        # current sdkmanager correctly rejects. GitHub-hosted Ubuntu runners
+        # already include Android command-line tools; install only supported,
+        # explicit packages needed by this project.
+        run: |
+          SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          fi
+          "$SDKMANAGER" --version
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "platforms;android-36" \
+            "build-tools;35.0.0" \
+            "build-tools;36.0.0"
+      - name: Static Kotlin checks + assemble debug APK
+        working-directory: apps/android
+        run: ./gradlew lint :app:assembleDebug --console=plain
+      - name: Upload debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaushalpramaan-debug-apk
+          path: apps/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore
+    # Emulator instrumentation (the full P-3 worker journey, Hindi flow, budget
+    # enforcement, airplane-mode) is NOT run on GitHub-hosted runners -- nested
+    # KVM virtualization for the Android emulator is unavailable/unreliable
+    # there. This is a platform constraint, not an incomplete P-3 feature: the
+    # instrumented tests exist (apps/android/app/src/androidTest) and the one
+    # local command below reproduces them exactly, on a real emulator.
+    #
+    #   cd apps/android && ./gradlew :app:connectedDebugAndroidTest --console=plain
+    #
+    # See docs/gates/P3.md for the actual run transcript against
+    # KaushalPramaan_API35 (Pixel 6, API 35, Google APIs x86_64).
 
   dashboard-build:
     name: Dashboard build + typecheck

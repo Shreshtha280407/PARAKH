@@ -1,0 +1,29 @@
+# Local SDK path, machine-specific -- never committed.
+local.properties
+
+# Gradle
+.gradle/
+build/
+*/build/
+*/*/build/
+.kotlin/
+
+# IntelliJ/Android Studio's own out-of-Gradle Kotlin compiler output (separate
+# from Gradle's build/ above -- produced when the IDE compiles a module
+# directly). core/mapping/bin/ was accidentally committed once; this is the
+# narrow rule for that exact generated path, mirrored for every module depth
+# this project has (app/, core/mapping/).
+bin/
+*/bin/
+*/*/bin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Instrumented-test artifacts (logs/screenshots), see docs/gates/P3.md
+test-artifacts/

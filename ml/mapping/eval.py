@@ -5,19 +5,22 @@ and report agreement with the recorded expected_match labels.
 Usage: python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl
 
 P1 exit test only requires the first 20 labelled declarations to run without
-errors (no exceptions / no malformed record). The >= 90% full-set agreement
-gate against all 60 is at IC-1 (2026-10-17), once thresholds.json has been
-tuned on real worker declarations -- see labelled_60.jsonl's header comment
-for why this fixture is currently synthetic.
+errors (no exceptions / no malformed record). The project owner's decision
+for Q-1/P-3 (see docs/gates/IC1A.md) is that no independent assessor-
+agreement study runs in this phase at all -- IC-1A is a technical-only gate
+(deterministic rules, QP traceability, Python/Kotlin parity, automated
+tests). The >= 90% field-agreement mode below ("--mode field") remains in
+this script for a later pilot/study phase that is explicitly out of scope
+here; this script does not claim it has been run.
 
 --mode harness (default) requires every record in --set to carry
 "harness_marker": "HARNESS_ONLY_NOT_FIELD_VALIDATION" and always prints a
-synthetic-data banner; it will never claim an IC-1 gate result. --mode field
-requires the OPPOSITE -- zero records may carry that marker -- and is the
-only mode allowed to report an IC-1 gate PASS/FAIL. Mixing the two, or
-asking for --mode field against a harness-marked file (or vice versa),
-refuses to run. This makes "launder synthetic data as field validation" a
-hard error instead of a copy-paste mistake.
+synthetic-data banner; it will never claim a field-agreement gate result.
+--mode field requires the OPPOSITE -- zero records may carry that marker --
+and is the only mode allowed to report a field-agreement PASS/FAIL. Mixing
+the two, or asking for --mode field against a harness-marked file (or vice
+versa), refuses to run. This makes "launder synthetic data as field
+validation" a hard error instead of a copy-paste mistake.
 """
 import argparse
 import json

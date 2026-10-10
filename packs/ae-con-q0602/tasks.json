@@ -5,6 +5,7 @@
   "final_evidence_budget_bytes": 125829120,
   "final_evidence_budget_mb": 120,
   "budget_rule": "Sum of per-task budgets must equal 120 MB exactly. This is the only cap on final submitted evidence; temporary/draft capture is not counted.",
+  "safety_first_step": "Confirm the training board supply is isolated. Do not energise or work on a live circuit. Verify the circuit is de-energised using the approved tester before touching any conductor. Any energisation or powered test may only be performed by the authorised training-board supervisor.",
   "tasks": [
     {
       "id": "T1",
@@ -14,6 +15,7 @@
       "budget_bytes": 15728640,
       "evidence_hint": "Photos of PPE worn; supply isolated; tester check before touching; short SD clip of the check.",
       "step_guide": [
+        "Confirm the training board supply is isolated. Do not energise or work on a live circuit. Verify the circuit is de-energised using the approved tester before touching any conductor. Any energisation or powered test may only be performed by the authorised training-board supervisor.",
         "Put on required PPE for this task: head, eye/face, hand and foot protection.",
         "Photograph yourself wearing full PPE.",
         "Isolate the training board supply at the main switch/MCB and photograph the isolated switch.",
@@ -34,9 +36,10 @@
       "budget_bytes": 20971520,
       "evidence_hint": "Tools laid out and named; multimeter continuity/voltage check; HD close-up photo of the display.",
       "step_guide": [
+        "Confirm the training board supply is isolated. Do not energise or work on a live circuit. Verify the circuit is de-energised using the approved tester before touching any conductor. Any energisation or powered test may only be performed by the authorised training-board supervisor.",
         "Lay out the hand/power tools and measuring devices you will use (pliers, screwdrivers, wire stripper, multimeter, tong tester) and photograph them.",
         "Perform a basic pre-use check on a power tool (cable, casing, switch) and record a short clip.",
-        "Use the multimeter to check continuity/voltage on a training-board circuit; photograph a HD close-up of the display showing the reading.",
+        "With the circuit isolated and confirmed dead by tester, use the multimeter to check continuity on the training-board circuit; photograph a HD close-up of the display showing the reading.",
         "Measure and cut a short length of wire/conduit to a given dimension using the correct tool; photograph the measurement and the cut.",
         "Clean and put away the tools; photograph the stored, maintained tool set."
       ],
@@ -53,10 +56,11 @@
       "budget_bytes": 31457280,
       "evidence_hint": "SD overview of wiring a switch + socket on the training board; HD close-ups of terminations; continuity test.",
       "step_guide": [
+        "Confirm the training board supply is isolated. Do not energise or work on a live circuit. Verify the circuit is de-energised using the approved tester before touching any conductor. Any energisation or powered test may only be performed by the authorised training-board supervisor.",
         "Read the single-phase wiring diagram for the switch + socket circuit on the training board and photograph it alongside your marked-up conduit run.",
         "Record an SD overview clip of laying/clamping conduit and pulling wire through to the switch and socket positions.",
         "Terminate the switch and socket; photograph HD close-ups of each termination (tight, correct terminal, no exposed copper).",
-        "With the circuit isolated, use the tester/multimeter to verify continuity and correct wiring; photograph the reading.",
+        "With the circuit still isolated, use the tester/multimeter to verify continuity and correct wiring; photograph the reading. Do not reconnect the supply yourself.",
         "Assist with the earthing connection for the circuit and photograph the earth termination."
       ],
       "linked_pcs": [
@@ -70,13 +74,14 @@
       "nos": "CON/N0603",
       "budget_mb": 25,
       "budget_bytes": 26214400,
-      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos.",
+      "evidence_hint": "Set up a temporary lighting point; find and fix a planted loose connection; before/after photos, all with the circuit isolated.",
       "step_guide": [
+        "Confirm the training board supply is isolated. Do not energise or work on a live circuit. Verify the circuit is de-energised using the approved tester before touching any conductor. Any energisation or powered test may only be performed by the authorised training-board supervisor.",
         "Check cable, conduit, lamp holder and fixtures against the manufacturer spec before starting; photograph the check.",
-        "Lay the cable to the lighting point and fix the light fitting securely; record an SD clip of the installation.",
-        "Terminate and tag the temporary line; photograph the tagged, secured connection.",
-        "Locate the planted loose connection/fault using the tester; photograph the fault 'before' state.",
-        "Repair the fault (re-terminate, replace the damaged part) and photograph the 'after' state plus a continuity/power check confirming the fix."
+        "With the circuit isolated, lay the cable to the lighting point and fix the light fitting securely; record an SD clip of the installation.",
+        "Terminate and tag the temporary line for supervisor inspection; photograph the tagged, secured connection.",
+        "Locate the planted loose connection/fault using the tester on the isolated circuit; photograph the fault 'before' state.",
+        "Repair the fault (re-terminate, replace the damaged part) and photograph the 'after' state plus a continuity check performed with the tester, circuit still isolated, confirming the fix. Any powered verification is performed only by the authorised training-board supervisor after your work is inspected."
       ],
       "linked_pcs": [
         "CON/N0603.PC1", "CON/N0603.PC2", "CON/N0603.PC3", "CON/N0603.PC4", "CON/N0603.PC5", "CON/N0603.PC6",
@@ -90,13 +95,14 @@
       "nos": "CON/N0605",
       "budget_mb": 30,
       "budget_bytes": 31457280,
-      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board; overview + close-ups.",
+      "evidence_hint": "Connect a small distribution board (MCB, earth, labelling) on the training board, circuit isolated throughout; overview + close-ups.",
       "step_guide": [
+        "Confirm the training board supply is isolated. Do not energise or work on a live circuit. Verify the circuit is de-energised using the approved tester before touching any conductor. Any energisation or powered test may only be performed by the authorised training-board supervisor.",
         "Read the SLD for the small distribution board and photograph it next to the unassembled board.",
-        "Install the MCB(s), sockets and switches into the board per the SLD; record an SD overview clip of the assembly.",
+        "With the circuit isolated, install the MCB(s), sockets and switches into the board per the SLD; record an SD overview clip of the assembly.",
         "Terminate incoming and outgoing cables; photograph HD close-ups of each termination (tightness, correct terminal).",
         "Connect and photograph the earthing of the panel.",
-        "Tag and barricade the board as live-ready; photograph the tagged board and a final continuity/test-lamp check."
+        "Tag and barricade the board for supervisor inspection; photograph the tagged board and a final continuity/test-lamp check that you perform with the circuit still isolated. Do not energise the board yourself -- any powered test is performed only by the authorised training-board supervisor after inspecting your work."
       ],
       "linked_pcs": [
         "CON/N0605.PC1", "CON/N0605.PC2", "CON/N0605.PC3", "CON/N0605.PC4", "CON/N0605.PC5", "CON/N0605.PC6",
@@ -106,7 +112,7 @@
     }
   ],
   "not_task_evidenced_nos": {
-    "note": "CON/N8001 (teamwork), CON/N8002 (plan & organise) and DGT/VSQ/N0101 (employability skills) are compulsory NOS in the official QP but are not given dedicated capture tasks in the MVP. They are covered only by the worker's self-declaration plus up to 3 short assessor questions, recorded as assessor notes. This is a stated, open gap versus full QP coverage (master plan p.4) and is out of scope for the rubric/matcher in P1.",
+    "note": "CON/N8001 (teamwork), CON/N8002 (plan & organise) and DGT/VSQ/N0101 (employability skills) are compulsory NOS in the official QP but are not given dedicated capture tasks in the MVP. They are covered only by the worker's self-declaration (work setting / prior training, not scored -- see packs/ae-con-q0602/mapping/thresholds.json) plus up to 3 short assessor questions, recorded as assessor notes. This is a stated, open gap versus full QP coverage (master plan p.4) and is out of scope for the rubric/matcher in P1.",
     "nos": ["CON/N8001", "CON/N8002", "DGT/VSQ/N0101"]
   }
 }

@@ -18,14 +18,18 @@ documentation request someone can skip.
 
 It exists so `ml/mapping/eval.py` has something to run against for the P1
 exit test ("first 20 labelled declarations run without errors"). It is
-**not** real worker data and must not be used for the IC-1 ≥90% agreement
-go/no-go gate (master plan §7, §8). That gate needs field-collected
-declarations from real candidates, labelled by the trade expert against
-their actual interview/experience, saved **without** a `harness_marker`
-field — collecting and labelling that set is a P1/IC-1 task for AI-1 + the
-trade expert, not something this script can produce.
+**not** real worker data and must not be used for an IC-1-style expert
+agreement go/no-go claim. Independent assessor-agreement validation is
+**out of scope for Q-1/P-3 entirely** — see `docs/gates/IC1A.md`, which
+replaces the earlier expert-agreement IC-1 wording with a truthful
+technical-only gate. A real agreement study (field-collected declarations
+from real candidates, labelled by a trade expert against their actual
+interview/experience, saved **without** a `harness_marker` field) belongs
+to a later pilot/study phase, not Q-1/P-3.
 
-Regenerate this fixture (if `packs/ae-con-q0602/mapping/` cards change)
-with the generator kept in this repo's history / scratch tooling — it is a
-thin wrapper around `ml/mapping/matcher.py`'s own card list, not checked in
-as a permanent tool since it has no further purpose once real data lands.
+Regenerate this fixture (if `packs/ae-con-q0602/mapping/` cards change) with
+`python3 ml/mapping/generate_labelled_60.py` — a seeded, reproducible,
+three-archetype (experienced / partial / unrelated) generator kept in this
+repo. Each record's `expected_match` is assigned by archetype design, not
+computed from `matcher.match()`, so `eval.py`'s agreement number stays a
+real check rather than a circular one.
