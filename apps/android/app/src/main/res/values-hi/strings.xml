@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">कौशलप्रमाण</string>
+
+    <!-- Language screen -->
+    <string name="language_title">अपनी भाषा चुनें</string>
+    <string name="language_subtitle">आप इसे बाद में किसी भी स्क्रीन से बदल सकते हैं।</string>
+    <string name="language_english">English (अंग्रेज़ी)</string>
+    <string name="language_hindi">हिन्दी</string>
+    <string name="action_continue">आगे बढ़ें</string>
+    <string name="action_change_language">भाषा बदलें</string>
+
+    <!-- Consent screen -->
+    <string name="consent_title">शुरू करने से पहले</string>
+    <string name="consent_body">कौशलप्रमाण आपसे बिजली के काम के आपके पुराने अनुभव के बारे में पूछेगा और आपको इस फ़ोन पर अभ्यास का प्रमाण रिकॉर्ड करने देगा। ऐप के इस संस्करण में कुछ भी फ़ोन से बाहर नहीं जाता — यहाँ इंटरनेट पर कुछ भी अपलोड नहीं होता। आपके जवाब एक व्यक्ति (असेसर) को आपका अनुभव समझने में मदद करते हैं; ये आपको प्रमाणित, योग्य, पास या फेल नहीं करते। आप किसी भी समय रुक सकते हैं।</string>
+    <string name="consent_play_audio">इसे ज़ोर से सुनें</string>
+    <string name="consent_audio_unavailable">इस समय इस फ़ोन पर आवाज़ चलाना संभव नहीं है — आप ऊपर लिखा हुआ पढ़ सकते हैं।</string>
+    <string name="consent_checkbox">मैंने यह पढ़ा/सुना है और आगे बढ़ने के लिए सहमत हूँ।</string>
+    <string name="consent_continue_disabled_hint">आगे बढ़ने के लिए कृपया ऊपर दी गई सहमति से सहमत हों।</string>
+
+    <!-- Registration screen -->
+    <string name="registration_title">पंजीकरण करें</string>
+    <string name="registration_phone_label">फ़ोन नंबर</string>
+    <string name="registration_pin_label">4 अंकों का पिन (इस फ़ोन पर आपकी जानकारी सुरक्षित रखने के लिए)</string>
+    <string name="registration_pin_confirm_label">पिन दोबारा डालें</string>
+    <string name="registration_error_phone">सही 10 अंकों का फ़ोन नंबर डालें।</string>
+    <string name="registration_error_pin">पिन बिल्कुल 4 अंकों का होना चाहिए।</string>
+    <string name="registration_error_pin_mismatch">पिन मेल नहीं खा रहे हैं।</string>
+    <string name="registration_action_register">पंजीकरण करें और आगे बढ़ें</string>
+    <string name="registration_id_label">आपकी वर्कर आईडी (इस फ़ोन पर सुरक्षित)</string>
+
+    <!-- Declaration screen -->
+    <string name="declaration_title">अपने अनुभव के बारे में बताएं</string>
+    <string name="declaration_instructions">हर वाक्य के लिए बताएं कि यह आपके काम को कितनी बार दर्शाता है। यह सिर्फ़ आपको सही अभ्यास कार्यों तक पहुंचाने के लिए है — यह कोई परीक्षा नहीं है।</string>
+    <string name="declaration_section_tools">बिजली से जुड़ा व्यावहारिक अनुभव</string>
+    <string name="declaration_section_safety">सुरक्षा और पीपीई</string>
+    <string name="declaration_section_teamwork">दूसरों के साथ काम करना</string>
+    <string name="declaration_section_planning">अपने काम की योजना बनाना</string>
+    <string name="declaration_section_tools_grid">आपने इनमें से कौन से औज़ार इस्तेमाल किए हैं?</string>
+    <string name="declaration_years_label">अनुभव के वर्ष (किसी भी बिजली से जुड़े काम का)</string>
+    <string name="declaration_free_text_label">कुछ और जोड़ना चाहते हैं? (वैकल्पिक)</string>
+    <string name="declaration_free_text_hint">आप अंग्रेज़ी, हिन्दी या दोनों मिलाकर लिख सकते हैं — जैसे \"maine earthing kiya\"</string>
+    <string name="answer_often">अक्सर</string>
+    <string name="answer_sometimes">कभी-कभी</string>
+    <string name="answer_never">कभी नहीं</string>
+    <string name="action_see_match">मेरा मैच परिणाम देखें</string>
+
+    <!-- Match result screen -->
+    <string name="match_title">असिस्टेंट इलेक्ट्रीशियन से आपका मैच</string>
+    <string name="match_result_appropriate">उपयुक्त मैच</string>
+    <string name="match_result_partial">आंशिक मैच — कुछ कमियां</string>
+    <string name="match_result_not_appropriate">अभी उपयुक्त मैच नहीं है</string>
+    <string name="match_disclaimer">यह केवल यह बताता है कि आपका बताया हुआ अनुभव असिस्टेंट इलेक्ट्रीशियन (CON/Q0602) के व्यावहारिक मूल्यांकन के लिए कितना उपयुक्त है। यह कोई प्रमाणपत्र, पास, फेल या योग्यता नहीं है — आपके अभ्यास प्रमाण देखने के बाद अंतिम निर्णय एक व्यक्ति (असेसर) लेता है।</string>
+    <string name="match_because_title">यह परिणाम क्यों आया</string>
+    <string name="match_gaps_title">कम बताए गए अनुभव वाले क्षेत्र</string>
+    <string name="match_no_gaps">कोई कमी नहीं — आपने सभी क्षेत्रों में अनुभव बताया है।</string>
+    <string name="match_coverage_label">कुल बताया गया अनुभव कवरेज: %1$d%%</string>
+    <string name="action_view_tasks">अभ्यास कार्य देखें</string>
+
+    <!-- Task list screen -->
+    <string name="tasks_title">अभ्यास कार्य</string>
+    <string name="tasks_subtitle">हर कार्य के लिए अभ्यास प्रमाण एक बंद (डी-एनर्जाइज़्ड) ट्रेनिंग बोर्ड पर, निगरानी में रिकॉर्ड करें। ये अभ्यास कार्य हैं, लाइव काम का निर्देश नहीं।</string>
+    <string name="tasks_budget_total">कुल इस्तेमाल किया गया प्रमाण: %2$s में से %1$s</string>
+    <string name="task_gap_badge">अतिरिक्त प्रमाण चाहिए</string>
+    <string name="task_budget_label">इस्तेमाल किया गया: %2$s में से %1$s</string>
+    <string name="action_open_task">कार्य खोलें</string>
+    <string name="action_preview">पूर्वावलोकन और सबमिट करें</string>
+
+    <!-- Task detail screen -->
+    <string name="task_detail_safety_warning">सुरक्षा: केवल बंद (डी-एनर्जाइज़्ड) ट्रेनिंग बोर्ड या निगरानी वाली ट्रेनिंग जगह का उपयोग करें। यह ऐप कभी भी लाइव बिजली के काम का निर्देश नहीं देता।</string>
+    <string name="task_detail_guide_title">यह कार्य कैसे करें</string>
+    <string name="task_detail_evidence_hint_title">क्या रिकॉर्ड करना है</string>
+    <string name="task_detail_evidence_title">आपका प्रमाण</string>
+    <string name="task_detail_no_evidence">अभी तक कोई प्रमाण नहीं जोड़ा गया।</string>
+    <string name="action_add_evidence">प्रमाण जोड़ें</string>
+    <string name="action_replace">बदलें</string>
+    <string name="action_remove">हटाएं</string>
+    <string name="action_back_to_tasks">कार्य सूची पर वापस जाएं</string>
+
+    <!-- Add evidence dialog -->
+    <string name="add_evidence_title">नमूना प्रमाण जोड़ें</string>
+    <string name="add_evidence_type_label">प्रमाण का प्रकार</string>
+    <string name="evidence_type_photo">फ़ोटो</string>
+    <string name="evidence_type_video">वीडियो</string>
+    <string name="add_evidence_size_label">फ़ाइल आकार (नमूना): %1$s</string>
+    <string name="add_evidence_remaining_task">इस कार्य के लिए शेष: %1$s</string>
+    <string name="add_evidence_remaining_total">कुल शेष: %1$s</string>
+    <string name="add_evidence_error_task_budget">इससे इस कार्य का प्रमाण बजट पार हो जाएगा। आकार कम करें या पहले दूसरा प्रमाण हटाएं।</string>
+    <string name="add_evidence_error_total_budget">इससे कुल 120 MB प्रमाण बजट पार हो जाएगा। आकार कम करें या पहले दूसरा प्रमाण हटाएं।</string>
+    <string name="action_save">सहेजें</string>
+    <string name="action_cancel">रद्द करें</string>
+
+    <!-- Preview screen -->
+    <string name="preview_title">सबमिट करने से पहले पूर्वावलोकन</string>
+    <string name="preview_task_usage">%2$s में से %1$s इस्तेमाल हुआ</string>
+    <string name="preview_total_usage">कुल: %2$s में से %1$s</string>
+    <string name="preview_empty_task">इस कार्य के लिए कोई प्रमाण नहीं जोड़ा गया।</string>
+    <string name="attestation_title">सबमिट करने से पहले</string>
+    <string name="attestation_text">यह प्रमाण मेरे अपने काम को दिखाता है।</string>
+    <string name="action_submit">सबमिट करें</string>
+    <string name="action_submit_disabled_hint">सबमिट करने के लिए कृपया ऊपर दिया गया प्रमाणीकरण स्वीकार करें।</string>
+
+    <!-- Submitted screen -->
+    <string name="submitted_title">स्थानीय रूप से सील — सिंक की प्रतीक्षा में</string>
+    <string name="submitted_body">आपकी घोषणा, मैच परिणाम और अभ्यास प्रमाण इस फ़ोन पर सील कर दिए गए हैं। यह ऑफ़लाइन डेमो ऐप कुछ भी अपलोड, एन्क्रिप्ट, हैश या सिंक नहीं करता — यह बाद के चरण में होगा। इस डिवाइस से कुछ भी बाहर नहीं गया है।</string>
+    <string name="submitted_worker_id">वर्कर आईडी: %1$s</string>
+    <string name="action_view_preview_again">मेरा सील किया गया सबमिशन देखें</string>
+
+    <!-- Common -->
+    <string name="content_desc_back">वापस</string>
+    <string name="content_desc_language_switch">भाषा बदलें</string>
+    <string name="content_desc_task_icon">कार्य आइकन</string>
+    <string name="content_desc_photo_evidence">फ़ोटो प्रमाण आइटम</string>
+    <string name="content_desc_video_evidence">वीडियो प्रमाण आइटम</string>
+    <string name="loading">लोड हो रहा है…</string>
+    <string name="offline_badge">ऑफ़लाइन — इंटरनेट की ज़रूरत नहीं</string>
+</resources>

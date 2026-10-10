@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Localized task titles, keyed by tasks.json task id (lowercased). Step-by-step
+     guides and evidence hints stay in English, sourced verbatim from the bundled
+     tasks.json (canonical pack content, not UI chrome); see docs/gates/P3.md. -->
+<resources>
+    <string name="task_title_t1">Safety &amp; PPE</string>
+    <string name="task_title_t2">Tools &amp; meter use</string>
+    <string name="task_title_t3">LV wiring (switchboard)</string>
+    <string name="task_title_t4">Temporary lighting / fault</string>
+    <string name="task_title_t5">Temporary LV panel</string>
+</resources>

@@ -88,6 +88,60 @@ jobs:
       - name: OpenAPI contract must be up to date
         run: python tools/export_openapi.py --check
 
+  android-core-mapping-tests:
+    name: Q-1/P-3 Kotlin matcher parity (core:mapping)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+      - name: Golden-vector parity, Kotlin vs Python (100/100)
+        working-directory: apps/android
+        run: ./gradlew :core:mapping:test --tests "*GoldenVectorsTest*" --tests "*MatcherTest*" --console=plain
+      - name: Upload core:mapping test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-mapping-test-report
+          path: apps/android/core/mapping/build/reports/tests/test
+          if-no-files-found: ignore
+
+  android-app-build:
+    name: P-3 Android debug build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+      - uses: android-actions/setup-android@v3
+      - name: Install platforms/build-tools (compileSdk 36; AndroidX deps require minCompileSdk 36)
+        run: sdkmanager "platforms;android-35" "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0"
+      - name: Static Kotlin checks + assemble debug APK
+        working-directory: apps/android
+        run: ./gradlew lint :app:assembleDebug --console=plain
+      - name: Upload debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaushalpramaan-debug-apk
+          path: apps/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore
+    # Emulator instrumentation (the full P-3 worker journey, Hindi flow, budget
+    # enforcement, airplane-mode) is NOT run on GitHub-hosted runners -- nested
+    # KVM virtualization for the Android emulator is unavailable/unreliable
+    # there. This is a platform constraint, not an incomplete P-3 feature: the
+    # instrumented tests exist (apps/android/app/src/androidTest) and the one
+    # local command below reproduces them exactly, on a real emulator.
+    #
+    #   cd apps/android && ./gradlew :app:connectedDebugAndroidTest --console=plain
+    #
+    # See docs/gates/P3.md for the actual run transcript against
+    # KaushalPramaan_API35 (Pixel 6, API 35, Google APIs x86_64).
+
   dashboard-build:
     name: Dashboard build + typecheck
     runs-on: ubuntu-latest

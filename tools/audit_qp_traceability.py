@@ -18,6 +18,11 @@ This is a stricter, source-integrity-focused companion to pack_validate.py
   [coverage] coverage_matrix.json matches qp.json/tasks.json and no PC in a
              practical NOS is NOT_ASSESSED_IN_MVP (fails the build if a
              practical PC has no T1-T5 task coverage)
+  [decl]     every NOS listed in mapping/thresholds.json's
+             practical_nos_for_matching has >= 1 card/tool link in
+             mapping/links.json (catches a scored NOS silently missing a
+             declaration signal, e.g. the CON/N9001 gap found at Q-1
+             completion where Safety/T1 never appeared in match output)
 """
 import argparse
 import json
@@ -229,6 +234,34 @@ def check_coverage_matrix(qp: dict, tasks: dict, pack_dir: Path):
     return False, "[coverage] " + "; ".join(bad_status) + " ✗"
 
 
+def check_declaration_coverage(pack_dir: Path):
+    """Every NOS the matcher actually scores (thresholds.practical_nos_for_matching)
+    must have >= 1 card/tool link in mapping/links.json. A practical NOS with zero
+    declaration signals silently gets coverage=0 / has_experience=False for every
+    worker forever (see match_rules@r1 -> r2: CON/N9001 had no cards at all, so T1
+    never appeared in applicable_tasks even though it's a real, task-evidenced NOS)."""
+    thresholds_path = pack_dir / "mapping" / "thresholds.json"
+    links_path = pack_dir / "mapping" / "links.json"
+    if not thresholds_path.exists() or not links_path.exists():
+        return False, "[decl]   mapping/thresholds.json or mapping/links.json missing ✗"
+
+    thresholds = json.loads(thresholds_path.read_text())
+    links = json.loads(links_path.read_text())
+
+    linked_nos = set()
+    for group in ("cards", "tools"):
+        for item in links.get(group, []):
+            for link in item.get("links", []):
+                linked_nos.add(link["nos"])
+
+    scored_nos = [e["nos"] for e in thresholds.get("practical_nos_for_matching", [])]
+    missing = [nos for nos in scored_nos if nos not in linked_nos]
+    if not missing:
+        return True, (f"[decl]   every scored NOS ({len(scored_nos)}) has >= 1 declaration "
+                       f"card/tool link ✓")
+    return False, f"[decl]   scored NOS with zero declaration signals: {', '.join(missing)} ✗"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("pack_dir", type=Path)
@@ -251,6 +284,7 @@ def main():
         check_source_pages(qp),
         check_cross_references(qp, pack_dir),
         check_coverage_matrix(qp, tasks, pack_dir),
+        check_declaration_coverage(pack_dir),
     ]
 
     failed = 0

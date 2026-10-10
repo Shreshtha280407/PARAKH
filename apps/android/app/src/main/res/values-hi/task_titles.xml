@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="task_title_t1">सुरक्षा और पीपीई</string>
+    <string name="task_title_t2">औज़ार और मीटर का इस्तेमाल</string>
+    <string name="task_title_t3">एलवी वायरिंग (स्विचबोर्ड)</string>
+    <string name="task_title_t4">अस्थायी लाइटिंग / खराबी</string>
+    <string name="task_title_t5">अस्थायी एलवी पैनल</string>
+</resources>

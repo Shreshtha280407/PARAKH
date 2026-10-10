@@ -1,8 +1,11 @@
 # QP traceability report — CON/Q0602 v4.0
 
-Generated from `tools/audit_qp_traceability.py packs/ae-con-q0602`, run on
-2026-10-09. Regenerate this file by re-running that command whenever
-`qp.json`, `tasks.json`, `rubric.json`, or `mapping/*.json` change.
+Generated from `tools/audit_qp_traceability.py packs/ae-con-q0602`. Initial
+run 2026-10-09 (P1); re-run 2026-10-10 for Q-1 completion after adding the
+`[decl]` check and the match-rules@r2 safety/teamwork/planning declaration
+cards (see `docs/qp/CON_Q0602_v4_source_of_truth.md` and
+`docs/gates/Q1.md`). Regenerate this file by re-running that command
+whenever `qp.json`, `tasks.json`, `rubric.json`, or `mapping/*.json` change.
 
 ## Pinned source
 
@@ -30,9 +33,14 @@ $ python tools/audit_qp_traceability.py packs/ae-con-q0602
 [text]   every PC has non-empty text ✓
 [pages]  source_page + source_reference present on all 8 NOS and 119 PCs ✓
 [refs]   every tasks/rubric/mapping PC reference resolves to a real PC ✓
+[coverage] coverage_matrix.json matches qp.json/tasks.json, 0 PCs NOT_ASSESSED_IN_MVP, mvp_applicability correct for 1 NOT_APPLICABLE_IN_MVP PC(s) ✓ (TASK_EVIDENCE_PATHWAY=71, DECLARATION_OR_ASSESSOR_NOTE=48)
+[decl]   every scored NOS (5) has >= 1 declaration card/tool link ✓
 ```
 
-All 6 checks pass, exit 0.
+All 8 checks pass, exit 0. The `[coverage]` and `[decl]` checks were added
+after the initial P1 run (`[decl]` specifically at Q-1 completion, to make
+the kind of gap it would have caught — CON/N9001 having zero declaration
+cards under match-rules@r1 — fail CI instead of silently shipping).
 
 ## NOS → source page map
 

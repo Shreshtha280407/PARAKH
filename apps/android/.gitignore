@@ -1,0 +1,20 @@
+# Local SDK path, machine-specific -- never committed.
+local.properties
+
+# Gradle
+.gradle/
+build/
+*/build/
+*/*/build/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Instrumented-test artifacts (logs/screenshots), see docs/gates/P3.md
+test-artifacts/
