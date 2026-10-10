@@ -39,10 +39,9 @@ data class PracticalNosEntry(
 )
 
 @Serializable
-data class DeclarationOnlyNosEntry(
-    val nos: String,
-    val label: String,
-    val reason: String = "",
+data class DeclarationContract(
+    @SerialName("card_count") val cardCount: Int,
+    @SerialName("tool_count") val toolCount: Int,
 )
 
 @Serializable
@@ -50,7 +49,7 @@ data class ThresholdsFile(
     @SerialName("match_rules_id") val matchRulesId: String,
     @SerialName("answer_strength") val answerStrength: Map<String, Double>,
     @SerialName("practical_nos_for_matching") val practicalNosForMatching: List<PracticalNosEntry>,
-    @SerialName("declaration_only_nos") val declarationOnlyNos: List<DeclarationOnlyNosEntry> = emptyList(),
+    @SerialName("declaration_contract") val declarationContract: DeclarationContract? = null,
 )
 
 @Serializable
@@ -102,15 +101,6 @@ data class ApplicableTask(
 )
 
 @Serializable
-data class DeclarationOnlySignal(
-    val nos: String,
-    val label: String,
-    @SerialName("has_declared_experience") val hasDeclaredExperience: Boolean,
-    @SerialName("matched_items") val matchedItems: List<String>,
-    val because: String,
-)
-
-@Serializable
 data class MatchOutput(
     @SerialName("match_result") val matchResult: String,
     @SerialName("overall_coverage") val overallCoverage: Double,
@@ -119,7 +109,6 @@ data class MatchOutput(
     val because: List<String>,
     @SerialName("gap_nos") val gapNos: List<String>,
     @SerialName("applicable_tasks") val applicableTasks: List<ApplicableTask>,
-    @SerialName("declaration_only_signals") val declarationOnlySignals: List<DeclarationOnlySignal>,
     @SerialName("rules_version") val rulesVersion: String,
 )
 

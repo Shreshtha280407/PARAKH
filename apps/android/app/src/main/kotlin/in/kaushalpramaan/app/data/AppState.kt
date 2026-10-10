@@ -42,6 +42,12 @@ data class DeclarationState(
     val answers: Map<String, String> = emptyMap(),
     val yearsOfExperience: Int = 0,
     val freeText: String = "",
+    // Non-scored, informational-only signals for the assessor's context (see
+    // DeclarationLabels.kt's WorkSettingOptions/PriorTrainingOptions). Neither
+    // field is ever read by Matcher.match -- see AppViewModel.computeMatch(),
+    // which only passes answers and freeText to the matcher.
+    val workSetting: String? = null,
+    val priorTraining: String? = null,
 )
 
 data class AppUiState(

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate ml/mapping/golden_vectors.jsonl — the 100-vector Python/Kotlin
-match-rules@r2 parity contract.
+match-rules@r3 parity contract (20 declaration cards + 6 tools).
 
 This is the canonical, already-established location for the golden-vector
 contract (see ml/mapping/README.md, matcher.py's module docstring, CI); it is
@@ -36,22 +36,25 @@ ALL_CARD_IDS = [c["id"] for c in RULES["links"]["cards"]]
 ALL_TOOL_IDS = [t["id"] for t in RULES["links"]["tools"]]
 ALL_ITEM_IDS = ALL_CARD_IDS + ALL_TOOL_IDS
 
-# Items that touch at least one *scored* (practical) NOS -- i.e. everything
-# except the teamwork/plan-and-organise declaration-only cards (TM01-04,
-# PL01-04), which can never move overall_coverage no matter their answer.
+# Under r3 every card/tool touches at least one scored (practical) NOS -- unlike
+# r2, teamwork/plan-and-organise (CON/N8001, CON/N8002) have no cards at all any
+# more (see links.json r3 status / matcher.py), so this is just ALL_ITEM_IDS; kept
+# as its own name since downstream code (single-item sweep, G011/G012) reads it.
 PRACTICAL_ITEM_IDS = [
     item_id for item_id, links in
     [(c["id"], c["links"]) for c in RULES["links"]["cards"]] + [(t["id"], t["links"]) for t in RULES["links"]["tools"]]
     if any(l["nos"] in PRACTICAL_NOS for l in links)
 ]
-DECLARATION_ONLY_ITEM_IDS = [i for i in ALL_ITEM_IDS if i not in PRACTICAL_ITEM_IDS]
+assert set(PRACTICAL_ITEM_IDS) == set(ALL_ITEM_IDS), "r3 expects every card/tool to touch a scored NOS"
 
-SAFETY_ITEM_IDS = [c["id"] for c in RULES["links"]["cards"] if c["id"].startswith("S")]
-LIGHTING_RELATED = ["C04", "C16", "C17", "C23", "C24", "TL02"]  # N0603-heavy
-WIRING_RELATED = ["C01", "C03", "C05", "C08", "C13", "C14", "C22", "TL06", "TL07"]  # N0604-heavy
-PANEL_RELATED = ["C06", "C07", "C09", "C20", "C21", "C25", "C26", "C27", "TL08"]  # N0605-heavy
-DOMESTIC_RELATED = ["C01", "C04", "C05", "C23", "TL04", "TL05"]
-TOOLS_RELATED = ["C02", "C11", "C12", "C15", "C18", "TL01", "TL02", "TL03"]  # N0602-heavy
+# Card IDs below are the r3 20-card scheme (packs/ae-con-q0602/mapping/links.json);
+# see docs/qp_declaration_traceability.md for the full old-id -> new-id mapping.
+SAFETY_ITEM_IDS = ["C17", "C18", "C19", "C20"]  # N9001-heavy
+LIGHTING_RELATED = ["C02", "C04", "C06", "C07", "C08", "C09", "C10", "TL02"]  # N0603-heavy
+WIRING_RELATED = ["C01", "C02", "C10", "C11", "C12", "C13", "TL05"]  # N0604-heavy
+PANEL_RELATED = ["C04", "C05", "C07", "C08", "C09", "C12", "C13", "C14", "C15", "C16"]  # N0605-heavy
+DOMESTIC_RELATED = ["C01", "C06", "C11", "TL03", "TL04"]
+TOOLS_RELATED = ["C01", "C02", "C03", "C04", "C05", "TL01", "TL02", "TL03", "TL04", "TL06"]  # N0602-heavy
 
 vectors = []
 seen_ids = set()
@@ -75,7 +78,7 @@ def answers_for(often=(), sometimes=(), never_rest_of=ALL_ITEM_IDS):
 
 
 # ---------------------------------------------------------------------------
-# 1. Named, spec-required scenario categories (31 vectors)
+# 1. Named, spec-required scenario categories (32 vectors: G001-G032)
 # ---------------------------------------------------------------------------
 
 # strong Assistant Electrician profile (also serves as the all-often reference point)
@@ -155,7 +158,7 @@ add("G015", "unrelated_welder", {
 
 # contradictory declarations
 add("G016", "contradictory_advanced_panel_no_basic_tools", {
-    "answers": answers_for(often=["C06", "C07", "C21", "C25"] + SAFETY_ITEM_IDS, never_rest_of=ALL_ITEM_IDS),
+    "answers": answers_for(often=["C05", "C07", "C14", "C16"] + SAFETY_ITEM_IDS, never_rest_of=ALL_ITEM_IDS),
     "free_text": "",
 })
 add("G017", "contradictory_safety_conscious_no_practical_skill", {
@@ -247,9 +250,8 @@ add("G032", "boundary_at_or_above_0_60", {"answers": _b60_above, "free_text": ""
 
 # ---------------------------------------------------------------------------
 # 2. Single-item sweeps -- isolate the effect of exactly one declaration item
-#    answered "often", everything else "never". Covers all 35 r1 cards/tools
-#    (regression: r2 must not change their individual semantics) plus all 16
-#    new r2 items (8 safety + 4 teamwork + 4 planning).
+#    answered "often", everything else "never". Covers all 20 r3 cards + 6 r3
+#    tools (26 items total).
 # ---------------------------------------------------------------------------
 idx = 33
 for item_id in sorted(ALL_ITEM_IDS):
@@ -259,7 +261,7 @@ for item_id in sorted(ALL_ITEM_IDS):
         "free_text": "",
     })
     idx += 1
-# 51 single-item vectors -> idx now 33+51 = 84
+# 26 single-item vectors -> idx now 33+26 = 59
 
 # ---------------------------------------------------------------------------
 # 3. Deterministic pseudo-random mixed declarations (seeded) to round out the
@@ -320,7 +322,7 @@ for v in vectors:
 assert tasks_flagged == {"T1", "T2", "T3", "T4", "T5"}, f"not all tasks flagged as gaps: {tasks_flagged}"
 
 header = (
-    "// Python/Kotlin match-rules@r2 golden-vector parity contract (100 vectors).\n"
+    "// Python/Kotlin match-rules@r3 golden-vector parity contract (100 vectors).\n"
     "// Generated by ml/mapping/generate_golden_vectors.py -- do not hand-edit; re-run the\n"
     "// generator after any mapping/*.json or matcher.py change and commit the new file.\n"
     "// Every expected_output was produced by running matcher.py itself (see that script's\n"

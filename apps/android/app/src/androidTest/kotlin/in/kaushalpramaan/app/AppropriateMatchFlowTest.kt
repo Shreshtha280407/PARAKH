@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 
 /**
  * Full P-3 journey, English, "everything often" declaration -- pinned by
- * ml/mapping/golden_vectors.jsonl G001 to overall_coverage 0.9113,
+ * ml/mapping/golden_vectors.jsonl G001 to overall_coverage 0.9126,
  * match_result appropriate_match, gap_nos=[]. Proves: language -> consent ->
  * registration -> declaration -> match -> task list -> add evidence ->
  * preview -> attestation -> local submit -> sealed state, with an

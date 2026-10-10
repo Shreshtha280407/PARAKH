@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic, rule-based CON/Q0602 declaration matcher (match-rules@r2).
+"""Deterministic, rule-based CON/Q0602 declaration matcher (match-rules@r3).
 
 Pure stdlib, no model weights: this is the Python reference implementation of
 the rules in packs/ae-con-q0602/mapping/{links,keywords,thresholds}.json. The
@@ -173,7 +173,6 @@ def match(declaration: dict, rules: dict) -> dict:
 
     # effective_claim per PC = max over links touching it of (answer_strength x link.weight)
     pc_claim: dict[str, float] = {}
-    pc_sources: dict[str, list[str]] = {}
     for item_id, item_links in _declaration_items(rules):
         base = _answer_strength(thresholds, answers.get(item_id, "never"))
         if base < 0.6 and _keyword_hit(keywords, item_id, free_text):
@@ -185,9 +184,6 @@ def match(declaration: dict, rules: dict) -> dict:
             contribution = base * link["weight"]
             if contribution > pc_claim.get(full_pc, 0.0):
                 pc_claim[full_pc] = contribution
-                pc_sources[full_pc] = [item_id]
-            elif contribution == pc_claim.get(full_pc, 0.0):
-                pc_sources.setdefault(full_pc, []).append(item_id)
 
     # PCs in scope per NOS = every PC referenced by >= 1 link for that NOS (links.json defines scope)
     nos_pcs: dict[str, set] = {}
@@ -244,34 +240,6 @@ def match(declaration: dict, rules: dict) -> dict:
             "extra_evidence_needed": nos in gap_nos,
         })
 
-    # Declaration-only NOS (CON/N8001 teamwork, CON/N8002 plan & organise): linked and
-    # surfaced for worker/assessor context, but NEVER read by overall_coverage, nos_coverage,
-    # match_result or gap_nos above -- these are generic employability behaviours, not
-    # Assistant-Electrician trade skill (thresholds.json.declaration_only_nos).
-    declaration_only_signals = []
-    for entry in thresholds.get("declaration_only_nos", []):
-        nos = entry["nos"]
-        pcs = nos_pcs.get(nos, set())
-        matched_items: set = set()
-        has_experience = False
-        for pc in pcs:
-            full_pc = f"{nos}.{pc}"
-            if pc_claim.get(full_pc, 0.0) > 0:
-                has_experience = True
-                matched_items.update(pc_sources.get(full_pc, []))
-        label = entry.get("label", nos)
-        if has_experience:
-            because_line = f"{nos} ({label}): worker declared relevant experience — informational only, not scored"
-        else:
-            because_line = f"{nos} ({label}): no declared experience — informational only, not scored"
-        declaration_only_signals.append({
-            "nos": nos,
-            "label": label,
-            "has_declared_experience": has_experience,
-            "matched_items": sorted(matched_items),
-            "because": because_line,
-        })
-
     return {
         "match_result": result,
         "overall_coverage": round(overall, 4),
@@ -280,6 +248,5 @@ def match(declaration: dict, rules: dict) -> dict:
         "because": because,
         "gap_nos": gap_nos,
         "applicable_tasks": applicable_tasks,
-        "declaration_only_signals": declaration_only_signals,
         "rules_version": rules["thresholds"]["match_rules_id"],
     }

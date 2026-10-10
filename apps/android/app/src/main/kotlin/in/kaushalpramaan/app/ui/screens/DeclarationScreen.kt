@@ -2,13 +2,16 @@ package `in`.kaushalpramaan.app.ui.screens
 
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
+import `in`.kaushalpramaan.app.data.ChoiceOptionUi
 import `in`.kaushalpramaan.app.data.DeclarationCardCatalog
 import `in`.kaushalpramaan.app.data.DeclarationCardUi
-import `in`.kaushalpramaan.app.data.DeclarationSection
+import `in`.kaushalpramaan.app.data.PriorTrainingOptions
+import `in`.kaushalpramaan.app.data.WorkSettingOptions
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,8 +38,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DeclarationScreen(viewModel: AppViewModel, onBack: () -> Unit, onSeeMatch: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
-    val cards = remember { DeclarationCardCatalog.allCards() }
-    val tools = remember { DeclarationCardCatalog.allTools() }
+    val rules = viewModel.rules
+    val cards = remember(rules) { DeclarationCardCatalog.allCards(rules) }
+    val tools = remember(rules) { DeclarationCardCatalog.allTools(rules) }
 
     KpScaffold(
         title = stringResource(R.string.declaration_title),
@@ -53,26 +57,19 @@ fun DeclarationScreen(viewModel: AppViewModel, onBack: () -> Unit, onSeeMatch: (
                 )
             }
 
-            for (section in listOf(
-                DeclarationSection.PRACTICAL,
-                DeclarationSection.SAFETY,
-                DeclarationSection.TEAMWORK,
-                DeclarationSection.PLANNING,
-            )) {
-                item {
-                    Text(
-                        stringResource(section.titleRes),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-                    )
-                }
-                items(cards.filter { it.section == section }, key = { it.id }) { card ->
-                    DeclarationAnswerRow(
-                        card = card,
-                        currentAnswer = uiState.declaration.answers[card.id],
-                        onAnswer = { answer -> viewModel.setAnswer(card.id, answer) },
-                    )
-                }
+            item {
+                Text(
+                    stringResource(R.string.declaration_section_tools),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                )
+            }
+            items(cards, key = { it.id }) { card ->
+                DeclarationAnswerRow(
+                    card = card,
+                    currentAnswer = uiState.declaration.answers[card.id],
+                    onAnswer = { answer -> viewModel.setAnswer(card.id, answer) },
+                )
             }
 
             item {
@@ -106,6 +103,38 @@ fun DeclarationScreen(viewModel: AppViewModel, onBack: () -> Unit, onSeeMatch: (
                     modifier = Modifier.defaultMinTapTarget(),
                 )
 
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                Text(
+                    stringResource(R.string.declaration_not_scored_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("declaration_not_scored_note"),
+                )
+
+                Text(
+                    stringResource(R.string.declaration_work_setting_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                )
+                ChoiceChipRow(
+                    options = WorkSettingOptions.options,
+                    selectedId = uiState.declaration.workSetting,
+                    onSelect = viewModel::setWorkSetting,
+                    testTagPrefix = "work_setting",
+                )
+
+                Text(
+                    stringResource(R.string.declaration_prior_training_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                )
+                ChoiceChipRow(
+                    options = PriorTrainingOptions.options,
+                    selectedId = uiState.declaration.priorTraining,
+                    onSelect = viewModel::setPriorTraining,
+                    testTagPrefix = "prior_training",
+                )
+
                 Text(
                     stringResource(R.string.declaration_free_text_label),
                     style = MaterialTheme.typography.titleMedium,
@@ -130,6 +159,25 @@ fun DeclarationScreen(viewModel: AppViewModel, onBack: () -> Unit, onSeeMatch: (
                     Text(stringResource(R.string.action_see_match))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ChoiceChipRow(
+    options: List<ChoiceOptionUi>,
+    selectedId: String?,
+    onSelect: (String) -> Unit,
+    testTagPrefix: String,
+) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        for (option in options) {
+            FilterChip(
+                selected = selectedId == option.id,
+                onClick = { onSelect(option.id) },
+                label = { Text(stringResource(option.labelRes)) },
+                modifier = Modifier.defaultMinTapTarget().testTag("${testTagPrefix}_${option.id}"),
+            )
         }
     }
 }

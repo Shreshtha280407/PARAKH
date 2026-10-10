@@ -29,33 +29,35 @@ def test_never_decides_competence_contract():
 
 
 def test_keyword_boosts_never_to_sometimes():
-    without = match({"answers": {"C08": "never"}, "free_text": ""}, RULES)
-    with_kw = match({"answers": {"C08": "never"}, "free_text": "did earthing at a site"}, RULES)
+    """C12 = 'Connected an earth wire'; keywords.json maps earthing terms to it."""
+    without = match({"answers": {"C12": "never"}, "free_text": ""}, RULES)
+    with_kw = match({"answers": {"C12": "never"}, "free_text": "did earthing at a site"}, RULES)
     assert with_kw["overall_coverage"] > without["overall_coverage"]
 
 
 def test_hindi_keyword_boosts_coverage():
     """Devanagari free text must hit keywords.json's "hi" lists (not just transliterated)."""
-    without = match({"answers": {"C08": "never"}, "free_text": ""}, RULES)
-    with_hi = match({"answers": {"C08": "never"}, "free_text": "मैंने अर्थिंग का काम किया"}, RULES)
+    without = match({"answers": {"C12": "never"}, "free_text": ""}, RULES)
+    with_hi = match({"answers": {"C12": "never"}, "free_text": "मैंने अर्थिंग का काम किया"}, RULES)
     assert with_hi["overall_coverage"] > without["overall_coverage"], with_hi
-    without_s01 = match({"answers": {"S01": "never"}, "free_text": ""}, RULES)
-    with_hi_s01 = match({"answers": {"S01": "never"}, "free_text": "मैंने हेलमेट पहना"}, RULES)
-    assert with_hi_s01["overall_coverage"] > without_s01["overall_coverage"], with_hi_s01
+    without_c17 = match({"answers": {"C17": "never"}, "free_text": ""}, RULES)
+    with_hi_c17 = match({"answers": {"C17": "never"}, "free_text": "मैंने हेलमेट पहना"}, RULES)
+    assert with_hi_c17["overall_coverage"] > without_c17["overall_coverage"], with_hi_c17
 
 
 def test_hinglish_keyword_boosts_coverage():
-    without = match({"answers": {"C08": "never"}, "free_text": ""}, RULES)
-    with_hinglish = match({"answers": {"C08": "never"}, "free_text": "maine earthing kiya tha"}, RULES)
+    without = match({"answers": {"C12": "never"}, "free_text": ""}, RULES)
+    with_hinglish = match({"answers": {"C12": "never"}, "free_text": "maine earthing kiya tha"}, RULES)
     assert with_hinglish["overall_coverage"] > without["overall_coverage"], with_hinglish
-    without_s03 = match({"answers": {"S03": "never"}, "free_text": ""}, RULES)
-    with_hinglish_s03 = match({"answers": {"S03": "never"}, "free_text": "tool box talk attend kiya"}, RULES)
-    assert with_hinglish_s03["overall_coverage"] > without_s03["overall_coverage"], with_hinglish_s03
+    without_c18 = match({"answers": {"C18": "never"}, "free_text": ""}, RULES)
+    with_hinglish_c18 = match({"answers": {"C18": "never"}, "free_text": "tool box talk attend kiya"}, RULES)
+    assert with_hinglish_c18["overall_coverage"] > without_c18["overall_coverage"], with_hinglish_c18
 
 
 def test_free_text_never_overrides_structured_often():
     """An explicit structured 'often' must not be lowered by unrelated free text --
-    the keyword boost is additive (raises below-sometimes answers), never a downgrade."""
+    the keyword boost is additive (raises below-sometimes answers), never a downgrade.
+    C08 = 'Shifted or moved a temporary light/board to another spot', linked to CON/N0605.PC16."""
     r = match({"answers": {"C08": "often"}, "free_text": "no electrical work at all"}, RULES)
     assert r["nos_coverage"]["CON/N0605"] > 0
 
@@ -72,30 +74,22 @@ def test_t1_safety_appears_in_applicable_tasks():
     assert t1["extra_evidence_needed"] is True
 
 
-def test_declaration_only_signals_never_move_the_score():
-    """Toggling only teamwork/plan-and-organise cards must never change
-    overall_coverage, match_result, nos_coverage or gap_nos -- they are
-    informational (declaration_only_signals), not scored."""
-    baseline = match({"answers": {}}, RULES)
-    teamwork_only = match({"answers": {"TM01": "often", "TM02": "often", "TM03": "often",
-                                        "TM04": "often", "PL01": "often", "PL02": "often",
-                                        "PL03": "often", "PL04": "often"}}, RULES)
-    assert baseline["overall_coverage"] == teamwork_only["overall_coverage"]
-    assert baseline["match_result"] == teamwork_only["match_result"]
-    assert baseline["nos_coverage"] == teamwork_only["nos_coverage"]
-    assert baseline["gap_nos"] == teamwork_only["gap_nos"]
-    # but the signal itself must reflect the declared experience
-    tm_signal = next(s for s in teamwork_only["declaration_only_signals"] if s["nos"] == "CON/N8001")
-    assert tm_signal["has_declared_experience"] is True
-    pl_signal = next(s for s in teamwork_only["declaration_only_signals"] if s["nos"] == "CON/N8002")
-    assert pl_signal["has_declared_experience"] is True
-    base_tm_signal = next(s for s in baseline["declaration_only_signals"] if s["nos"] == "CON/N8001")
-    assert base_tm_signal["has_declared_experience"] is False
+def test_declaration_contract_is_20_cards_6_tools():
+    """Q-1/P-3 worker-flow contract: exactly 20 declaration cards + 6 tools --
+    CON/N8001 (teamwork) and CON/N8002 (plan & organise) have no cards at all
+    any more (no declaration_only_signals side-channel either, see matcher.py)."""
+    assert len(RULES["links"]["cards"]) == 20
+    assert len(RULES["links"]["tools"]) == 6
+    all_nos = {link["nos"] for item_links in
+               [c["links"] for c in RULES["links"]["cards"]] + [t["links"] for t in RULES["links"]["tools"]]
+               for link in item_links}
+    assert "CON/N8001" not in all_nos
+    assert "CON/N8002" not in all_nos
 
 
-def test_rules_version_is_r2():
+def test_rules_version_is_r3():
     r = match({"answers": {}}, RULES)
-    assert r["rules_version"] == "match-rules@r2", r["rules_version"]
+    assert r["rules_version"] == "match-rules@r3", r["rules_version"]
 
 
 # --- validation: malformed declaration inputs must raise a clear ValueError ---

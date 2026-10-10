@@ -32,12 +32,20 @@
     <!-- Declaration screen -->
     <string name="declaration_title">अपने अनुभव के बारे में बताएं</string>
     <string name="declaration_instructions">हर वाक्य के लिए बताएं कि यह आपके काम को कितनी बार दर्शाता है। यह सिर्फ़ आपको सही अभ्यास कार्यों तक पहुंचाने के लिए है — यह कोई परीक्षा नहीं है।</string>
-    <string name="declaration_section_tools">बिजली से जुड़ा व्यावहारिक अनुभव</string>
-    <string name="declaration_section_safety">सुरक्षा और पीपीई</string>
-    <string name="declaration_section_teamwork">दूसरों के साथ काम करना</string>
-    <string name="declaration_section_planning">अपने काम की योजना बनाना</string>
+    <string name="declaration_section_tools">बिजली और सुरक्षा से जुड़ा व्यावहारिक अनुभव</string>
     <string name="declaration_section_tools_grid">आपने इनमें से कौन से औज़ार इस्तेमाल किए हैं?</string>
     <string name="declaration_years_label">अनुभव के वर्ष (किसी भी बिजली से जुड़े काम का)</string>
+    <string name="declaration_work_setting_label">आपने ज़्यादातर कहाँ काम किया है?</string>
+    <string name="declaration_prior_training_label">क्या आपने बिजली के काम की कोई औपचारिक ट्रेनिंग ली है?</string>
+    <string name="declaration_not_scored_note">वैकल्पिक — केवल असेसर की जानकारी के लिए। इससे आपका मैच परिणाम नहीं बदलता।</string>
+    <string name="work_setting_construction_site">निर्माण साइट (कंस्ट्रक्शन साइट)</string>
+    <string name="work_setting_domestic_household">घरेलू काम</string>
+    <string name="work_setting_workshop_or_iti">वर्कशॉप या आईटीआई</string>
+    <string name="work_setting_other">अन्य</string>
+    <string name="prior_training_iti_or_formal_course">आईटीआई या अन्य औपचारिक कोर्स</string>
+    <string name="prior_training_informal_on_the_job">अनौपचारिक, काम करते हुए सीखा</string>
+    <string name="prior_training_none">कोई औपचारिक या अनौपचारिक ट्रेनिंग नहीं</string>
+    <string name="prior_training_other">अन्य</string>
     <string name="declaration_free_text_label">कुछ और जोड़ना चाहते हैं? (वैकल्पिक)</string>
     <string name="declaration_free_text_hint">आप अंग्रेज़ी, हिन्दी या दोनों मिलाकर लिख सकते हैं — जैसे \"maine earthing kiya\"</string>
     <string name="answer_often">अक्सर</string>

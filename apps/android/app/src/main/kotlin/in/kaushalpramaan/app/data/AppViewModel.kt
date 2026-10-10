@@ -49,6 +49,16 @@ class AppViewModel : ViewModel() {
         _uiState.update { it.copy(declaration = it.declaration.copy(freeText = text)) }
     }
 
+    /** Non-scored, informational-only -- see DeclarationState's doc comment.
+     * computeMatch() below never reads either of these two fields. */
+    fun setWorkSetting(id: String) {
+        _uiState.update { it.copy(declaration = it.declaration.copy(workSetting = id)) }
+    }
+
+    fun setPriorTraining(id: String) {
+        _uiState.update { it.copy(declaration = it.declaration.copy(priorTraining = id)) }
+    }
+
     /** Runs the on-device Kotlin matcher against the current declaration.
      * Pure local computation -- no network call is possible (see
      * app/build.gradle.kts's verifyNoNetworkDependencies task and the

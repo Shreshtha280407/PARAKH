@@ -1,6 +1,7 @@
 package `in`.kaushalpramaan.app
 
 import `in`.kaushalpramaan.app.data.DeclarationCardCatalog
+import `in`.kaushalpramaan.core.mapping.RulesLoader
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.ComposeTestRule
@@ -29,8 +30,10 @@ fun SemanticsNodeInteraction.scrollToIfPossible(): SemanticsNodeInteraction {
  * logic (which GoldenVectorsTest/MatcherTest in core:mapping already cover
  * exhaustively). */
 
-val ALL_DECLARATION_ITEM_IDS: List<String> =
-    (DeclarationCardCatalog.allCards() + DeclarationCardCatalog.allTools()).map { it.id }
+val ALL_DECLARATION_ITEM_IDS: List<String> by lazy {
+    val rules = RulesLoader.load()
+    (DeclarationCardCatalog.allCards(rules) + DeclarationCardCatalog.allTools(rules)).map { it.id }
+}
 
 fun ComposeTestRule.tapTag(tag: String) {
     onNodeWithTag(tag).scrollToIfPossible().performClick()
@@ -54,7 +57,8 @@ fun ComposeTestRule.completeIntake(languageTag: String, phone: String = "9876543
     tapTag("btn_register")
 }
 
-/** DeclarationScreen's list is a LazyColumn (50+ items): a far-off item's
+/** DeclarationScreen's list is a LazyColumn (26 items + the non-scored
+ * work-setting/prior-training/free-text block): a far-off item's
  * semantics node does not exist at all until it scrolls into the composed
  * window, so onNodeWithTag(tag).performScrollTo() can't find it to scroll to
  * it (chicken-and-egg). performScrollToNode() instead scrolls the CONTAINER
@@ -66,8 +70,9 @@ fun ComposeTestRule.tapInLazyColumn(containerTag: String, targetTag: String) {
     onNodeWithTag(targetTag).performClick()
 }
 
-/** Sets the same often/sometimes/never answer on every one of the 51
- * declaration items, then taps through to the match result screen. Used for
+/** Sets the same often/sometimes/never answer on every one of the 26
+ * declaration items (20 cards + 6 tools), then taps through to the match
+ * result screen. Used for
  * the three clean reference scenarios (all-often -> appropriate_match,
  * all-sometimes -> partial_match, all-never -> not_appropriate_match) that
  * ml/mapping/golden_vectors.jsonl G001/G002/G003 already pin exactly, so

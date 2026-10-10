@@ -1,18 +1,21 @@
 package `in`.kaushalpramaan.app.data
 
 import `in`.kaushalpramaan.app.R
+import `in`.kaushalpramaan.core.mapping.Rules
 
 /** UI-only grouping and localized-label lookup for declaration cards/tools.
  * Never used by the matcher itself (that reads packs/ae-con-q0602/mapping
  * directly via core:mapping) -- this only decides which heading a card is
- * shown under and which @string resource holds its EN/HI label. */
+ * shown under and which @string resource holds its EN/HI label.
+ *
+ * r3: card/tool ids are read from the loaded Rules (links.json), not a
+ * hardcoded id range -- a links.json edit that changes the count or ids
+ * is reflected here automatically; a genuinely missing translation still
+ * fails fast (cardLabelRes throws) instead of silently resolving nothing. */
 
 enum class DeclarationSection(val titleRes: Int) {
     PRACTICAL(R.string.declaration_section_tools),
     TOOLS_GRID(R.string.declaration_section_tools_grid),
-    SAFETY(R.string.declaration_section_safety),
-    TEAMWORK(R.string.declaration_section_teamwork),
-    PLANNING(R.string.declaration_section_planning),
 }
 
 data class DeclarationCardUi(val id: String, val labelRes: Int, val section: DeclarationSection)
@@ -23,10 +26,10 @@ private fun cardLabelRes(id: String): Int {
         ?: throw IllegalStateException("no label resource for declaration item $id (expected $resName in card_labels.xml)")
 }
 
-/** Built once from the generated R class via reflection-free explicit mapping
- * would be 51 entries either way -- this indirection exists so a missing
- * translation fails fast with a clear message instead of a silent R.string
- * resolution error. Populated by DeclarationCardCatalog.allCards() below. */
+/** Exactly the 20 cards + 6 tools of the match-rules@r3 contract
+ * (packs/ae-con-q0602/mapping/links.json). A links.json edit that adds or
+ * removes an id without a matching entry here fails fast via cardLabelRes
+ * above, rather than silently rendering a blank label. */
 private val cardLabelResourceMap: Map<String, Int> by lazy {
     mapOf(
         "card_label_c01" to R.string.card_label_c01, "card_label_c02" to R.string.card_label_c02,
@@ -39,40 +42,43 @@ private val cardLabelResourceMap: Map<String, Int> by lazy {
         "card_label_c15" to R.string.card_label_c15, "card_label_c16" to R.string.card_label_c16,
         "card_label_c17" to R.string.card_label_c17, "card_label_c18" to R.string.card_label_c18,
         "card_label_c19" to R.string.card_label_c19, "card_label_c20" to R.string.card_label_c20,
-        "card_label_c21" to R.string.card_label_c21, "card_label_c22" to R.string.card_label_c22,
-        "card_label_c23" to R.string.card_label_c23, "card_label_c24" to R.string.card_label_c24,
-        "card_label_c25" to R.string.card_label_c25, "card_label_c26" to R.string.card_label_c26,
-        "card_label_c27" to R.string.card_label_c27,
-        "card_label_s01" to R.string.card_label_s01, "card_label_s02" to R.string.card_label_s02,
-        "card_label_s03" to R.string.card_label_s03, "card_label_s04" to R.string.card_label_s04,
-        "card_label_s05" to R.string.card_label_s05, "card_label_s06" to R.string.card_label_s06,
-        "card_label_s07" to R.string.card_label_s07, "card_label_s08" to R.string.card_label_s08,
-        "card_label_tm01" to R.string.card_label_tm01, "card_label_tm02" to R.string.card_label_tm02,
-        "card_label_tm03" to R.string.card_label_tm03, "card_label_tm04" to R.string.card_label_tm04,
-        "card_label_pl01" to R.string.card_label_pl01, "card_label_pl02" to R.string.card_label_pl02,
-        "card_label_pl03" to R.string.card_label_pl03, "card_label_pl04" to R.string.card_label_pl04,
         "card_label_tl01" to R.string.card_label_tl01, "card_label_tl02" to R.string.card_label_tl02,
         "card_label_tl03" to R.string.card_label_tl03, "card_label_tl04" to R.string.card_label_tl04,
         "card_label_tl05" to R.string.card_label_tl05, "card_label_tl06" to R.string.card_label_tl06,
-        "card_label_tl07" to R.string.card_label_tl07, "card_label_tl08" to R.string.card_label_tl08,
     )
 }
 
 object DeclarationCardCatalog {
-    private val practicalIds = (1..27).map { "C%02d".format(it) }
-    private val safetyIds = (1..8).map { "S%02d".format(it) }
-    private val teamworkIds = (1..4).map { "TM%02d".format(it) }
-    private val planningIds = (1..4).map { "PL%02d".format(it) }
-    private val toolIds = (1..8).map { "TL%02d".format(it) }
+    /** Cards in links.json document order -- the same order the worker sees them in. */
+    fun allCards(rules: Rules): List<DeclarationCardUi> =
+        rules.links.cards.map { DeclarationCardUi(it.id, cardLabelRes(it.id), DeclarationSection.PRACTICAL) }
 
-    fun allCards(): List<DeclarationCardUi> =
-        practicalIds.map { DeclarationCardUi(it, cardLabelRes(it), DeclarationSection.PRACTICAL) } +
-            safetyIds.map { DeclarationCardUi(it, cardLabelRes(it), DeclarationSection.SAFETY) } +
-            teamworkIds.map { DeclarationCardUi(it, cardLabelRes(it), DeclarationSection.TEAMWORK) } +
-            planningIds.map { DeclarationCardUi(it, cardLabelRes(it), DeclarationSection.PLANNING) }
+    fun allTools(rules: Rules): List<DeclarationCardUi> =
+        rules.links.tools.map { DeclarationCardUi(it.id, cardLabelRes(it.id), DeclarationSection.TOOLS_GRID) }
+}
 
-    fun allTools(): List<DeclarationCardUi> =
-        toolIds.map { DeclarationCardUi(it, cardLabelRes(it), DeclarationSection.TOOLS_GRID) }
+/** One selectable option in the non-scored work-setting / prior-training
+ * fields below. The id is a plain string stored in DeclarationState and
+ * NEVER read by Matcher.match -- see AppViewModel.computeMatch(), which only
+ * passes declaration.answers and declaration.freeText to the matcher. */
+data class ChoiceOptionUi(val id: String, val labelRes: Int)
+
+object WorkSettingOptions {
+    val options = listOf(
+        ChoiceOptionUi("construction_site", R.string.work_setting_construction_site),
+        ChoiceOptionUi("domestic_household", R.string.work_setting_domestic_household),
+        ChoiceOptionUi("workshop_or_iti", R.string.work_setting_workshop_or_iti),
+        ChoiceOptionUi("other", R.string.work_setting_other),
+    )
+}
+
+object PriorTrainingOptions {
+    val options = listOf(
+        ChoiceOptionUi("iti_or_formal_course", R.string.prior_training_iti_or_formal_course),
+        ChoiceOptionUi("informal_on_the_job", R.string.prior_training_informal_on_the_job),
+        ChoiceOptionUi("none", R.string.prior_training_none),
+        ChoiceOptionUi("other", R.string.prior_training_other),
+    )
 }
 
 fun taskTitleRes(taskId: String): Int = when (taskId.uppercase()) {

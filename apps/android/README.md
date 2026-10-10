@@ -12,7 +12,7 @@ for the acceptance gate this module is held to.
 | Module | Role |
 |---|---|
 | `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, mock evidence, preview, attestation, local "sealed" submit. |
-| `:core:mapping` | Pure Kotlin/JVM port of `ml/mapping/matcher.py` (match-rules@r2). No Android dependency — its `GoldenVectorsTest` runs as a plain fast JUnit `test` task. `:app` depends on it like any other library. |
+| `:core:mapping` | Pure Kotlin/JVM port of `ml/mapping/matcher.py` (match-rules@r3, 20 declaration cards + 6 tools). No Android dependency — its `GoldenVectorsTest` runs as a plain fast JUnit `test` task. `:app` depends on it like any other library. |
 
 ## One-time environment setup
 

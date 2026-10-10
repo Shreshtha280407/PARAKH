@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Deterministic, rule-based CON/Q0602 declaration matcher (match-rules@r2) --
+ * Deterministic, rule-based CON/Q0602 declaration matcher (match-rules@r3) --
  * the Kotlin port of ml/mapping/matcher.py. This file must agree with that
  * one on every golden vector in ml/mapping/golden_vectors.jsonl (see
  * GoldenVectorsTest and docs/gates/Q1.md / docs/gates/P3.md). Pure Kotlin
@@ -164,7 +164,6 @@ object Matcher {
         val freeText = declaration.freeText
 
         val pcClaim = linkedMapOf<String, Double>()
-        val pcSources = linkedMapOf<String, MutableList<String>>()
 
         for (item in declarationItems(rules)) {
             var base = answerStrength[answers[item.id] ?: "never"] ?: 0.0
@@ -175,15 +174,8 @@ object Matcher {
             for (link in item.links) {
                 val fullPc = "${link.nos}.${link.pc}"
                 val contribution = base * link.weight
-                val current = pcClaim[fullPc] ?: 0.0
-                when {
-                    contribution > current -> {
-                        pcClaim[fullPc] = contribution
-                        pcSources[fullPc] = mutableListOf(item.id)
-                    }
-                    contribution == current -> {
-                        pcSources.getOrPut(fullPc) { mutableListOf() }.add(item.id)
-                    }
+                if (contribution > (pcClaim[fullPc] ?: 0.0)) {
+                    pcClaim[fullPc] = contribution
                 }
             }
         }
@@ -239,33 +231,6 @@ object Matcher {
             ApplicableTask(task = rules.nosTask[nos], nos = nos, extraEvidenceNeeded = nos in gapNos)
         }
 
-        val declarationOnlySignals = thresholds.declarationOnlyNos.map { entry ->
-            val nos = entry.nos
-            val pcs = nosPcs[nos] ?: emptySet()
-            val matchedItems = sortedSetOf<String>()
-            var hasExperience = false
-            for (pc in pcs) {
-                val fullPc = "$nos.$pc"
-                if ((pcClaim[fullPc] ?: 0.0) > 0.0) {
-                    hasExperience = true
-                    pcSources[fullPc]?.let { matchedItems.addAll(it) }
-                }
-            }
-            val label = entry.label
-            val becauseLine = if (hasExperience) {
-                "$nos ($label): worker declared relevant experience — informational only, not scored"
-            } else {
-                "$nos ($label): no declared experience — informational only, not scored"
-            }
-            DeclarationOnlySignal(
-                nos = nos,
-                label = label,
-                hasDeclaredExperience = hasExperience,
-                matchedItems = matchedItems.toList(),
-                because = becauseLine,
-            )
-        }
-
         return MatchOutput(
             matchResult = matchResult,
             overallCoverage = pyRound(overallRaw, 4),
@@ -274,7 +239,6 @@ object Matcher {
             because = because,
             gapNos = gapNos,
             applicableTasks = applicableTasks,
-            declarationOnlySignals = declarationOnlySignals,
             rulesVersion = thresholds.matchRulesId,
         )
     }

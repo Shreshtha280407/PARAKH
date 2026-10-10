@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 
 /**
  * "Everything sometimes" declaration -- pinned by
- * ml/mapping/golden_vectors.jsonl G002 to overall_coverage 0.5468,
+ * ml/mapping/golden_vectors.jsonl G002 to overall_coverage 0.5476,
  * match_result partial_match, gap_nos = all 5 practical NOS. Proves the
  * PARTIAL result shows its gaps on the match screen and that every one of
  * T1-T5 is marked "Extra evidence needed" on the task list.

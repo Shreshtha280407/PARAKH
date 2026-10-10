@@ -44,7 +44,7 @@ source.** This includes:
 - `packs/ae-con-q0602/rubric.json` (anchors, marks, critical-PC flags)
 - `packs/ae-con-q0602/mapping/links.json` (declaration card/tool → NOS/PC)
 - `packs/ae-con-q0602/mapping/keywords.json` (EN/HI/Hinglish free-text terms)
-- `packs/ae-con-q0602/mapping/thresholds.json` (match-rules@r2: the 0.60/0.35
+- `packs/ae-con-q0602/mapping/thresholds.json` (match-rules@r3: the 0.60/0.35
   coverage bands and `answer_strength` values are **not** themselves sourced
   from the PDF — they are MVP matching heuristics invented for this project;
   see `thresholds.json.mvp_disclaimer` and

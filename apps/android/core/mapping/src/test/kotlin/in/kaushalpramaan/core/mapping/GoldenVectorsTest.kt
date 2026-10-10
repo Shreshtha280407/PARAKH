@@ -10,7 +10,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 
 /**
- * The Kotlin-side half of the Python/Kotlin match-rules@r2 golden-vector
+ * The Kotlin-side half of the Python/Kotlin match-rules@r3 golden-vector
  * parity requirement (master plan p.8 / p.18; docs/gates/Q1.md,
  * docs/gates/P3.md): "Kotlin and Python matcher outputs identical on all 100
  * golden vectors." Reads the SAME ml/mapping/golden_vectors.jsonl Python

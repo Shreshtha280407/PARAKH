@@ -50,35 +50,26 @@ class MatcherTest {
     }
 
     @Test
-    fun declaration_only_signals_never_move_the_score() {
-        val baseline = Matcher.match(Declaration(), rules)
-        val teamworkOnly = Matcher.match(
-            Declaration(answers = mapOf("TM01" to "often", "TM02" to "often", "TM03" to "often", "TM04" to "often",
-                "PL01" to "often", "PL02" to "often", "PL03" to "often", "PL04" to "often")),
-            rules,
-        )
-        assertEquals(baseline.overallCoverage, teamworkOnly.overallCoverage, 0.0)
-        assertEquals(baseline.matchResult, teamworkOnly.matchResult)
-        assertEquals(baseline.nosCoverage, teamworkOnly.nosCoverage)
-        assertEquals(baseline.gapNos, teamworkOnly.gapNos)
-
-        val tmSignal = teamworkOnly.declarationOnlySignals.first { it.nos == "CON/N8001" }
-        assertTrue(tmSignal.hasDeclaredExperience)
-        val baseTmSignal = baseline.declarationOnlySignals.first { it.nos == "CON/N8001" }
-        assertFalse(baseTmSignal.hasDeclaredExperience)
+    fun declaration_contract_is_20_cards_6_tools() {
+        assertEquals(20, rules.links.cards.size)
+        assertEquals(6, rules.links.tools.size)
+        val allNos = (rules.links.cards + rules.links.tools).flatMap { it.links }.map { it.nos }.toSet()
+        assertFalse(allNos.contains("CON/N8001"))
+        assertFalse(allNos.contains("CON/N8002"))
     }
 
     @Test
     fun hindi_keyword_boosts_coverage() {
-        val without = Matcher.match(Declaration(answers = mapOf("C08" to "never")), rules)
-        val withHindi = Matcher.match(Declaration(answers = mapOf("C08" to "never"), freeText = "मैंने अर्थिंग का काम किया"), rules)
+        // C12 = "Connected an earth wire"; keywords.json maps earthing terms to it.
+        val without = Matcher.match(Declaration(answers = mapOf("C12" to "never")), rules)
+        val withHindi = Matcher.match(Declaration(answers = mapOf("C12" to "never"), freeText = "मैंने अर्थिंग का काम किया"), rules)
         assertTrue(withHindi.overallCoverage > without.overallCoverage)
     }
 
     @Test
     fun hinglish_keyword_boosts_coverage() {
-        val without = Matcher.match(Declaration(answers = mapOf("C08" to "never")), rules)
-        val withHinglish = Matcher.match(Declaration(answers = mapOf("C08" to "never"), freeText = "maine earthing kiya tha"), rules)
+        val without = Matcher.match(Declaration(answers = mapOf("C12" to "never")), rules)
+        val withHinglish = Matcher.match(Declaration(answers = mapOf("C12" to "never"), freeText = "maine earthing kiya tha"), rules)
         assertTrue(withHinglish.overallCoverage > without.overallCoverage)
     }
 

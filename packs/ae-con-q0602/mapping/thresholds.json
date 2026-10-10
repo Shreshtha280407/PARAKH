@@ -1,8 +1,13 @@
 {
-  "match_rules_id": "match-rules@r2",
+  "match_rules_id": "match-rules@r3",
   "qp_code": "CON/Q0602",
   "qp_version": "4.0",
-  "status": "r2 (2026-10-10, Q-1 completion): adds CON/N9001 (Safety & PPE, task T1) to practical_nos_for_matching. r1 only scored the 4 electrical-practical NOS and never surfaced T1 in applicable_tasks, which was a traceability gap — CON/N9001 is practical/task-evidenced per qp.json (see docs/qp/CON_Q0602_v4_source_of_truth.md). r2 also adds declaration_only_nos (CON/N8001, CON/N8002): their cards are linked and surfaced to the worker/assessor as declaration_only_signals, but deliberately excluded from practical_nos_for_matching, so they never move overall_coverage/match_result — teamwork and plan-and-organise are generic employability behaviours, not Assistant-Electrician-specific trade skill, consistent with rubric.json's existing DECLARATION_OR_ASSESSOR_NOTE pathway for these NOS. No independent assessor-agreement study has been run against r1 or r2 — see docs/gates/IC1A.md. A future version bump (r3+) follows the same rule: a new rules id, never an in-place edit of this file's meaning.",
+  "status": "r3 (declaration-contract reduction): the self-declaration is now exactly 20 cards + 6 tools (down from r2's 51 items: 35 cards/tools + 16 teamwork/planning rating cards), matching the approved P-3 worker-flow design -- a worker must not be asked 51 often/sometimes/never questions. Safety (CON/N9001) stays scored via 4 of the 20 cards, folded in rather than a separate 8-card block. CON/N8001 (teamwork) and CON/N8002 (plan & organise) are no longer represented as rating cards or as a declaration_only_signals side-channel at all -- they were generic employability behaviour, not Assistant-Electrician trade skill, and are now out of Q-1's self-declaration scope entirely (same as DGT/VSQ/N0101 always was), replaced by a non-scored work-setting/prior-training choice in the Android UI (see docs/gates/P3.md). r1 (2026-10, P1): 4 electrical-practical NOS scored, 35 items. r2 (2026-10-10, Q-1 completion): added CON/N9001 scoring + a now-removed declaration_only_nos mechanism. r3 (this version): the 20+6 reduction. Each version bump is a new rules id, never an in-place edit of a prior version's meaning -- see docs/qp/CON_Q0602_v4_source_of_truth.md. No independent assessor-agreement study has been run against any version -- see docs/gates/IC1A.md.",
+  "declaration_contract": {
+    "note": "Machine-checkable shape of the declaration, enforced by tools/audit_qp_traceability.py's [contract] check and by apps/android instrumented tests. Exists so a future edit that silently grows the card/tool count fails CI instead of shipping a longer survey than approved.",
+    "card_count": 20,
+    "tool_count": 6
+  },
   "answer_strength": { "often": 1.0, "sometimes": 0.6, "never": 0.0 },
   "practical_nos_for_matching": [
     { "nos": "CON/N0602", "credits": 2 },
@@ -10,10 +15,6 @@
     { "nos": "CON/N0604", "credits": 2 },
     { "nos": "CON/N0605", "credits": 3 },
     { "nos": "CON/N9001", "credits": 3 }
-  ],
-  "declaration_only_nos": [
-    { "nos": "CON/N8001", "label": "Teamwork", "reason": "generic employability behaviour, not Assistant-Electrician trade skill; declaration-only per rubric.json DECLARATION_OR_ASSESSOR_NOTE pathway" },
-    { "nos": "CON/N8002", "label": "Plan & organise", "reason": "generic employability behaviour, not Assistant-Electrician trade skill; declaration-only per rubric.json DECLARATION_OR_ASSESSOR_NOTE pathway" }
   ],
   "nos_coverage_formula": "coverage(NOS) = sum(effective_claim(pc) for pc in linked_pcs(NOS)) / count(linked_pcs(NOS)), where effective_claim(pc) = max over links touching pc of (answer_strength(card_or_tool_answer) x link.weight), clamped to [0,1]. PCs with no card/tool link (see links.json.known_gaps) are excluded from both sides of this ratio.",
   "overall_coverage_formula": "overall = sum(coverage(nos) x credits(nos) for nos in practical_nos_for_matching) / sum(credits(nos) for nos in practical_nos_for_matching)",
@@ -42,8 +43,7 @@
     "because": "list of short human-readable reasons naming the cards/tools and NOS that drove the result",
     "gap_nos": "list of NOS codes below their own appropriate-match bar or with no declared experience",
     "applicable_tasks": "T1-T5 always listed; tasks whose NOS is in gap_nos are marked extra_evidence_needed=true",
-    "declaration_only_signals": "per declaration_only_nos entry (CON/N8001, CON/N8002): has_declared_experience bool + matched card/tool ids + a worker-readable because line. Informational only — never read by match_result, overall_coverage, nos_coverage or gap_nos.",
-    "rules_version": "match-rules@r2"
+    "rules_version": "match-rules@r3"
   },
   "never_decides_competence": "This matcher only explains how a self-declaration relates to CON/Q0602 v4.0 and which tasks need the most evidence. It never outputs pass/fail or a PC score — only a human assessor scores competence (see rubric.json). It explains fit and gaps and prioritises which tasks need the most evidence; it does not decide, score, or certify competence.",
   "mvp_disclaimer": "The 0.60 and 0.35 coverage thresholds above (and the answer_strength values 1.0/0.6/0.0) are MVP matching heuristics invented for this project to route a self-declaration to appropriate_match / partial_match / not_appropriate_match. They are NOT official NQR, NCVET, or CSDCI pass/competency thresholds — CON/Q0602 v4.0 (qp_v4.0.pdf) defines no such self-declaration-matching concept at all; its own pass rule is 'Minimum Aggregate Passing % at QP Level: 50' for a full formal assessment (qp.json.minimum_aggregate_passing_percent), which this matcher does not implement or approximate. Any UI, report, or document that shows a match result MUST make clear it is a heuristic routing/triage signal, not an official qualification outcome.",

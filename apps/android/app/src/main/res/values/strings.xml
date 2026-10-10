@@ -32,12 +32,20 @@
     <!-- Declaration screen -->
     <string name="declaration_title">Tell us about your experience</string>
     <string name="declaration_instructions">For each statement, choose how often it describes your work. This is only to help route you to the right practice tasks — it is not a test.</string>
-    <string name="declaration_section_tools">Electrical practical experience</string>
-    <string name="declaration_section_safety">Safety &amp; PPE</string>
-    <string name="declaration_section_teamwork">Working with others</string>
-    <string name="declaration_section_planning">Planning your work</string>
+    <string name="declaration_section_tools">Electrical &amp; safety practical experience</string>
     <string name="declaration_section_tools_grid">Which of these tools have you used?</string>
     <string name="declaration_years_label">Years of experience (any electrical-related work)</string>
+    <string name="declaration_work_setting_label">Where have you mostly worked?</string>
+    <string name="declaration_prior_training_label">Have you had any formal electrical training?</string>
+    <string name="declaration_not_scored_note">Optional — for the assessor\'s context only. This does not change your match result.</string>
+    <string name="work_setting_construction_site">Construction site</string>
+    <string name="work_setting_domestic_household">Domestic/household work</string>
+    <string name="work_setting_workshop_or_iti">Workshop or ITI</string>
+    <string name="work_setting_other">Other</string>
+    <string name="prior_training_iti_or_formal_course">ITI or other formal course</string>
+    <string name="prior_training_informal_on_the_job">Informal, learned on the job</string>
+    <string name="prior_training_none">No formal or informal training</string>
+    <string name="prior_training_other">Other</string>
     <string name="declaration_free_text_label">Anything else you want to add? (optional)</string>
     <string name="declaration_free_text_hint">You can type in English, Hindi or a mix — e.g. \"maine earthing kiya\"</string>
     <string name="answer_often">Often</string>
