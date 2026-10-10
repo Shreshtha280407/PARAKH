@@ -4,3 +4,4 @@ def test_health_ok(client):
     body = r.json()
     assert body["status"] == "ok"
     assert body["database"] == "ok"
+    assert body["storage"] == "ok"

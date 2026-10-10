@@ -1,12 +1,13 @@
-"""SQLAlchemy models for the P2 backend.
+"""SQLAlchemy models for the P2/P2.1 backend.
 
-Scope is deliberately narrow (master plan P2: "Backend + basic dashboard" --
-pack storage, assessments/evidence metadata, upload sessions, a seeded
-queue). No evidence bytes, no background jobs, no scoring/report tables yet
--- those land when the features that need them do (P2 exit test / P6-P7).
+P2.1 adds: Numeric rubric marks, assessor/admin auth fields, worker
+capability tokens, a real resumable-upload protocol (UploadSession +
+UploadChunk), and a durable jobs table. Still out of scope: scoring/report
+tables, Android sync, CV/AI inference -- those land in later phases.
 """
 import datetime
 import enum
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     JSON,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -41,6 +43,8 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(120))
     phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
+    # Assessor/admin only -- workers have no login, see docs/worker_capability_tokens.md
+    password_hash: Mapped[str | None] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -109,14 +113,19 @@ class PerformanceCriterion(Base):
 
 
 class RubricItem(Base):
-    """0-3 anchors for a single PC. Only exists for TASK_EVIDENCE_PATHWAY PCs."""
+    """0-3 anchors for a single PC. Only exists for TASK_EVIDENCE_PATHWAY PCs.
+
+    marks is Numeric(8,2), not Integer/float: rubric.json's equal-split marks
+    (e.g. 70/11 = 6.36) must survive import/read/API round-trips exactly,
+    not get silently truncated to whole numbers.
+    """
 
     __tablename__ = "rubric_items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     pc_id: Mapped[int] = mapped_column(ForeignKey("performance_criteria.id"), unique=True)
     rubric_version: Mapped[str] = mapped_column(String(60))
-    marks: Mapped[float] = mapped_column(Integer)
+    marks: Mapped[Decimal] = mapped_column(Numeric(8, 2))
     critical: Mapped[bool] = mapped_column(Boolean)
     anchors: Mapped[dict] = mapped_column(JSON)  # {"0": "...", "1": "...", "2": "...", "3": "..."}
     disclaimer: Mapped[str] = mapped_column(Text)
@@ -162,8 +171,26 @@ class Assessment(Base):
     assessor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     status: Mapped[str] = mapped_column(String(30), default=AssessmentStatus.draft.value)
     total_bytes_used: Mapped[int] = mapped_column(Integer, default=0)
+    # Opaque capability token (see docs/worker_capability_tokens.md) -- only
+    # its SHA-256 is stored; the raw token is returned once, at creation.
+    worker_token_hash: Mapped[str] = mapped_column(String(64), index=True)
+    # "active" | "revoked" -- a rotated/revoked token's hash still sits in
+    # worker_token_hash (overwritten on rotation) but a revoked one must
+    # never authorize anything again even if somehow still matched.
+    worker_token_status: Mapped[str] = mapped_column(String(20), default="active")
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     submitted_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Decision support only -- never an official certificate (see
+    # docs/evidence_status_model.md / the competency-profile disclaimer).
+    # "recommended" | "needs_reassessment", set once by decide_assessment.
+    decision: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    decision_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    decided_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    decided_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Set on the NEW assessment created by POST /assessments/{id}/reassess --
+    # points back at the original. The original is left untouched (all its
+    # data, scores, and report are preserved, never overwritten in place).
+    reassessment_of_id: Mapped[int | None] = mapped_column(ForeignKey("assessments.id"), nullable=True)
 
     worker: Mapped[User] = relationship(foreign_keys=[worker_id])
     assessor: Mapped[User | None] = relationship(foreign_keys=[assessor_id])
@@ -191,9 +218,10 @@ class AssessmentTask(Base):
 
 
 class EvidenceItem(Base):
-    """Metadata only -- no bytes. See server/app/storage.py for where bytes
-    would eventually live; the upload-bytes path is explicitly out of P2
-    scope."""
+    """Created ONLY after a resumable upload session successfully completes
+    (exact byte count + server-computed SHA-256 verified) -- see
+    UploadSession.complete flow in server/app/routers/uploads.py. Never
+    created from client-declared metadata alone."""
 
     __tablename__ = "evidence_items"
 
@@ -201,26 +229,160 @@ class EvidenceItem(Base):
     assessment_task_id: Mapped[int] = mapped_column(ForeignKey("assessment_tasks.id"))
     kind: Mapped[str] = mapped_column(String(10))  # photo | video
     mime: Mapped[str] = mapped_column(String(60))
-    declared_size_bytes: Mapped[int] = mapped_column(Integer)
-    storage_key: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    declared_size_bytes: Mapped[int] = mapped_column(Integer)  # == server-verified byte count
+    storage_key: Mapped[str] = mapped_column(String(300))
+    sha256: Mapped[str] = mapped_column(String(64))  # server-computed, never trusted from client alone
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Video only -- a background job extracts one ffmpeg frame. Photos serve
+    # their own bytes directly as their thumbnail, no job needed.
+    # not_applicable (photo) | queued | completed | unavailable (ffmpeg
+    # missing or extraction failed -- never blocks serving the original).
+    thumbnail_status: Mapped[str] = mapped_column(String(20), default="not_applicable")
+    thumbnail_key: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # Stable contract for a future CV/AI quality-check integration -- no
+    # model exists or runs in this phase, see docs/evidence_quality_result.md.
+    # not_run | queued | completed | unavailable.
+    quality_check_status: Mapped[str] = mapped_column(String(20), default="not_run")
 
     assessment_task: Mapped[AssessmentTask] = relationship(back_populates="evidence_items")
 
 
 class UploadSession(Base):
-    """POST /uploads: opens a session and checks task budget + the 120 MB
-    total quota BEFORE any bytes are accepted. Chunk PUT / complete
-    endpoints are out of P2 scope (see master plan p.12 for the full
-    contract this is a slice of)."""
+    """Resumable upload session. Ordered-chunk protocol (see
+    server/app/routers/uploads.py module docstring for the exact contract):
+    chunks must be PUT in order starting at index 0; the server tracks
+    next_chunk_index and received_bytes so a client can resume after a
+    disconnect via GET /uploads/{id}.
+
+    claimed_size_bytes reserves task + total quota for the lifetime of the
+    session (see server/app/quota.py) -- released when the session leaves
+    'open' status (completed/aborted/expired).
+    """
 
     __tablename__ = "upload_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     assessment_task_id: Mapped[int] = mapped_column(ForeignKey("assessment_tasks.id"))
-    claimed_size_bytes: Mapped[int] = mapped_column(Integer)
-    status: Mapped[str] = mapped_column(String(20), default="open")  # open | completed | aborted
+    kind: Mapped[str] = mapped_column(String(10))  # photo | video
+    mime: Mapped[str] = mapped_column(String(60))
+    claimed_size_bytes: Mapped[int] = mapped_column(Integer)  # declared total, reserved at open
+    received_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    next_chunk_index: Mapped[int] = mapped_column(Integer, default=0)
+    storage_key: Mapped[str] = mapped_column(String(300))
+    client_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    server_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="open")  # open | completed | aborted | expired
+    evidence_item_id: Mapped[int | None] = mapped_column(ForeignKey("evidence_items.id"), nullable=True)
     opened_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     assessment_task: Mapped[AssessmentTask] = relationship()
+    evidence_item: Mapped[EvidenceItem | None] = relationship()
+    chunks: Mapped[list["UploadChunk"]] = relationship(back_populates="session", cascade="all, delete-orphan")
+
+
+class UploadChunk(Base):
+    """One row per successfully received chunk -- lets GET /uploads/{id}
+    report resume state without re-deriving it from the storage file."""
+
+    __tablename__ = "upload_chunks"
+    __table_args__ = (UniqueConstraint("upload_session_id", "chunk_index", name="uq_chunk_session_index"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    upload_session_id: Mapped[int] = mapped_column(ForeignKey("upload_sessions.id"))
+    chunk_index: Mapped[int] = mapped_column(Integer)
+    size_bytes: Mapped[int] = mapped_column(Integer)
+    received_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    session: Mapped[UploadSession] = relationship(back_populates="chunks")
+
+
+class Job(Base):
+    """Durable job queue, backed by PostgreSQL (SELECT ... FOR UPDATE SKIP
+    LOCKED -- see server/app/jobs.py claim_job). No Redis/Celery: a few jobs
+    a minute at MVP scale don't need it."""
+
+    __tablename__ = "jobs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    type: Mapped[str] = mapped_column(String(60))
+    payload: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(20), default="queued")  # queued|running|succeeded|failed
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=3)
+    locked_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    locked_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    started_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    finished_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Lease/heartbeat for crash recovery (P2.2 section 9): a job stuck in
+    # "running" past lease_expires_at is assumed to belong to a dead worker
+    # and gets swept back to "queued" -- see jobs.recover_stale_jobs.
+    lease_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AuditLog(Base):
+    """Append-only. No code anywhere updates or deletes a row -- see
+    docs/gates/P2_2.md section 1. One row per lifecycle-affecting action on
+    an assessment (submit, review start, score, decision, reassessment,
+    token rotation/revocation)."""
+
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    actor_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    actor_role: Mapped[str] = mapped_column(String(20))  # worker | assessor | admin | system
+    action: Mapped[str] = mapped_column(String(60))
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AssessmentCriterionScore(Base):
+    """One row per (assessment, PC) that has a TASK_EVIDENCE_PATHWAY rubric
+    item -- see docs/evidence_status_model.md. score_level is a human
+    assessor's 0-3 judgement against the rubric anchors; evidence_status is
+    axis 2 of that doc (DEMONSTRATED / NOT_OBSERVABLE /
+    NOT_APPLICABLE_IN_MVP), never auto-derived from uploaded bytes alone.
+    version is an optimistic-lock counter: a PUT must send back the version
+    it last read, or it's rejected (409) -- two assessors scoring the same
+    assessment at once must not silently clobber each other."""
+
+    __tablename__ = "assessment_criterion_scores"
+    __table_args__ = (UniqueConstraint("assessment_id", "pc_id", name="uq_score_assessment_pc"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    pc_id: Mapped[int] = mapped_column(ForeignKey("performance_criteria.id"))
+    rubric_version: Mapped[str] = mapped_column(String(60))  # snapshot at scoring time
+    score_level: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 0-3, None until scored
+    evidence_status: Mapped[str] = mapped_column(String(30), default="NOT_OBSERVABLE")
+    # Mandatory whenever evidence_status is NOT_OBSERVABLE or
+    # NOT_APPLICABLE_IN_MVP -- enforced in schemas/routers, not the DB.
+    assessor_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    marks_awarded: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
+    assessor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    scored_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+
+    pc: Mapped[PerformanceCriterion] = relationship()
+
+
+class SignedReport(Base):
+    """Tamper-evident competency profile + assessor recommendation (never an
+    official NCVET/MSDE certificate). canonical_json is the exact byte
+    sequence that was hashed and signed -- re-serializing the same data
+    differently must never be mistaken for the signed artifact, so we store
+    the literal signed bytes rather than re-deriving them from live rows."""
+
+    __tablename__ = "signed_reports"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), unique=True)
+    canonical_json: Mapped[str] = mapped_column(Text)
+    sha256: Mapped[str] = mapped_column(String(64))
+    signature: Mapped[str] = mapped_column(Text)  # hex-encoded Ed25519 signature
+    key_id: Mapped[str] = mapped_column(String(60))
+    signed_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

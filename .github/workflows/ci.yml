@@ -6,6 +6,7 @@ on:
       - main
       - nipun
       - "codex/**"
+      - "feature/**"
   pull_request:
     branches:
       - main
@@ -55,19 +56,123 @@ jobs:
           expect_fail python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl --mode field
 
   p2-backend-tests:
-    name: P2 backend tests
+    name: P2/P2.1 backend tests + OpenAPI freshness
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: parakh
+          POSTGRES_PASSWORD: parakh_test_pw
+          POSTGRES_DB: parakh_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U parakh"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://parakh:parakh_test_pw@localhost:5432/parakh_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Diagnostic context
-        run: |
-          echo "event=$GITHUB_EVENT_NAME"
-          echo "ref=$GITHUB_REF"
-          echo "sha=$GITHUB_SHA"
-      - name: Install backend test dependencies
+      - name: Install ffmpeg for real video-thumbnail tests
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install backend dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r server/requirements.txt
-      - name: Run backend tests
-        run: python -m pytest server/tests
+      - name: Run backend tests against real PostgreSQL
+        run: python -m pytest server/tests -v
+      - name: OpenAPI contract must be up to date
+        run: python tools/export_openapi.py --check
+
+  dashboard-build:
+    name: Dashboard build + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/dashboard/package-lock.json
+      - name: Install dependencies
+        working-directory: apps/dashboard
+        run: npm ci
+      - name: Build (tsc -b && vite build -- fails on type errors)
+        working-directory: apps/dashboard
+        run: npm run build
+
+  docker-compose-smoke-test:
+    name: Docker Compose end-to-end smoke test
+    runs-on: ubuntu-latest
+    needs: [p1-pack-validate, p2-backend-tests, dashboard-build]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .env for the stack
+        run: |
+          cat > .env <<'EOF'
+          APP_ENV=development
+          DATABASE_URL=postgresql+psycopg://parakh:parakh_dev_pw@db:5432/parakh
+          JWT_SECRET=ci-smoke-test-secret-not-for-real-use
+          JWT_ALGORITHM=HS256
+          JWT_ISSUER=kaushalpramaan
+          JWT_AUDIENCE=kaushalpramaan-dashboard
+          JWT_EXPIRE_MINUTES=60
+          WORKER_TOKEN_BYTES=32
+          EVIDENCE_DIR=/data/evidence
+          UPLOAD_SESSION_TTL_MINUTES=120
+          UPLOAD_CHUNK_MAX_BYTES=2097152
+          JOB_POLL_INTERVAL_SECONDS=2.0
+          JOB_MAX_ATTEMPTS=3
+          JOB_LEASE_SECONDS=300
+          DEV_ASSESSOR_EMAIL=assessor.demo@parakh.test
+          DEV_ASSESSOR_PASSWORD=ci-smoke-test-pw
+          REPORT_SIGNING_PRIVATE_KEY=c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1
+          REPORT_SIGNING_KEY_ID=ci-smoke-test-key
+          CORS_ALLOW_ORIGINS=http://localhost:5173
+          POSTGRES_USER=parakh
+          POSTGRES_PASSWORD=parakh_dev_pw
+          POSTGRES_DB=parakh
+          DASHBOARD_API_BASE_URL=http://localhost:8000
+          EOF
+      - name: Build and start the stack
+        run: docker compose -f infra/docker-compose.yml up -d --build
+      - name: Wait for api + dashboard to report healthy
+        run: |
+          for i in $(seq 1 60); do
+            api_status=$(docker inspect --format '{{.State.Health.Status}}' kaushalpramaan-mvp-api-1 2>/dev/null || echo "starting")
+            dash_status=$(docker inspect --format '{{.State.Health.Status}}' kaushalpramaan-mvp-dashboard-1 2>/dev/null || echo "starting")
+            echo "attempt $i: api=$api_status dashboard=$dash_status"
+            if [ "$api_status" = "healthy" ] && [ "$dash_status" = "healthy" ]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "stack did not become healthy in time"
+          docker compose -f infra/docker-compose.yml logs
+          exit 1
+      - name: Seed demo data
+        run: docker compose -f infra/docker-compose.yml exec -T api python -m app.seed
+      - name: Login as seeded assessor and verify the protected queue
+        run: |
+          set -e
+          TOKEN=$(curl -sf -X POST http://localhost:8000/auth/login -H "Content-Type: application/json" \
+            -d '{"email":"assessor.demo@parakh.test","password":"ci-smoke-test-pw"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+          test -n "$TOKEN"
+          curl -sf http://localhost:8000/queue -H "Authorization: Bearer $TOKEN" > queue.json
+          python3 -c "import json; d=json.load(open('queue.json')); assert isinstance(d, list); print(f'{len(d)} queue items ok')"
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/queue)
+          test "$code" = "401"
+          echo "unauthenticated request correctly rejected (401)"
+      - name: Full P2.2 lifecycle end-to-end (create -> upload -> submit -> review -> score -> recommend -> signed report -> verify -> reassess -> token rotate/revoke)
+        run: |
+          python3 tools/docker_e2e_smoke.py --base-url http://localhost:8000 \
+            --assessor-email assessor.demo@parakh.test --assessor-password ci-smoke-test-pw
+      - name: Dashboard is reachable
+        run: curl -sf -o /dev/null http://localhost:5173/
+      - name: Shut down cleanly
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v

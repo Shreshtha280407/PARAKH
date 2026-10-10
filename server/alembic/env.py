@@ -9,9 +9,18 @@ from alembic import context
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from server.app import models  # noqa: E402  (registers all tables on Base.metadata)
-from server.app.config import settings  # noqa: E402
-from server.app.db import Base  # noqa: E402
+try:
+    # Docker image layout: WORKDIR /code has app/ directly under it
+    # (server/Dockerfile copies server/app -> /code/app), so the package
+    # is just "app".
+    from app import models  # noqa: E402  (registers all tables on Base.metadata)
+    from app.config import settings  # noqa: E402
+    from app.db import Base  # noqa: E402
+except ImportError:
+    # Local dev layout: repo root is on sys.path, package is "server.app".
+    from server.app import models  # noqa: E402
+    from server.app.config import settings  # noqa: E402
+    from server.app.db import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

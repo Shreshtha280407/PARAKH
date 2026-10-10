@@ -6,15 +6,22 @@ This does not re-validate budgets/anchors/traceability; it only loads
 already-trustworthy pack data into SQL tables.
 """
 import json
+import os
 import subprocess
 import sys
+from decimal import Decimal
 from pathlib import Path
 
 from sqlalchemy.orm import Session
 
 from . import models
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+# Local dev: server/app/pack_import.py -> repo root is parents[2].
+# Docker: /code/app/pack_import.py, but packs/ and tools/ are copied to
+# /code/packs and /code/tools (siblings of app/), not three levels up --
+# server/Dockerfile sets PARAKH_REPO_ROOT=/code to match. See docs/P2_1 /
+# server/README.md for the image layout this assumes.
+REPO_ROOT = Path(os.environ.get("PARAKH_REPO_ROOT", str(Path(__file__).resolve().parents[2])))
 
 
 def _load(pack_dir: Path, name: str) -> dict:
@@ -106,7 +113,9 @@ def import_pack(db: Session, pack_dir: Path) -> models.QualificationPack:
                     db.add(models.RubricItem(
                         pc_id=pc.id,
                         rubric_version=rubric_doc["rubric_id"],
-                        marks=rubric_entry["marks"],
+                        # Decimal(str(x)), never Decimal(x) directly on a float -- avoids
+                        # binary-float round-trip artifacts (e.g. Decimal(6.36) != 6.36).
+                        marks=Decimal(str(rubric_entry["marks"])),
                         critical=rubric_entry["critical"],
                         anchors=rubric_entry["anchors"],
                         disclaimer=rubric_entry["disclaimer"],

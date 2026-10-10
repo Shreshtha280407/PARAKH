@@ -6,3 +6,7 @@ node_modules/
 *.db
 server/data/
 .pytest_cache/
+.env
+dist/
+apps/dashboard/node_modules/
+apps/dashboard/dist/
