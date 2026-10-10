@@ -117,9 +117,25 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "21"
-      - uses: android-actions/setup-android@v3
-      - name: Install platforms/build-tools (compileSdk 36; AndroidX deps require minCompileSdk 36)
-        run: sdkmanager "platforms;android-35" "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0"
+      - name: Install current Android SDK components
+        # Do not use android-actions/setup-android@v3 here: its default
+        # package list contains the obsolete SDK package named "tools", which
+        # current sdkmanager correctly rejects. GitHub-hosted Ubuntu runners
+        # already include Android command-line tools; install only supported,
+        # explicit packages needed by this project.
+        run: |
+          SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          fi
+          "$SDKMANAGER" --version
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "platforms;android-36" \
+            "build-tools;35.0.0" \
+            "build-tools;36.0.0"
       - name: Static Kotlin checks + assemble debug APK
         working-directory: apps/android
         run: ./gradlew lint :app:assembleDebug --console=plain
