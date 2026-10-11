@@ -92,6 +92,7 @@
     <string name="add_evidence_error_total_budget">This would go over the total 120 MB evidence budget. Reduce the size or remove other evidence first.</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_view">View</string>
     <string name="action_delete">Delete</string>
     <string name="action_retake">Retake</string>
 
@@ -138,21 +139,41 @@
     <string name="capture_safety_limit_reached">Safety limit reached — recording stopped automatically and the clip has been saved.</string>
     <string name="capture_error_over_limit">This capture is larger than the remaining task or total evidence budget and was not saved. Please retake, replace, or remove other evidence first.</string>
 
-    <!-- Preview screen -->
-    <string name="preview_title">Preview before submitting</string>
+    <!-- P5: final review / seal screen -->
+    <string name="preview_title">Review and seal</string>
     <string name="preview_task_usage">%1$s of %2$s used</string>
     <string name="preview_total_usage">Total: %1$s of %2$s</string>
     <string name="preview_empty_task">No evidence added for this task.</string>
-    <string name="attestation_title">Before you submit</string>
-    <string name="attestation_text">This evidence shows my own work.</string>
-    <string name="action_submit">Submit</string>
-    <string name="action_submit_disabled_hint">Please confirm the attestation above to submit.</string>
+    <string name="attestation_title">Before you seal</string>
+    <string name="attestation_text">I confirm this evidence shows my own work.</string>
+    <string name="action_submit">Seal assessment</string>
+    <string name="action_submit_disabled_hint">Finish optimising evidence and confirm the attestation above to seal.</string>
+    <string name="final_review_action_optimize">Optimize evidence</string>
+    <string name="final_review_optimizing">Optimizing evidence…</string>
+    <string name="final_review_optimized_message">Evidence optimized successfully. Final size: %1$s. Review the evidence before submitting.</string>
+    <string name="final_review_item_fits">Fits as captured</string>
+    <string name="final_review_item_optimized">Optimized to fit</string>
+    <string name="final_review_item_exceeds_budget">Too large for the remaining task/total budget — retake, replace, trim, or remove it.</string>
+    <string name="final_review_item_sealed">Sealed</string>
+    <string name="final_review_item_not_processed">Not yet optimized</string>
+    <string name="action_trim">Trim</string>
+    <string name="action_discard_and_reopen">Discard seal and edit evidence</string>
+    <string name="discard_reopen_confirm_title">Discard this seal?</string>
+    <string name="discard_reopen_confirm_body">This removes the local seal and returns to an editable draft. Your evidence is kept (restored from the encrypted vault if needed) — nothing is lost, but you will need to attest and seal again.</string>
+    <string name="p5_test_only_force_budget_label">P5_TEST_ONLY forced total budget: %1$s (debug builds only)</string>
+    <string name="task_detail_sealed_read_only">This assessment is sealed. To change evidence, discard the seal from the review screen first.</string>
+    <string name="trim_range_label">Keep from %1$s to %2$s</string>
+    <string name="trim_error">Could not trim this clip. The original is unchanged — please try a different range.</string>
+    <string name="p5_test_only_debug_export_title">P5_TEST_ONLY verification export (debug builds only)</string>
+    <string name="p5_test_only_debug_export_action">Decrypt for verification</string>
+    <string name="p5_test_only_debug_export_cleanup_action">Securely clean up export</string>
+    <string name="p5_test_only_debug_export_result">Signature verified: %1$s · %2$d item(s) exported · all hashes match manifest: %3$s</string>
 
-    <!-- Submitted screen -->
-    <string name="submitted_title">Sealed locally — waiting for sync</string>
-    <string name="submitted_body">Your declaration, match result and practice evidence have been sealed on this phone. This offline demo build does not upload, encrypt, hash or sync anything to a server — that happens in a later phase. Nothing has left this device.</string>
+    <!-- Sealed (post-seal) screen -->
+    <string name="submitted_title">Assessment sealed</string>
+    <string name="submitted_body">Assessment sealed on this device. Ready to sync when connectivity is available.</string>
     <string name="submitted_worker_id">Worker ID: %1$s</string>
-    <string name="action_view_preview_again">View my sealed submission</string>
+    <string name="action_view_preview_again">View sealed evidence</string>
 
     <!-- Common -->
     <string name="content_desc_back">Back</string>

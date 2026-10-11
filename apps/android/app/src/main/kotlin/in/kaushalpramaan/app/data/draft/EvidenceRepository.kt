@@ -335,6 +335,7 @@ class EvidenceRepository(
 
     private suspend fun finishDeletingAssessment(assessmentId: String) {
         fileManager.deleteAssessmentTree(assessmentId)
+        fileManager.deleteP5TempTree(assessmentId)
         evidenceDraftDao.hardDeleteAllForAssessment(assessmentId)
         taskDraftDao.hardDeleteAllForAssessment(assessmentId)
         assessmentDraftDao.getById(assessmentId)?.let { assessmentDraftDao.hardDelete(it) }
@@ -342,8 +343,9 @@ class EvidenceRepository(
 
     private suspend fun sweepOrphanFiles() {
         val knownPaths = mutableSetOf<String>()
-        assessmentDraftDao.getActiveOnce()?.let { active ->
-            evidenceDraftDao.getAllForAssessmentOnce(active.id).forEach { knownPaths += it.relativePath }
+        val activeId = assessmentDraftDao.getActiveOnce()?.id
+        activeId?.let { id ->
+            evidenceDraftDao.getAllForAssessmentOnce(id).forEach { knownPaths += it.relativePath }
         }
         for (assessmentDir in fileManager.listAssessmentDirs()) {
             for (taskDir in fileManager.listTaskDirs(assessmentDir.name)) {
@@ -352,6 +354,16 @@ class EvidenceRepository(
                         fileManager.deleteQuietly(file)
                     }
                 }
+            }
+        }
+        // P5 optimisation scratch trees are keyed by assessmentId, same as drafts, but live in
+        // a separate root (see EvidenceFileManager) so the sweep above never reaches them --
+        // without this, a crash between finishDeletingAssessment's steps, or an assessment
+        // deleted by an older build before this sweep existed, leaves real optimised copies of
+        // a worker's photos/videos on disk indefinitely.
+        for (tempDir in fileManager.listP5TempAssessmentDirs()) {
+            if (tempDir.name != activeId) {
+                fileManager.deleteP5TempTree(tempDir.name)
             }
         }
     }

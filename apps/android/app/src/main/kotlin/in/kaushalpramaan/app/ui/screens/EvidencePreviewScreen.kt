@@ -3,7 +3,10 @@ package `in`.kaushalpramaan.app.ui.screens
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
 import `in`.kaushalpramaan.app.data.EvidenceType
+import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
+import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
+import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.decodeSampledBitmap
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
@@ -73,7 +76,15 @@ fun EvidencePreviewScreen(
         }
 
         Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
-            if (evidence.state == EvidenceDraftState.READY) {
+            if (evidence.state == EvidenceDraftState.READY && evidence.finalState == FinalEvidenceState.SEALED) {
+                // Plaintext was deleted once sealing succeeded (spec G.5) -- only the
+                // encrypted vault copy remains; there is nothing left to preview in-app.
+                Text(
+                    stringResource(R.string.final_review_item_sealed),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.testTag("evidence_preview_sealed_notice"),
+                )
+            } else if (evidence.state == EvidenceDraftState.READY) {
                 val file = remember(evidence.relativePath) { viewModel.evidenceFile(evidence) }
                 if (evidence.kind == EvidenceType.PHOTO) {
                     val bitmap = remember(file) { decodeSampledBitmap(file, 1024, 1024) }
@@ -116,15 +127,24 @@ fun EvidencePreviewScreen(
                 )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 16.dp)) {
-                OutlinedButton(
-                    onClick = { onRetake(evidence.taskId, evidence.id) },
-                    modifier = Modifier.defaultMinTapTarget().testTag("btn_retake_evidence"),
-                ) { Text(stringResource(R.string.action_retake)) }
-                OutlinedButton(
-                    onClick = { showDeleteConfirm = true },
-                    modifier = Modifier.defaultMinTapTarget().testTag("btn_delete_evidence"),
-                ) { Text(stringResource(R.string.action_delete)) }
+            if (uiState.sealState.isEditable()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 16.dp)) {
+                    OutlinedButton(
+                        onClick = { onRetake(evidence.taskId, evidence.id) },
+                        modifier = Modifier.defaultMinTapTarget().testTag("btn_retake_evidence"),
+                    ) { Text(stringResource(R.string.action_retake)) }
+                    OutlinedButton(
+                        onClick = { showDeleteConfirm = true },
+                        modifier = Modifier.defaultMinTapTarget().testTag("btn_delete_evidence"),
+                    ) { Text(stringResource(R.string.action_delete)) }
+                }
+            } else {
+                Text(
+                    stringResource(R.string.task_detail_sealed_read_only),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
             }
         }
     }

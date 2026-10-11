@@ -1,14 +1,22 @@
 package `in`.kaushalpramaan.app.data
 
+import `in`.kaushalpramaan.app.BuildConfig
 import `in`.kaushalpramaan.app.data.draft.AppDatabase
 import `in`.kaushalpramaan.app.data.draft.BeginCaptureResult
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
 import `in`.kaushalpramaan.app.data.draft.EvidenceFileManager
 import `in`.kaushalpramaan.app.data.draft.EvidenceRepository
 import `in`.kaushalpramaan.app.data.draft.FinalizeResult
+import `in`.kaushalpramaan.app.data.draft.OutboxItemEntity
+import `in`.kaushalpramaan.app.data.seal.ProcessOutcome
+import `in`.kaushalpramaan.app.data.seal.SealOrchestrator
+import `in`.kaushalpramaan.app.data.seal.SealOutcome
 import `in`.kaushalpramaan.core.mapping.Matcher
 import `in`.kaushalpramaan.core.mapping.Rules
 import `in`.kaushalpramaan.core.mapping.RulesLoader
+import `in`.kaushalpramaan.core.seal.VaultKeysetProvider
+import `in`.kaushalpramaan.media.PhotoOptimizer
+import `in`.kaushalpramaan.media.VideoOptimizer
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,6 +48,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             rules = rules,
         )
     }
+    private val sealOrchestrator: SealOrchestrator by lazy {
+        SealOrchestrator(
+            assessmentDraftDao = database.assessmentDraftDao(),
+            evidenceDraftDao = database.evidenceDraftDao(),
+            outboxDao = database.outboxDao(),
+            fileManager = fileManager,
+            rules = rules,
+            photoOptimizer = PhotoOptimizer(),
+            videoOptimizer = VideoOptimizer(application),
+            vaultKeysetProvider = VaultKeysetProvider(application),
+            appVersion = BuildConfig.VERSION_NAME,
+        )
+    }
+    val debugExportHooks: `in`.kaushalpramaan.app.debug.DebugExportHooks by lazy {
+        `in`.kaushalpramaan.app.debug.provideDebugExportHooks(database, fileManager, VaultKeysetProvider(application))
+    }
 
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState
@@ -49,6 +73,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             repository.reconcileOnLaunch()
             val active = repository.getActiveAssessment()
             if (active != null) {
+                sealOrchestrator.reconcileOnLaunch(active.id)
                 val gapIds = active.gapTaskIdsCsv.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
                 val resumedLanguage = AppLanguage.entries.firstOrNull { it.localeTag == active.language } ?: AppLanguage.ENGLISH
                 _uiState.update {
@@ -158,6 +183,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+        // P5 seal state machine + attestation -- live, never a locally-faked flag (see
+        // SealOrchestrator, which is the only writer of these columns).
+        viewModelScope.launch {
+            repository.observeActiveAssessment().collect { assessment ->
+                if (assessment != null && assessment.id == assessmentId) {
+                    _uiState.update {
+                        it.copy(
+                            sealState = assessment.sealState,
+                            attestationConfirmed = assessment.attestationConfirmed,
+                            sealedAtMillis = assessment.sealedAtMillis,
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun currentAssessmentId(): String =
@@ -175,11 +215,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         widthPx: Int? = null,
         heightPx: Int? = null,
         durationMillis: Long? = null,
-    ): FinalizeResult = repository.finalizeCapture(evidenceId, success, widthPx, heightPx, durationMillis)
+    ): FinalizeResult {
+        val result = repository.finalizeCapture(evidenceId, success, widthPx, heightPx, durationMillis)
+        // A successful new/replacement capture invalidates a prior FINAL_REVIEW_READY --
+        // see SealOrchestrator.invalidateFinalReviewIfNeeded's doc comment.
+        if (result is FinalizeResult.Ready) sealOrchestrator.invalidateFinalReviewIfNeeded(currentAssessmentId())
+        return result
+    }
 
     suspend fun cancelCapture(evidenceId: String) = repository.cancelCapture(evidenceId)
 
-    suspend fun deleteEvidence(evidenceId: String) = repository.deleteEvidence(evidenceId)
+    suspend fun deleteEvidence(evidenceId: String) {
+        repository.deleteEvidence(evidenceId)
+        sealOrchestrator.invalidateFinalReviewIfNeeded(currentAssessmentId())
+    }
 
     fun hasEnoughFreeSpace(): Boolean = repository.hasEnoughFreeSpace()
 
@@ -189,17 +238,63 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(lastErrorMessageRes = null) }
     }
 
-    fun setAttestation(checked: Boolean) {
-        _uiState.update { it.copy(attestationChecked = checked) }
+    // ---- P5: automatic optimisation, attestation, seal ----
+
+    /** Runs the real automatic photo/video optimisation pass over every not-yet-processed
+     * READY item (spec parts C/D). Safe to call repeatedly -- already-processed items are
+     * skipped. */
+    suspend fun processEvidence(): ProcessOutcome {
+        _uiState.update { it.copy(sealActionInFlight = true) }
+        return try {
+            sealOrchestrator.processEvidence(currentAssessmentId(), _uiState.value.debugForcedBudgetBytes)
+        } finally {
+            _uiState.update { it.copy(sealActionInFlight = false) }
+        }
     }
 
-    fun submit() {
-        if (!_uiState.value.attestationChecked) return
-        _uiState.update { it.copy(submissionState = SubmissionState.SEALED_LOCALLY) }
+    /** Minimal offline video trim (spec part D.5) -- see SealOrchestrator.trimVideo. */
+    suspend fun trimVideo(evidenceId: String, startMs: Long, endMs: Long): Boolean =
+        sealOrchestrator.trimVideo(currentAssessmentId(), evidenceId, startMs, endMs)
+
+    fun setAttestation(confirmed: Boolean) {
+        viewModelScope.launch { sealOrchestrator.setAttestation(currentAssessmentId(), confirmed) }
+    }
+
+    /** Builds the canonical manifest, signs it with the device's non-exportable Keystore key,
+     * encrypts every final item plus the manifest into the vault, commits the outbox, and
+     * transitions to READY_TO_SYNC (spec parts F/G). No network call anywhere in this path. */
+    suspend fun seal(): SealOutcome {
+        _uiState.update { it.copy(sealActionInFlight = true) }
+        return try {
+            sealOrchestrator.seal(currentAssessmentId())
+        } finally {
+            _uiState.update { it.copy(sealActionInFlight = false) }
+        }
+    }
+
+    /** The only path back to an editable draft once sealing has started/completed (spec part
+     * E.4) -- restores evidence from the vault if the seal had already reached READY_TO_SYNC,
+     * then removes the local seal entirely. Requires explicit confirmation in the UI before
+     * calling this; never invoked silently. */
+    suspend fun discardSealAndReopen() {
+        sealOrchestrator.discardAndReopen(currentAssessmentId())
+    }
+
+    fun observeOutbox(assessmentId: String) = database.outboxDao().observeForAssessment(assessmentId)
+
+    /** Debug-build-only (`P5_TEST_ONLY`): forces the budget ledger to treat the assessment as
+     * having only [bytes] of total room left, routed through the exact same production
+     * BudgetLedger/optimisation path as real budgets -- never a separate mock path. Null
+     * clears the override. No-op outside debug builds (callers only render the toggle when
+     * `BuildConfig.P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED` is true). */
+    fun setDebugForcedBudgetBytes(bytes: Long?) {
+        if (!BuildConfig.P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED) return
+        _uiState.update { it.copy(debugForcedBudgetBytes = bytes) }
     }
 
     /** Full P4_TEST_ONLY cleanup path: removes the draft's DB rows and every private file
-     * under it, then resets in-memory state back to a fresh start. */
+     * under it (including any P5 vault/outbox state), then resets in-memory state back to a
+     * fresh start. */
     fun deleteCurrentAssessmentDraft(onDone: () -> Unit) {
         val assessmentId = _uiState.value.assessmentDraftId ?: return
         viewModelScope.launch {

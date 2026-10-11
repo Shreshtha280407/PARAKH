@@ -18,3 +18,6 @@ rootProject.name = "kaushalpramaan-android"
 
 include(":app")
 include(":core:mapping")
+include(":core:budget")
+include(":core:seal")
+include(":media")

@@ -13,13 +13,18 @@ import org.junit.runner.RunWith
  * Full journey, English, "everything often" declaration -- pinned by
  * ml/mapping/golden_vectors.jsonl G001 to overall_coverage 0.9126,
  * match_result appropriate_match, gap_nos=[]. Proves: language -> consent ->
- * registration -> declaration -> match -> task list -> preview -> attestation
- * -> local submit -> sealed state, with an APPROPRIATE result showing its
- * "because" reasons and no gap badges. Evidence is not required to submit
- * (see PreviewScreen's submit button, gated only on the attestation
- * checkbox) so this journey deliberately does not touch the camera --
- * real in-app capture is covered by EvidenceCaptureFlowTest and, with a
- * human granting the permission, by the manual P4 device gate.
+ * registration -> declaration -> match -> task list -> review screen, with
+ * an APPROPRIATE result showing its "because" reasons and no gap badges.
+ *
+ * P5 note: sealing now genuinely requires at least one real, optimized, attested evidence
+ * item (see PreviewScreen's `canSeal`) -- it is no longer gated on the attestation checkbox
+ * alone, unlike the P3 placeholder this test originally exercised. Real capture needs a
+ * human-granted camera permission (OEM-restriction-dependent -- see EvidenceCaptureFlowTest's
+ * doc comment), which this declaration/match journey test deliberately does not request, to
+ * avoid making every worker-journey test flaky on that restriction. This test therefore ends
+ * at the real review screen rather than tapping through attestation/seal; the full real
+ * capture -> optimize -> attest -> seal pipeline is covered end to end by
+ * EvidenceCaptureFlowTest and SealOrchestratorInstrumentedTest.
  */
 @RunWith(AndroidJUnit4::class)
 class AppropriateMatchFlowTest {
@@ -45,12 +50,12 @@ class AppropriateMatchFlowTest {
         composeRule.onNodeWithTag("task_card_T1").assertIsDisplayed()
 
         composeRule.tapTag("btn_preview")
-        composeRule.tapTag("attestation_checkbox")
-        composeRule.tapTag("btn_submit")
 
-        // submitted_title text also appears in the top bar, so assert via testTag
-        // (the body copy, tagged) rather than text to avoid an ambiguous match.
-        composeRule.onNodeWithTag("submitted_title").assertIsDisplayed()
+        // Real P5 review screen: attestation checkbox is present but correctly disabled
+        // (no evidence captured in this declaration/match-focused journey -- see the class
+        // doc comment).
+        composeRule.onNodeWithTag("attestation_checkbox").scrollToIfPossible().assertIsDisplayed()
+        composeRule.onNodeWithText("Before you seal").assertIsDisplayed()
 
         NetworkAssertions.assertAppHasNoInternetCapability(composeRule.activity)
     }

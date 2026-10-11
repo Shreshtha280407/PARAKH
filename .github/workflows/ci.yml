@@ -111,7 +111,7 @@ jobs:
           if-no-files-found: ignore
 
   android-app-build:
-    name: P-3 Android debug build
+    name: P-3/P4/P5 Android unit tests + debug/release build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -138,9 +138,35 @@ jobs:
             "platforms;android-36" \
             "build-tools;35.0.0" \
             "build-tools;36.0.0"
-      - name: Static Kotlin checks + assemble debug APK
+      # P5: core:budget (pure Kotlin/JVM, including the 500-op randomized ledger invariant
+      # test), media and core:seal (real JPEG encode/decode and real Tink crypto run fine on
+      # a GitHub-hosted runner -- only real camera/CameraX/MediaCodec/AndroidKeyStore need a
+      # physical device, exercised locally/physically, not here) unit tests, plus the app
+      # module's own unit tests (P4's EvidenceRepository/EvidenceFileManager, P5's
+      # SealOrchestrator) -- previously only core:mapping's matcher tests ran in CI; this was
+      # a real gap P5 closes, not something newly introduced by P5 itself.
+      - name: Unit tests (core:budget, media, core:seal, app)
         working-directory: apps/android
-        run: ./gradlew lint :app:assembleDebug --console=plain
+        run: ./gradlew :core:budget:test :media:testDebugUnitTest :core:seal:testDebugUnitTest :app:testDebugUnitTest --console=plain
+      - name: Static Kotlin checks (lint, all modules)
+        working-directory: apps/android
+        run: ./gradlew lint --console=plain
+      - name: Assemble debug and release APKs
+        working-directory: apps/android
+        run: ./gradlew :app:assembleDebug :app:assembleRelease --console=plain
+      # P4/P5 debug-only-feature-absent-from-release proofs -- see each task's own doc
+      # comment in app/build.gradle.kts for exactly what each checks.
+      - name: Verify debug-only test features never reach release
+        working-directory: apps/android
+        run: |
+          ./gradlew \
+            :app:verifyP4TestCeilingDisabledInRelease \
+            :app:verifyP5DebugFeaturesDisabledInRelease \
+            :app:verifyP5DebugExportAbsentFromRelease \
+            :app:verifyNoGalleryImportPath \
+            :app:verifyNoNetworkDependencies \
+            :app:verifyMergedManifestHasNoNetworkPermissions \
+            --console=plain
       - name: Upload debug APK
         if: always()
         uses: actions/upload-artifact@v4
@@ -148,17 +174,23 @@ jobs:
           name: kaushalpramaan-debug-apk
           path: apps/android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: ignore
-    # Emulator instrumentation (the full P-3 worker journey, Hindi flow, budget
-    # enforcement, airplane-mode) is NOT run on GitHub-hosted runners -- nested
-    # KVM virtualization for the Android emulator is unavailable/unreliable
-    # there. This is a platform constraint, not an incomplete P-3 feature: the
-    # instrumented tests exist (apps/android/app/src/androidTest) and the one
-    # local command below reproduces them exactly, on a real emulator.
+    # Real-device-only coverage (CameraX capture, Media3 Transformer video transcoding, real
+    # AndroidKeyStore ECDSA signing, real Tink StreamingAead vault encryption, SQLCipher's
+    # native library) is NOT run on GitHub-hosted runners -- nested KVM virtualization for an
+    # Android emulator is unavailable/unreliable there, and several of these primitives
+    # (AndroidKeyStore in particular) do not exist in any emulator either, only real hardware.
+    # This is a platform constraint, not an incomplete P3/P4/P5 feature: the instrumented
+    # tests exist (apps/android/app/src/androidTest, apps/android/media/src/androidTest,
+    # apps/android/core/seal/src/androidTest) and the commands below reproduce them exactly,
+    # run locally against a real physical device.
     #
     #   cd apps/android && ./gradlew :app:connectedDebugAndroidTest --console=plain
+    #   cd apps/android && ./gradlew :media:connectedDebugAndroidTest --console=plain
+    #   cd apps/android && ./gradlew :core:seal:connectedDebugAndroidTest --console=plain
     #
-    # See docs/gates/P3.md for the actual run transcript against
-    # KaushalPramaan_API35 (Pixel 6, API 35, Google APIs x86_64).
+    # See docs/gates/P3.md, docs/gates/P4.md, and docs/gates/P5.md for the actual run
+    # transcripts -- P3 against an emulator (KaushalPramaan_API35), P4/P5 against a real
+    # OnePlus 13R (physical AndroidKeyStore/CameraX/MediaCodec hardware is required).
 
   dashboard-build:
     name: Dashboard build + typecheck
