@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pre-Android-12 full-backup equivalent of data_extraction_rules.xml: same excludes, same
+  "defense-in-depth, not the primary control" rationale (allowBackup="false" already disables
+  this path on every supported API level). Kept in sync with data_extraction_rules.xml.
+-->
+<full-backup-content>
+    <exclude domain="database" />
+    <exclude domain="sharedpref" path="kp_db_key_store.xml" />
+    <exclude domain="file" path="drafts/" />
+</full-backup-content>

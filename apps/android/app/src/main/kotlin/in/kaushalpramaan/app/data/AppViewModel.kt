@@ -1,26 +1,73 @@
 package `in`.kaushalpramaan.app.data
 
-import `in`.kaushalpramaan.app.R
+import `in`.kaushalpramaan.app.data.draft.AppDatabase
+import `in`.kaushalpramaan.app.data.draft.BeginCaptureResult
+import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
+import `in`.kaushalpramaan.app.data.draft.EvidenceFileManager
+import `in`.kaushalpramaan.app.data.draft.EvidenceRepository
+import `in`.kaushalpramaan.app.data.draft.FinalizeResult
 import `in`.kaushalpramaan.core.mapping.Matcher
 import `in`.kaushalpramaan.core.mapping.Rules
 import `in`.kaushalpramaan.core.mapping.RulesLoader
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
- * Single in-memory source of truth for the whole P-3 flow. No Room, no disk
- * persistence, no network -- offline-first and ViewModel-scoped only (see
- * AppUiState's doc comment and docs/gates/P3.md).
+ * Single source of truth for the whole worker flow. Declaration/consent/registration/match
+ * stay in-memory and ViewModel-scoped (P-3 behaviour, unchanged). Evidence capture
+ * (taskDrafts/evidenceByTask) is backed by [EvidenceRepository] -- Room, SQLCipher-encrypted,
+ * app-private files on disk (P4) -- and survives process death/reboot. No network calls
+ * anywhere in this class or anything it owns.
  */
-class AppViewModel : ViewModel() {
+class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     val rules: Rules by lazy { RulesLoader.load() }
 
+    private val database by lazy { AppDatabase.getInstance(application) }
+    private val fileManager by lazy { EvidenceFileManager(application) }
+    val repository: EvidenceRepository by lazy {
+        EvidenceRepository(
+            assessmentDraftDao = database.assessmentDraftDao(),
+            taskDraftDao = database.taskDraftDao(),
+            evidenceDraftDao = database.evidenceDraftDao(),
+            fileManager = fileManager,
+            rules = rules,
+        )
+    }
+
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState
+
+    init {
+        viewModelScope.launch {
+            repository.reconcileOnLaunch()
+            val active = repository.getActiveAssessment()
+            if (active != null) {
+                val gapIds = active.gapTaskIdsCsv.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+                val resumedLanguage = AppLanguage.entries.firstOrNull { it.localeTag == active.language } ?: AppLanguage.ENGLISH
+                _uiState.update {
+                    it.copy(
+                        language = resumedLanguage,
+                        registration = active.workerId?.let { workerId -> WorkerRegistration(workerId = workerId, phone = "", pin = "") },
+                        assessmentDraftId = active.id,
+                        assessmentIsTestOnly = active.isTestOnly,
+                        gapTaskIds = gapIds,
+                        resumedFromDraft = true,
+                        startRouteResolved = true,
+                    )
+                }
+                observeDraft(active.id)
+            } else {
+                _uiState.update { it.copy(startRouteResolved = true) }
+            }
+        }
+    }
 
     fun setLanguage(language: AppLanguage) {
         _uiState.update { it.copy(language = language) }
@@ -74,76 +121,70 @@ class AppViewModel : ViewModel() {
 
     fun totalBudgetBytes(): Long = rules.tasksFile.finalEvidenceBudgetBytes
 
-    /** Adds one mock evidence item, enforcing both the per-task and total
-     * evidence budgets. Returns true on success; on failure, sets a
-     * localized error message in uiState and changes nothing else. */
-    fun addEvidence(taskId: String, type: EvidenceType, fakeSizeBytes: Long, nowMillis: Long): Boolean {
-        val state = _uiState.value
-        val taskBudget = taskBudgetBytes(taskId)
-        val totalBudget = totalBudgetBytes()
-        val newTaskTotal = state.taskEvidenceBytes(taskId) + fakeSizeBytes
-        val newGrandTotal = state.totalEvidenceBytes() + fakeSizeBytes
-
-        if (newTaskTotal > taskBudget) {
-            _uiState.update { it.copy(lastErrorMessageRes = R.string.add_evidence_error_task_budget) }
-            return false
-        }
-        if (newGrandTotal > totalBudget) {
-            _uiState.update { it.copy(lastErrorMessageRes = R.string.add_evidence_error_total_budget) }
-            return false
-        }
-
-        val item = MockEvidence(
-            id = UUID.randomUUID().toString(),
-            taskId = taskId,
-            type = type,
-            fakeSizeBytes = fakeSizeBytes,
-            createdAtMillis = nowMillis,
-        )
-        _uiState.update { s ->
-            val updated = s.evidenceByTask.toMutableMap()
-            updated[taskId] = updated[taskId].orEmpty() + item
-            s.copy(evidenceByTask = updated, lastErrorMessageRes = null)
-        }
-        return true
-    }
-
-    fun removeEvidence(taskId: String, evidenceId: String) {
-        _uiState.update { s ->
-            val updated = s.evidenceByTask.toMutableMap()
-            updated[taskId] = updated[taskId].orEmpty().filterNot { it.id == evidenceId }
-            s.copy(evidenceByTask = updated)
+    /** Creates the one P4_TEST_ONLY draft on first arrival at the task list, or returns
+     * the existing one unchanged if already created this session -- safe to call every
+     * time the task list is opened. */
+    fun startOrResumeAssessmentDraft() {
+        if (_uiState.value.assessmentDraftId != null) return
+        viewModelScope.launch {
+            val state = _uiState.value
+            val active = repository.createOrResumeAssessment(
+                workerId = state.registration?.workerId,
+                language = state.language.localeTag,
+                matchOutput = state.matchOutput,
+            )
+            val gapIds = state.matchOutput?.applicableTasks
+                ?.filter { it.extraEvidenceNeeded }
+                ?.mapNotNull { it.task }
+                ?.toSet()
+                .orEmpty()
+            _uiState.update {
+                it.copy(assessmentDraftId = active.id, assessmentIsTestOnly = active.isTestOnly, gapTaskIds = gapIds)
+            }
+            observeDraft(active.id)
         }
     }
 
-    /** Replace = remove the old item then add the new one, atomically from the
-     * UI's point of view, with the SAME budget checks addEvidence uses (so a
-     * replace that would blow the budget is rejected, not silently applied). */
-    fun replaceEvidence(taskId: String, oldEvidenceId: String, type: EvidenceType, fakeSizeBytes: Long, nowMillis: Long): Boolean {
-        val state = _uiState.value
-        val old = state.evidenceByTask[taskId].orEmpty().firstOrNull { it.id == oldEvidenceId } ?: return false
-        val taskBudget = taskBudgetBytes(taskId)
-        val totalBudget = totalBudgetBytes()
-        val newTaskTotal = state.taskEvidenceBytes(taskId) - old.fakeSizeBytes + fakeSizeBytes
-        val newGrandTotal = state.totalEvidenceBytes() - old.fakeSizeBytes + fakeSizeBytes
-
-        if (newTaskTotal > taskBudget) {
-            _uiState.update { it.copy(lastErrorMessageRes = R.string.add_evidence_error_task_budget) }
-            return false
+    private fun observeDraft(assessmentId: String) {
+        viewModelScope.launch {
+            repository.observeTasks(assessmentId).collect { list ->
+                _uiState.update { it.copy(taskDrafts = list.associateBy { task -> task.taskId }) }
+            }
         }
-        if (newGrandTotal > totalBudget) {
-            _uiState.update { it.copy(lastErrorMessageRes = R.string.add_evidence_error_total_budget) }
-            return false
+        for (task in rules.tasksFile.tasks) {
+            viewModelScope.launch {
+                repository.observeEvidenceForTask(assessmentId, task.id).collect { items ->
+                    _uiState.update { it.copy(evidenceByTask = it.evidenceByTask + (task.id to items)) }
+                }
+            }
         }
-
-        val replacement = old.copy(id = UUID.randomUUID().toString(), type = type, fakeSizeBytes = fakeSizeBytes, createdAtMillis = nowMillis)
-        _uiState.update { s ->
-            val updated = s.evidenceByTask.toMutableMap()
-            updated[taskId] = updated[taskId].orEmpty().map { if (it.id == oldEvidenceId) replacement else it }
-            s.copy(evidenceByTask = updated, lastErrorMessageRes = null)
-        }
-        return true
     }
+
+    private fun currentAssessmentId(): String =
+        requireNotNull(_uiState.value.assessmentDraftId) { "assessment draft must exist before capture" }
+
+    suspend fun beginCapture(taskId: String, type: EvidenceType, debugOverrideRequested: Boolean, replacesEvidenceId: String?): BeginCaptureResult =
+        repository.beginCapture(currentAssessmentId(), taskId, type, debugOverrideRequested, replacesEvidenceId)
+
+    suspend fun currentCeilingBytes(taskId: String, debugOverrideRequested: Boolean, replacesEvidenceId: String?): Long =
+        repository.currentCeilingBytes(currentAssessmentId(), taskId, debugOverrideRequested, replacesEvidenceId)
+
+    suspend fun finalizeCapture(
+        evidenceId: String,
+        success: Boolean,
+        actualByteSize: Long = 0L,
+        widthPx: Int? = null,
+        heightPx: Int? = null,
+        durationMillis: Long? = null,
+    ): FinalizeResult = repository.finalizeCapture(evidenceId, success, actualByteSize, widthPx, heightPx, durationMillis)
+
+    suspend fun cancelCapture(evidenceId: String) = repository.cancelCapture(evidenceId)
+
+    suspend fun deleteEvidence(evidenceId: String) = repository.deleteEvidence(evidenceId)
+
+    fun hasEnoughFreeSpace(): Boolean = repository.hasEnoughFreeSpace()
+
+    fun evidenceFile(evidence: EvidenceDraftEntity) = repository.resolveFile(evidence)
 
     fun clearError() {
         _uiState.update { it.copy(lastErrorMessageRes = null) }
@@ -156,5 +197,16 @@ class AppViewModel : ViewModel() {
     fun submit() {
         if (!_uiState.value.attestationChecked) return
         _uiState.update { it.copy(submissionState = SubmissionState.SEALED_LOCALLY) }
+    }
+
+    /** Full P4_TEST_ONLY cleanup path: removes the draft's DB rows and every private file
+     * under it, then resets in-memory state back to a fresh start. */
+    fun deleteCurrentAssessmentDraft(onDone: () -> Unit) {
+        val assessmentId = _uiState.value.assessmentDraftId ?: return
+        viewModelScope.launch {
+            repository.deleteAssessment(assessmentId)
+            _uiState.value = AppUiState(startRouteResolved = true)
+            onDone()
+        }
     }
 }

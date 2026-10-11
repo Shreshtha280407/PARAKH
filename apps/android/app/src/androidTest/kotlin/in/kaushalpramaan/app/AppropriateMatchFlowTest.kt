@@ -10,17 +10,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Full P-3 journey, English, "everything often" declaration -- pinned by
+ * Full journey, English, "everything often" declaration -- pinned by
  * ml/mapping/golden_vectors.jsonl G001 to overall_coverage 0.9126,
  * match_result appropriate_match, gap_nos=[]. Proves: language -> consent ->
- * registration -> declaration -> match -> task list -> add evidence ->
- * preview -> attestation -> local submit -> sealed state, with an
- * APPROPRIATE result showing its "because" reasons and no gap badges.
+ * registration -> declaration -> match -> task list -> preview -> attestation
+ * -> local submit -> sealed state, with an APPROPRIATE result showing its
+ * "because" reasons and no gap badges. Evidence is not required to submit
+ * (see PreviewScreen's submit button, gated only on the attestation
+ * checkbox) so this journey deliberately does not touch the camera --
+ * real in-app capture is covered by EvidenceCaptureFlowTest and, with a
+ * human granting the permission, by the manual P4 device gate.
  */
 @RunWith(AndroidJUnit4::class)
 class AppropriateMatchFlowTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val clearDraftRule = ClearP4DraftBeforeTest()
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
@@ -36,13 +43,6 @@ class AppropriateMatchFlowTest {
 
         composeRule.tapTag("btn_view_tasks")
         composeRule.onNodeWithTag("task_card_T1").assertIsDisplayed()
-
-        // Add one piece of mock evidence to T2.
-        composeRule.tapTag("task_card_T2")
-        composeRule.tapTag("btn_add_evidence")
-        composeRule.onNodeWithTag("evidence_type_photo").assertIsDisplayed()
-        composeRule.tapTag("btn_save_evidence")
-        composeRule.tapTag("btn_back_to_tasks")
 
         composeRule.tapTag("btn_preview")
         composeRule.tapTag("attestation_checkbox")

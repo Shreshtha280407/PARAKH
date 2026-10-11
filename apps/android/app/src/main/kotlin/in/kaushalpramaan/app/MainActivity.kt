@@ -7,6 +7,8 @@ import `in`.kaushalpramaan.app.ui.theme.KaushalPramaanTheme
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
@@ -63,10 +65,24 @@ fun LocalizedApp(language: AppLanguage, content: @Composable () -> Unit) {
         config.setLocale(locale)
         baseContext.createConfigurationContext(config)
     }
-    CompositionLocalProvider(
-        LocalContext provides localizedContext,
-        LocalConfiguration provides localizedContext.resources.configuration,
-    ) {
+    // Context.createConfigurationContext() returns a standalone Context that does NOT wrap
+    // the original Activity in its ContextWrapper chain. androidx.activity's
+    // LocalOnBackPressedDispatcherOwner/LocalActivityResultRegistryOwner resolve their
+    // default value by unwrapping LocalContext.current looking for the Activity -- so
+    // overriding LocalContext here (needed for the locale switch) would otherwise silently
+    // break BackHandler and rememberLauncherForActivityResult for every screen beneath this
+    // point (both throw IllegalStateException when the owner can't be found). Resolving
+    // both owners from the REAL, pre-override ambient context here and re-providing them
+    // explicitly keeps them correct regardless of the LocalContext swap.
+    val backDispatcherOwner = LocalOnBackPressedDispatcherOwner.current
+    val activityResultRegistryOwner = LocalActivityResultRegistryOwner.current
+    val providedLocals = buildList {
+        add(LocalContext provides localizedContext)
+        add(LocalConfiguration provides localizedContext.resources.configuration)
+        backDispatcherOwner?.let { add(LocalOnBackPressedDispatcherOwner provides it) }
+        activityResultRegistryOwner?.let { add(LocalActivityResultRegistryOwner provides it) }
+    }.toTypedArray()
+    CompositionLocalProvider(*providedLocals) {
         content()
     }
 }
