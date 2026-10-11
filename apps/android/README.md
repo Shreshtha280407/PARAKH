@@ -1,17 +1,19 @@
 # apps/android/
 
-Kotlin + Jetpack Compose offline worker app (P-3). Reads
+Kotlin + Jetpack Compose offline worker app (P-3/P-4). Reads
 `packs/ae-con-q0602/` as bundled task-pack data (synced in at build time,
 never hand-duplicated — see `core/mapping/build.gradle.kts`). No backend,
 no network, no worker account login for anything in this module's scope —
-see `docs/gates/P3.md` for the full scope boundary and `docs/gates/IC1A.md`
-for the acceptance gate this module is held to.
+see `docs/gates/P3.md` / `docs/gates/P4.md` for the full scope boundary and
+`docs/gates/IC1A.md` for the acceptance gate this module is held to. The
+app's user-visible display name is "PARAKH"; the Android package
+(`in.kaushalpramaan.app`) and internal identifiers are unchanged.
 
 ## Modules
 
 | Module | Role |
 |---|---|
-| `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, mock evidence, preview, attestation, local "sealed" submit. |
+| `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, real in-app CameraX photo/video evidence capture into a SQLCipher-encrypted Room draft store (preview, retake, replace, delete — see `docs/gates/P4.md`), preview, attestation, local "sealed" submit. |
 | `:core:mapping` | Pure Kotlin/JVM port of `ml/mapping/matcher.py` (match-rules@r3, 20 declaration cards + 6 tools). No Android dependency — its `GoldenVectorsTest` runs as a plain fast JUnit `test` task. `:app` depends on it like any other library. |
 
 ## One-time environment setup
@@ -62,11 +64,25 @@ installed:
 # Install on a running emulator/device
 ./gradlew :app:installDebug
 
-# Full instrumented E2E journey on the emulator (see docs/gates/P3.md for
-# the exact scenarios this covers: Hindi flow, PARTIAL/APPROPRIATE examples,
-# budget overflow rejection, delete/replace recompute, airplane-mode)
+# Full instrumented E2E journey on an emulator or real device (see
+# docs/gates/P3.md and docs/gates/P4.md for the exact scenarios covered:
+# Hindi flow, PARTIAL/APPROPRIATE examples, real CameraX capture/replace/
+# delete, SQLCipher encryption, airplane-mode)
 ./gradlew :app:connectedDebugAndroidTest
 ```
+
+### Testing P4's real camera capture on a real device
+
+`EvidenceCaptureFlowTest` drives one real CameraX capture through the actual
+UI, which needs CAMERA/RECORD_AUDIO actually granted. Some OEM Android
+builds restrict unattended (shell/UiAutomation-driven) permission granting
+even for the `shell` identity — if so, that one test cleanly skips with an
+`AssumptionViolatedException` explaining why (not a failure, not a false
+pass; see `docs/gates/P4.md`'s notes on `GrantPermissionsViaShell`) rather
+than hanging or crashing. Real capture is still fully provable by hand: run
+the app on a real device, grant the permission once through the normal
+in-app flow, and use it — `docs/gates/P4.md`'s manual gate is the
+authoritative, human-verified record of exactly that.
 
 ## Why `core:mapping` is a plain Kotlin/JVM module, not an Android library
 

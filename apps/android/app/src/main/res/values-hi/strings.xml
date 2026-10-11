@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">कौशलप्रमाण</string>
+    <string name="app_name">PARAKH</string>
 
     <!-- Language screen -->
     <string name="language_title">अपनी भाषा चुनें</string>
@@ -12,7 +12,7 @@
 
     <!-- Consent screen -->
     <string name="consent_title">शुरू करने से पहले</string>
-    <string name="consent_body">कौशलप्रमाण आपसे बिजली के काम के आपके पुराने अनुभव के बारे में पूछेगा और आपको इस फ़ोन पर अभ्यास का प्रमाण रिकॉर्ड करने देगा। ऐप के इस संस्करण में कुछ भी फ़ोन से बाहर नहीं जाता — यहाँ इंटरनेट पर कुछ भी अपलोड नहीं होता। आपके जवाब एक व्यक्ति (असेसर) को आपका अनुभव समझने में मदद करते हैं; ये आपको प्रमाणित, योग्य, पास या फेल नहीं करते। आप किसी भी समय रुक सकते हैं।</string>
+    <string name="consent_body">PARAKH आपसे बिजली के काम के आपके पुराने अनुभव के बारे में पूछेगा और आपको इस फ़ोन पर अभ्यास का प्रमाण रिकॉर्ड करने देगा। ऐप के इस संस्करण में कुछ भी फ़ोन से बाहर नहीं जाता — यहाँ इंटरनेट पर कुछ भी अपलोड नहीं होता। आपके जवाब एक व्यक्ति (असेसर) को आपका अनुभव समझने में मदद करते हैं; ये आपको प्रमाणित, योग्य, पास या फेल नहीं करते। आप किसी भी समय रुक सकते हैं।</string>
     <string name="consent_play_audio">इसे ज़ोर से सुनें</string>
     <string name="consent_audio_unavailable">इस समय इस फ़ोन पर आवाज़ चलाना संभव नहीं है — आप ऊपर लिखा हुआ पढ़ सकते हैं।</string>
     <string name="consent_checkbox">मैंने यह पढ़ा/सुना है और आगे बढ़ने के लिए सहमत हूँ।</string>
@@ -85,18 +85,57 @@
     <string name="action_remove">हटाएं</string>
     <string name="action_back_to_tasks">कार्य सूची पर वापस जाएं</string>
 
-    <!-- Add evidence dialog -->
-    <string name="add_evidence_title">नमूना प्रमाण जोड़ें</string>
-    <string name="add_evidence_type_label">प्रमाण का प्रकार</string>
+    <!-- Evidence type (shared by task detail, capture mode toggle) -->
     <string name="evidence_type_photo">फ़ोटो</string>
     <string name="evidence_type_video">वीडियो</string>
-    <string name="add_evidence_size_label">फ़ाइल आकार (नमूना): %1$s</string>
-    <string name="add_evidence_remaining_task">इस कार्य के लिए शेष: %1$s</string>
-    <string name="add_evidence_remaining_total">कुल शेष: %1$s</string>
     <string name="add_evidence_error_task_budget">इससे इस कार्य का प्रमाण बजट पार हो जाएगा। आकार कम करें या पहले दूसरा प्रमाण हटाएं।</string>
     <string name="add_evidence_error_total_budget">इससे कुल 120 MB प्रमाण बजट पार हो जाएगा। आकार कम करें या पहले दूसरा प्रमाण हटाएं।</string>
     <string name="action_save">सहेजें</string>
     <string name="action_cancel">रद्द करें</string>
+    <string name="action_delete">हटाएं</string>
+    <string name="action_retake">फिर से लें</string>
+
+    <!-- P4 task/evidence status -->
+    <string name="task_status_no_evidence">कोई प्रमाण नहीं</string>
+    <string name="task_status_capturing">रिकॉर्ड हो रहा है…</string>
+    <string name="task_status_ready">तैयार</string>
+    <string name="task_status_failed">रिकॉर्डिंग असफल</string>
+    <string name="task_evidence_count_label">%1$d तैयार आइटम</string>
+
+    <!-- P4_TEST_ONLY draft badge and whole-draft delete -->
+    <string name="p4_test_only_badge">P4_TEST_ONLY — तकनीकी परीक्षण, वास्तविक मूल्यांकन नहीं</string>
+    <string name="action_delete_test_draft">यह परीक्षण ड्राफ़्ट हटाएं</string>
+    <string name="delete_draft_confirm_title">परीक्षण ड्राफ़्ट हटाएं?</string>
+    <string name="delete_draft_confirm_body">इससे इस P4_TEST_ONLY ड्राफ़्ट की हर रिकॉर्ड की गई फ़ोटो/वीडियो और सारी प्रगति हमेशा के लिए मिट जाएगी। इसे वापस नहीं लाया जा सकता।</string>
+
+    <!-- Single evidence item delete -->
+    <string name="evidence_delete_confirm_title">यह प्रमाण हटाएं?</string>
+    <string name="evidence_delete_confirm_body">इससे यह फ़ोटो/वीडियो इस डिवाइस से हमेशा के लिए मिट जाएगा। इसे वापस नहीं लाया जा सकता।</string>
+
+    <!-- Evidence preview screen -->
+    <string name="evidence_preview_title">प्रमाण पूर्वावलोकन</string>
+    <string name="evidence_preview_size_label">आकार: %1$s</string>
+    <string name="evidence_preview_duration_label">अवधि: %1$s</string>
+    <string name="evidence_preview_dimensions_label">%1$d × %2$d px</string>
+
+    <!-- Capture screen -->
+    <string name="capture_error_camera_unavailable">कैमरा अभी उपलब्ध नहीं है। वापस जाएं और फिर कोशिश करें।</string>
+    <string name="capture_quality_sd">SD (480p)</string>
+    <string name="capture_quality_hd">HD (720p)</string>
+    <string name="p4_test_only_ceiling_label">P4_TEST_ONLY सीमा: %1$s (केवल डीबग बिल्ड में)</string>
+    <string name="capture_recording_indicator">● रिकॉर्डिंग जारी</string>
+    <string name="capture_remaining_budget">सुरक्षा सीमा से पहले शेष: %1$s</string>
+    <string name="capture_action_take_photo">फ़ोटो लें</string>
+    <string name="capture_action_stop_recording">रिकॉर्डिंग बंद करें</string>
+    <string name="capture_action_start_recording">रिकॉर्डिंग शुरू करें</string>
+    <string name="capture_permission_rationale_video">इस स्क्रीन को अभ्यास वीडियो प्रमाण रिकॉर्ड करने के लिए कैमरा और माइक्रोफ़ोन की अनुमति चाहिए। कुछ भी अपलोड या साझा नहीं किया जाता।</string>
+    <string name="capture_permission_rationale_photo">इस स्क्रीन को अभ्यास फ़ोटो प्रमाण लेने के लिए कैमरे की अनुमति चाहिए। कुछ भी अपलोड या साझा नहीं किया जाता।</string>
+    <string name="capture_permission_grant_action">अनुमति दें</string>
+    <string name="capture_permission_denied_permanently">अनुमति अस्वीकार कर दी गई। इस ऐप के लिए कैमरा अनुमति देने के लिए सेटिंग्स खोलें।</string>
+    <string name="capture_action_open_settings">ऐप सेटिंग्स खोलें</string>
+    <string name="capture_error_insufficient_space">इस डिवाइस पर नया प्रमाण रिकॉर्ड करने के लिए पर्याप्त खाली जगह नहीं है (300 MB चाहिए)। जगह खाली करें और फिर कोशिश करें।</string>
+    <string name="capture_error_finalize_failed">प्रमाण सहेजा नहीं जा सका। कृपया फिर कोशिश करें।</string>
+    <string name="capture_safety_limit_reached">सुरक्षा सीमा पूरी हो गई — रिकॉर्डिंग अपने-आप बंद हो गई और क्लिप सहेज ली गई है।</string>
 
     <!-- Preview screen -->
     <string name="preview_title">सबमिट करने से पहले पूर्वावलोकन</string>

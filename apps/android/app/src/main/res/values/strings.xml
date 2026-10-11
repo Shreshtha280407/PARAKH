@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KaushalPramaan</string>
+    <string name="app_name">PARAKH</string>
 
     <!-- Language screen -->
     <string name="language_title">Choose your language</string>
@@ -12,7 +12,7 @@
 
     <!-- Consent screen -->
     <string name="consent_title">Before you start</string>
-    <string name="consent_body">KaushalPramaan will ask you about your past electrical work experience and let you record practice evidence on this phone. Nothing leaves this phone in this version of the app — there is no internet upload here. Your answers help a human assessor understand your experience; they do not certify, qualify, pass or fail you. You can stop at any time.</string>
+    <string name="consent_body">PARAKH will ask you about your past electrical work experience and let you record practice evidence on this phone. Nothing leaves this phone in this version of the app — there is no internet upload here. Your answers help a human assessor understand your experience; they do not certify, qualify, pass or fail you. You can stop at any time.</string>
     <string name="consent_play_audio">Play this out loud</string>
     <string name="consent_audio_unavailable">Audio playback is not available on this device right now — you can still read the text above.</string>
     <string name="consent_checkbox">I have read or heard this and I agree to continue.</string>
@@ -85,18 +85,57 @@
     <string name="action_remove">Remove</string>
     <string name="action_back_to_tasks">Back to task list</string>
 
-    <!-- Add evidence dialog -->
-    <string name="add_evidence_title">Add mock evidence</string>
-    <string name="add_evidence_type_label">Evidence type</string>
+    <!-- Evidence type (shared by task detail, capture mode toggle) -->
     <string name="evidence_type_photo">Photo</string>
     <string name="evidence_type_video">Video</string>
-    <string name="add_evidence_size_label">File size (mock): %1$s</string>
-    <string name="add_evidence_remaining_task">Remaining for this task: %1$s</string>
-    <string name="add_evidence_remaining_total">Remaining overall: %1$s</string>
     <string name="add_evidence_error_task_budget">This would go over this task\'s evidence budget. Reduce the size or remove other evidence first.</string>
     <string name="add_evidence_error_total_budget">This would go over the total 120 MB evidence budget. Reduce the size or remove other evidence first.</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_retake">Retake</string>
+
+    <!-- P4 task/evidence status -->
+    <string name="task_status_no_evidence">No evidence</string>
+    <string name="task_status_capturing">Capturing…</string>
+    <string name="task_status_ready">Ready</string>
+    <string name="task_status_failed">Capture failed</string>
+    <string name="task_evidence_count_label">%1$d ready item(s)</string>
+
+    <!-- P4_TEST_ONLY draft badge and whole-draft delete -->
+    <string name="p4_test_only_badge">P4_TEST_ONLY — technical capture test, not a real assessment</string>
+    <string name="action_delete_test_draft">Delete this test draft</string>
+    <string name="delete_draft_confirm_title">Delete test draft?</string>
+    <string name="delete_draft_confirm_body">This permanently deletes every captured photo/video and all progress for this P4_TEST_ONLY draft. This cannot be undone.</string>
+
+    <!-- Single evidence item delete -->
+    <string name="evidence_delete_confirm_title">Delete this evidence?</string>
+    <string name="evidence_delete_confirm_body">This permanently deletes this photo/video from this device. This cannot be undone.</string>
+
+    <!-- Evidence preview screen -->
+    <string name="evidence_preview_title">Evidence preview</string>
+    <string name="evidence_preview_size_label">Size: %1$s</string>
+    <string name="evidence_preview_duration_label">Duration: %1$s</string>
+    <string name="evidence_preview_dimensions_label">%1$d × %2$d px</string>
+
+    <!-- Capture screen -->
+    <string name="capture_error_camera_unavailable">Camera is not available right now. Go back and try again.</string>
+    <string name="capture_quality_sd">SD (480p)</string>
+    <string name="capture_quality_hd">HD (720p)</string>
+    <string name="p4_test_only_ceiling_label">P4_TEST_ONLY ceiling: %1$s (debug builds only)</string>
+    <string name="capture_recording_indicator">● Recording</string>
+    <string name="capture_remaining_budget">Remaining before safety limit: %1$s</string>
+    <string name="capture_action_take_photo">Take photo</string>
+    <string name="capture_action_stop_recording">Stop recording</string>
+    <string name="capture_action_start_recording">Start recording</string>
+    <string name="capture_permission_rationale_video">This screen needs camera and microphone access to record practice video evidence on this device. Nothing is uploaded or shared.</string>
+    <string name="capture_permission_rationale_photo">This screen needs camera access to capture practice photo evidence on this device. Nothing is uploaded or shared.</string>
+    <string name="capture_permission_grant_action">Grant permission</string>
+    <string name="capture_permission_denied_permanently">Permission was denied. Open Settings to allow camera access for this app.</string>
+    <string name="capture_action_open_settings">Open app settings</string>
+    <string name="capture_error_insufficient_space">Not enough free storage on this device (300 MB needed) to capture new evidence. Free up space and try again.</string>
+    <string name="capture_error_finalize_failed">Capture could not be saved. Please try again.</string>
+    <string name="capture_safety_limit_reached">Safety limit reached — recording stopped automatically and the clip has been saved.</string>
 
     <!-- Preview screen -->
     <string name="preview_title">Preview before submitting</string>

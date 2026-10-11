@@ -10,7 +10,8 @@ Prior-skill Assessment &amp; Recognition through AI-driven Knowledge
 | Q-1 | Single-QP CON/Q0602 deterministic matcher (match-rules@r3, 20 declaration cards + 6 tools), 100 golden vectors, EN/HI/Hinglish, validation | Complete | `docs/gates/Q1.md` |
 | P-3 | Offline Android worker flow (Kotlin/Compose) with mock evidence, Kotlin/Python matcher parity | Complete | `docs/gates/P3.md` |
 | IC-1A | Technical & standards-traceability acceptance (replaces earlier expert-agreement IC-1 wording) | Passed | `docs/gates/IC1A.md` |
-| P4+ | Real CameraX capture, Room persistence, encryption, video compression, WorkManager sync, server upload, CV models, dashboard changes | Outside the approved Q-1/P-3 scope; not claimed as completed | — |
+| P-4 | Offline evidence capture (real CameraX photo/video, no mock evidence), SQLCipher-encrypted Room drafts, crash-safe preview/retake/replace/delete, physical-device gate on a real OnePlus 13R | Complete | `docs/gates/P4.md` |
+| P5+ | Final evidence compression/fitting, final encryption, SHA-256 receipts, sealing, encrypted outbox, resumable upload/sync, CV models, assessor-dashboard changes | Outside the approved P-4 scope; not claimed as completed | — |
 
 Independent assessor-agreement validation (the original master-plan IC-1
 ≥90%-agreement study) was **not performed** and is not claimed anywhere in

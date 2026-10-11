@@ -1,10 +1,13 @@
 package `in`.kaushalpramaan.app
 
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -25,11 +28,19 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class HindiFlowTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val clearDraftRule = ClearP4DraftBeforeTest()
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
+    @OptIn(ExperimentalTestApi::class)
     @Test
     fun hindi_flow_renders_hindi_and_completes_end_to_end() {
+        // Wait for the language screen rather than tapping immediately -- the app always
+        // shows a brief LOADING screen first (the one-time P4 draft-resume check) before
+        // navigating here; see completeIntake's own doc comment in TestFlows.kt.
+        composeRule.waitUntilExactlyOneExists(hasTestTag("lang_option_hi"), timeoutMillis = 10_000)
         composeRule.tapTag("lang_option_hi")
         composeRule.onNodeWithText("आगे बढ़ें").assertIsDisplayed() // "Continue"
         composeRule.tapTag("btn_continue")

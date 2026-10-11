@@ -27,3 +27,19 @@ captures/
 
 # Instrumented-test artifacts (logs/screenshots), see docs/gates/P3.md
 test-artifacts/
+
+# P4: signing keystores -- none is checked in; this is a guard against ever
+# accidentally adding one (debug.keystore, a release keystore, etc).
+*.jks
+*.keystore
+
+# P4: local SQLCipher-encrypted draft database and its WAL/SHM siblings, and
+# any local debug dump of private draft evidence pulled off-device for
+# inspection -- none of this is ever meant to be committed. The real, live
+# versions of these only ever exist in the app's private on-device storage;
+# this rule only guards against someone's local working copy landing in the
+# repo tree by accident (e.g. via `adb pull` into the project directory).
+*.db
+*.db-wal
+*.db-shm
+/local-debug-evidence/

@@ -1,16 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  P-3 is offline-first by construction: this manifest deliberately declares
-  NO android.permission.INTERNET and NO ACCESS_NETWORK_STATE. Every screen
-  must work with the phone in airplane mode; app/build.gradle.kts's
+  Offline-first by construction: this manifest deliberately declares NO
+  android.permission.INTERNET and NO ACCESS_NETWORK_STATE. Every screen must
+  work with the phone in airplane mode; app/build.gradle.kts's
   verifyNoNetworkDependencies task fails the build if either permission is
-  ever added. Upload/sync is explicitly out of P-3 scope (see
-  SubmittedScreen's on-screen explanation).
+  ever added. Upload/sync is explicitly out of scope through P4 (see
+  SubmittedScreen's on-screen explanation and docs/gates/P4.md).
+
+  CAMERA/RECORD_AUDIO (P4) are the only runtime permissions this app
+  requests, used solely for in-app CameraX photo/video capture into
+  app-private storage, never for Gallery/media reading, and never
+  combined with any network capability.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher"

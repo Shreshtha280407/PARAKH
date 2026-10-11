@@ -1,14 +1,17 @@
 package `in`.kaushalpramaan.app.data
 
+import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
+import `in`.kaushalpramaan.app.data.draft.TaskDraftEntity
 import `in`.kaushalpramaan.core.mapping.MatchOutput
 import java.util.Locale
 
 /**
- * P-3 scope: in-memory, ViewModel-scoped app state only. No Room, no disk
- * persistence, no encryption -- those are later phases (see
- * docs/gates/P3.md's explicit out-of-scope list). State survives
- * configuration changes (rotation) via ViewModel, not process death; that
- * is an accepted P-3 limitation, not a bug.
+ * Declaration, consent, registration and the live match computation remain
+ * in-memory, ViewModel-scoped only -- unchanged from P-3 (see docs/gates/P3.md).
+ * Evidence capture state (taskDrafts/evidenceByTask below) is P4: it mirrors
+ * Room-backed, SQLCipher-encrypted drafts (see data/draft/EvidenceRepository.kt)
+ * and survives process death and reboot. Everything else still resets on a
+ * fresh process start, same accepted P-3 boundary as before.
  */
 
 enum class AppLanguage(val localeTag: String) {
@@ -20,15 +23,6 @@ enum class AppLanguage(val localeTag: String) {
 }
 
 enum class EvidenceType { PHOTO, VIDEO }
-
-data class MockEvidence(
-    val id: String,
-    val taskId: String,
-    val type: EvidenceType,
-    val fakeSizeBytes: Long,
-    val createdAtMillis: Long,
-    val ready: Boolean = true,
-)
 
 enum class SubmissionState { NOT_SUBMITTED, SEALED_LOCALLY }
 
@@ -56,12 +50,22 @@ data class AppUiState(
     val registration: WorkerRegistration? = null,
     val declaration: DeclarationState = DeclarationState(),
     val matchOutput: MatchOutput? = null,
-    val evidenceByTask: Map<String, List<MockEvidence>> = emptyMap(),
     val attestationChecked: Boolean = false,
     val submissionState: SubmissionState = SubmissionState.NOT_SUBMITTED,
     val lastErrorMessageRes: Int? = null,
-) {
-    fun totalEvidenceBytes(): Long = evidenceByTask.values.sumOf { list -> list.sumOf { it.fakeSizeBytes } }
 
-    fun taskEvidenceBytes(taskId: String): Long = evidenceByTask[taskId].orEmpty().sumOf { it.fakeSizeBytes }
+    // P4 durable draft state -- see EvidenceRepository. startRouteResolved flips to true
+    // once the one-time launch reconciliation + active-draft lookup finishes; the nav
+    // graph shows a brief loading screen until then rather than guessing a start route.
+    val startRouteResolved: Boolean = false,
+    val resumedFromDraft: Boolean = false,
+    val assessmentDraftId: String? = null,
+    val assessmentIsTestOnly: Boolean = true,
+    val gapTaskIds: Set<String> = emptySet(),
+    val taskDrafts: Map<String, TaskDraftEntity> = emptyMap(),
+    val evidenceByTask: Map<String, List<EvidenceDraftEntity>> = emptyMap(),
+) {
+    fun totalEvidenceBytes(): Long = taskDrafts.values.sumOf { it.capturedBytes }
+
+    fun taskEvidenceBytes(taskId: String): Long = taskDrafts[taskId]?.capturedBytes ?: 0L
 }

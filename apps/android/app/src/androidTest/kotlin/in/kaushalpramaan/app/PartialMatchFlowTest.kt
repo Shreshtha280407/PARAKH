@@ -23,7 +23,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class PartialMatchFlowTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val clearDraftRule = ClearP4DraftBeforeTest()
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test

@@ -27,7 +27,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DeclarationContractAndSafetyTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val clearDraftRule = ClearP4DraftBeforeTest()
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
@@ -55,7 +58,11 @@ class DeclarationContractAndSafetyTest {
         composeRule.onNodeWithTag("safety_notice").assertIsDisplayed()
 
         for (taskId in listOf("T1", "T2", "T3", "T4", "T5")) {
-            composeRule.tapTag("task_card_$taskId")
+            // Each task card now also shows P4 status/count text, so fewer cards fit the
+            // viewport than in P3 -- scroll the LazyColumn container itself (see
+            // tapInLazyColumn's own doc comment for why a plain tapTag can't reach a
+            // not-yet-composed card).
+            composeRule.tapInLazyColumn("task_list_lazy_column", "task_card_$taskId")
             composeRule.onNodeWithTag("safety_notice").assertIsDisplayed()
             composeRule.tapTag("btn_back_to_tasks")
         }
