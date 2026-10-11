@@ -4,15 +4,28 @@ import android.content.Context
 import android.util.Base64
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import androidx.sqlite.db.SupportSQLiteDatabase
 import java.security.SecureRandom
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 
+/** P4 closure: adds `debug_ceiling_requested` to `evidence_drafts` so the fail-closed
+ * final-size check at finalizeCapture() can recompute the exact ceiling that was active
+ * for a given capture (see EvidenceRepository). A real, additive migration -- never
+ * fallbackToDestructiveMigration -- since existing drafts (even P4_TEST_ONLY ones) must
+ * never be silently wiped by a schema change. */
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN debug_ceiling_requested INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 @androidx.room.Database(
     entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -53,6 +66,7 @@ abstract class AppDatabase : RoomDatabase() {
             val factory = SupportFactory(passphrase)
             return Room.databaseBuilder(appContext, AppDatabase::class.java, dbFileName)
                 .openHelperFactory(factory)
+                .addMigrations(MIGRATION_1_2)
                 .build()
         }
     }

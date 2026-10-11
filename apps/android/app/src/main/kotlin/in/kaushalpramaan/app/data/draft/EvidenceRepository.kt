@@ -24,6 +24,12 @@ sealed class BeginCaptureResult {
 sealed class FinalizeResult {
     data class Ready(val evidence: EvidenceDraftEntity) : FinalizeResult()
     data object Failed : FinalizeResult()
+    /** The real on-disk file (read via [File.length], never a caller-supplied number) was
+     * larger than the task's or the assessment's remaining budget, recomputed fresh against
+     * the current database state. The capture is rejected and deleted -- never promoted,
+     * never retained as READY -- and if this was a replacement, the old READY item it would
+     * have replaced is untouched and still valid. */
+    data class RejectedOverLimit(val actualBytes: Long, val allowedBytes: Long) : FinalizeResult()
 }
 
 /**
@@ -138,6 +144,7 @@ class EvidenceRepository(
                 state = EvidenceDraftState.STAGING,
                 replacesEvidenceId = replacesEvidenceId,
                 isTestOnly = true,
+                debugCeilingRequested = debugOverrideRequested,
             ),
         )
         recomputeTaskDraft(assessmentId, taskId)
@@ -158,7 +165,6 @@ class EvidenceRepository(
     suspend fun finalizeCapture(
         evidenceId: String,
         success: Boolean,
-        actualByteSize: Long = 0L,
         widthPx: Int? = null,
         heightPx: Int? = null,
         durationMillis: Long? = null,
@@ -174,6 +180,36 @@ class EvidenceRepository(
             return FinalizeResult.Failed
         }
 
+        // Never trust a caller-supplied size: the staging file CameraX/ImageCapture actually
+        // wrote to disk is the only source of truth for what was captured. A missing staging
+        // file after a reported "success" is itself treated as a failure, not a 0-byte READY.
+        if (!stagingFile.exists()) {
+            evidenceDraftDao.update(row.copy(state = EvidenceDraftState.FAILED, byteSize = 0L))
+            recomputeTaskDraft(row.assessmentId, row.taskId)
+            Log.w(LOG_TAG, "finalize_capture task=${row.taskId} result=failed category=staging_missing")
+            return FinalizeResult.Failed
+        }
+        val actualBytes = stagingFile.length()
+
+        // Fail-closed cap re-check, recomputed fresh against the CURRENT database state --
+        // never the ceiling value computed back when this capture began (which is what the
+        // live CameraX stop callback is allowed to overshoot slightly, by design -- see
+        // [videoStopThresholdBytes]). No READY item may ever be retained above either its
+        // task's or the assessment's real remaining budget, so this is the one place that
+        // actually decides READY-worthiness; everything upstream is best-effort.
+        val info = ceilingInfo(row.assessmentId, row.taskId, row.debugCeilingRequested, row.replacesEvidenceId)
+        if (actualBytes > info.effective) {
+            fileManager.deleteQuietly(stagingFile)
+            evidenceDraftDao.update(row.copy(state = EvidenceDraftState.FAILED, byteSize = 0L))
+            recomputeTaskDraft(row.assessmentId, row.taskId)
+            Log.w(
+                LOG_TAG,
+                "finalize_capture task=${row.taskId} result=rejected category=over_limit " +
+                    "actualBytes=$actualBytes allowedBytes=${info.effective}",
+            )
+            return FinalizeResult.RejectedOverLimit(actualBytes, info.effective)
+        }
+
         val finalFile = fileManager.finalFile(row.assessmentId, row.taskId, row.id, row.kind)
         if (!fileManager.promote(stagingFile, finalFile)) {
             evidenceDraftDao.update(row.copy(state = EvidenceDraftState.FAILED, byteSize = 0L))
@@ -182,9 +218,29 @@ class EvidenceRepository(
             return FinalizeResult.Failed
         }
 
+        // Re-stat the promoted file itself -- the only value ever written to the ledger is
+        // what is actually sitting on disk under its final name, not a value computed
+        // before the rename.
+        val finalBytes = finalFile.length()
+        if (finalBytes > info.effective) {
+            // Defensive: a rename never changes a file's byte count on a single volume, so
+            // this should be unreachable in practice, but the ledger must never trust an
+            // assumption it can cheaply re-verify -- promotion is not yet visible to any
+            // other reader (the row is still STAGING), so undoing it here is still safe.
+            fileManager.deleteQuietly(finalFile)
+            evidenceDraftDao.update(row.copy(state = EvidenceDraftState.FAILED, byteSize = 0L))
+            recomputeTaskDraft(row.assessmentId, row.taskId)
+            Log.w(
+                LOG_TAG,
+                "finalize_capture task=${row.taskId} result=rejected category=over_limit_post_promote " +
+                    "actualBytes=$finalBytes allowedBytes=${info.effective}",
+            )
+            return FinalizeResult.RejectedOverLimit(finalBytes, info.effective)
+        }
+
         val readyRow = row.copy(
             relativePath = fileManager.relativePathOf(finalFile),
-            byteSize = actualByteSize,
+            byteSize = finalBytes,
             widthPx = widthPx,
             heightPx = heightPx,
             durationMillis = durationMillis,
@@ -192,7 +248,7 @@ class EvidenceRepository(
         )
         evidenceDraftDao.update(readyRow)
         recomputeTaskDraft(row.assessmentId, row.taskId)
-        Log.d(LOG_TAG, "finalize_capture task=${row.taskId} result=ready byteSize=$actualByteSize")
+        Log.d(LOG_TAG, "finalize_capture task=${row.taskId} result=ready byteSize=$finalBytes")
 
         row.replacesEvidenceId?.let { oldId ->
             deleteEvidenceInternal(oldId)
@@ -345,6 +401,30 @@ class EvidenceRepository(
             if (items.any { it.state == EvidenceDraftState.READY }) return TaskDraftState.READY
             if (items.any { it.state == EvidenceDraftState.FAILED }) return TaskDraftState.FAILED
             return TaskDraftState.NO_EVIDENCE
+        }
+
+        /** CameraX's [androidx.camera.video.VideoRecordEvent.Status] ticks are periodic, not
+         * continuous -- by the time a caller's `Recording.stop()` call (issued from inside
+         * that status callback) actually takes effect, more bytes beyond the last observed
+         * tick have already been written to disk. The pre-fix P4 gate measured this real,
+         * bounded overshoot on a real OnePlus 13R at roughly 24,300-29,857 bytes over a
+         * 4,194,304-byte ceiling (~0.6-0.7%) and roughly 100 KB over a 15 MB task ceiling --
+         * both single-digit-percent, not unbounded. Telling the recorder to stop at a
+         * threshold already pulled back from the real ceiling by a guard band several times
+         * larger than that observed overshoot (whichever of a fixed floor or a percentage of
+         * the ceiling is larger, so the floor still means something for the smallest, 4 MiB
+         * debug ceiling) absorbs that per-tick write burst in the overwhelming majority of
+         * recordings. This guard band is a *quality-of-fit* optimization only, reducing how
+         * often a capture needs to be rejected below -- the actual safety guarantee is the
+         * fail-closed real-file-size check in [finalizeCapture], which rejects and deletes
+         * any capture that still ends up over the real ceiling regardless of this threshold. */
+        private const val VIDEO_GUARD_BAND_MIN_BYTES: Long = 192L * 1024
+        private const val VIDEO_GUARD_BAND_PERCENT: Long = 3L
+
+        fun videoStopThresholdBytes(ceilingBytes: Long): Long {
+            if (ceilingBytes <= 0L) return 0L
+            val guardBand = maxOf(VIDEO_GUARD_BAND_MIN_BYTES, ceilingBytes * VIDEO_GUARD_BAND_PERCENT / 100)
+            return (ceilingBytes - guardBand).coerceAtLeast(1L)
         }
     }
 }

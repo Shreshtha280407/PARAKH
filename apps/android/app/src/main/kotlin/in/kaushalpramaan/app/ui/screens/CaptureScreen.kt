@@ -11,6 +11,8 @@ import `in`.kaushalpramaan.app.data.AppViewModel
 import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.draft.BeginCaptureResult
 import `in`.kaushalpramaan.app.data.draft.CaptureRejectionReason
+import `in`.kaushalpramaan.app.data.draft.EvidenceRepository
+import `in`.kaushalpramaan.app.data.draft.FinalizeResult
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import `in`.kaushalpramaan.app.ui.components.formatMb
 import android.Manifest
@@ -395,14 +397,24 @@ private suspend fun runPhotoCapture(
             onEvidenceStarted(begin.evidenceId)
             when (val result = session.takePhotoAwait(begin.stagingFile)) {
                 is PhotoResult.Success -> {
-                    viewModel.finalizeCapture(
-                        begin.evidenceId,
-                        success = true,
-                        actualByteSize = result.file.length(),
-                        widthPx = result.widthPx,
-                        heightPx = result.heightPx,
-                    )
-                    true
+                    when (
+                        viewModel.finalizeCapture(
+                            begin.evidenceId,
+                            success = true,
+                            widthPx = result.widthPx,
+                            heightPx = result.heightPx,
+                        )
+                    ) {
+                        is FinalizeResult.Ready -> true
+                        is FinalizeResult.RejectedOverLimit -> {
+                            onStatus(R.string.capture_error_over_limit)
+                            false
+                        }
+                        FinalizeResult.Failed -> {
+                            onStatus(R.string.capture_error_finalize_failed)
+                            false
+                        }
+                    }
                 }
                 is PhotoResult.Error -> {
                     viewModel.finalizeCapture(begin.evidenceId, success = false)
@@ -447,9 +459,16 @@ private suspend fun startVideoCapture(
             onCeilingKnown(begin.ceilingBytes)
             onRecordingStateChanged(true)
             var stoppedForCeiling = false
+            // Stop at a conservative threshold below the real ceiling, not the ceiling
+            // itself -- CameraX reports recorded bytes on periodic status ticks, so the
+            // recording always writes a little more after this check fires. See
+            // EvidenceRepository.videoStopThresholdBytes for the documented guard band; the
+            // real safety guarantee is finalizeCapture()'s fail-closed real-file-size check
+            // below, not this early-stop heuristic.
+            val stopThreshold = EvidenceRepository.videoStopThresholdBytes(begin.ceilingBytes)
             val result = session.recordVideoAwait(begin.stagingFile, recordAudio = true) { bytes ->
                 onBytesRecorded(bytes)
-                if (!stoppedForCeiling && bytes >= begin.ceilingBytes) {
+                if (!stoppedForCeiling && bytes >= stopThreshold) {
                     stoppedForCeiling = true
                     onStatus(R.string.capture_safety_limit_reached)
                     session.stopRecording()
@@ -458,15 +477,25 @@ private suspend fun startVideoCapture(
             onRecordingStateChanged(false)
             when (result) {
                 is VideoResult.Success -> {
-                    viewModel.finalizeCapture(
-                        begin.evidenceId,
-                        success = true,
-                        actualByteSize = result.file.length(),
-                        widthPx = result.widthPx,
-                        heightPx = result.heightPx,
-                        durationMillis = result.durationMillis,
-                    )
-                    !stoppedForCeiling
+                    when (
+                        viewModel.finalizeCapture(
+                            begin.evidenceId,
+                            success = true,
+                            widthPx = result.widthPx,
+                            heightPx = result.heightPx,
+                            durationMillis = result.durationMillis,
+                        )
+                    ) {
+                        is FinalizeResult.Ready -> !stoppedForCeiling
+                        is FinalizeResult.RejectedOverLimit -> {
+                            onStatus(R.string.capture_error_over_limit)
+                            false
+                        }
+                        FinalizeResult.Failed -> {
+                            onStatus(R.string.capture_error_finalize_failed)
+                            false
+                        }
+                    }
                 }
                 is VideoResult.Error -> {
                     viewModel.finalizeCapture(begin.evidenceId, success = false)

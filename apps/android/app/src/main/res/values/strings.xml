@@ -136,6 +136,7 @@
     <string name="capture_error_insufficient_space">Not enough free storage on this device (300 MB needed) to capture new evidence. Free up space and try again.</string>
     <string name="capture_error_finalize_failed">Capture could not be saved. Please try again.</string>
     <string name="capture_safety_limit_reached">Safety limit reached — recording stopped automatically and the clip has been saved.</string>
+    <string name="capture_error_over_limit">This capture is larger than the remaining task or total evidence budget and was not saved. Please retake, replace, or remove other evidence first.</string>
 
     <!-- Preview screen -->
     <string name="preview_title">Preview before submitting</string>

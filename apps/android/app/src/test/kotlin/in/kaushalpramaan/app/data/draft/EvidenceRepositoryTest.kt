@@ -13,6 +13,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import java.io.File
+import kotlin.random.Random
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -111,7 +112,7 @@ class EvidenceRepositoryTest {
         check(begin is BeginCaptureResult.Started)
         writeFakeBytes(begin.stagingFile, 1_000)
 
-        val result = repository.finalizeCapture(begin.evidenceId, success = true, actualByteSize = 1_000L, widthPx = 100, heightPx = 200)
+        val result = repository.finalizeCapture(begin.evidenceId, success = true, widthPx = 100, heightPx = 200)
 
         assertTrue(result is FinalizeResult.Ready)
         assertFalse(begin.stagingFile.exists())
@@ -223,7 +224,7 @@ class EvidenceRepositoryTest {
         // Not finalized yet: the old item must still be present and READY.
         assertEquals(EvidenceDraftState.READY, db.evidenceDraftDao().getById(oldId)?.state)
 
-        repository.finalizeCapture(begin.evidenceId, success = true, actualByteSize = 500_000L)
+        repository.finalizeCapture(begin.evidenceId, success = true)
 
         // Now finalized: the old item is gone (row + file), only the new one remains.
         assertNull(db.evidenceDraftDao().getById(oldId))
@@ -377,6 +378,161 @@ class EvidenceRepositoryTest {
         assertFalse(fileManager.assessmentDir(assessment.id).exists())
     }
 
+    // ---- P4 closure: video capture guard band (overshoot mitigation, not the safety
+    // guarantee itself -- that guarantee is the fail-closed real-file-size checks below) ----
+
+    @Test
+    fun video_stop_threshold_is_pulled_back_from_the_real_ceiling_by_a_guard_band() {
+        val ceiling = 15_728_640L // T1's real budget
+        val threshold = EvidenceRepository.videoStopThresholdBytes(ceiling)
+        assertTrue("stop threshold must be strictly below the real ceiling", threshold < ceiling)
+        // 3% of 15 MiB (~471,859 bytes) is larger than the 192 KiB floor, so the
+        // percentage branch applies here.
+        assertEquals(ceiling - (ceiling * 3 / 100), threshold)
+    }
+
+    @Test
+    fun video_stop_threshold_uses_the_fixed_floor_for_the_small_debug_ceiling() {
+        val ceiling = `in`.kaushalpramaan.app.BuildConfig.P4_TEST_ONLY_CEILING_BYTES // 4 MiB
+        val threshold = EvidenceRepository.videoStopThresholdBytes(ceiling)
+        // 3% of 4 MiB (~125,829 bytes) is smaller than the 192 KiB floor, so the fixed
+        // floor applies here instead.
+        assertEquals(ceiling - 192L * 1024, threshold)
+        assertTrue(threshold > 0L)
+    }
+
+    @Test
+    fun video_stop_threshold_guard_band_comfortably_exceeds_the_previously_observed_real_overshoot() {
+        // The pre-fix P4 gate observed a real overshoot of ~24,300-29,857 bytes past a
+        // 4,194,304-byte ceiling on a real OnePlus 13R (CameraX's status ticks are
+        // periodic, not continuous). The guard band must leave meaningfully more headroom
+        // than that worst observed case, not just barely more.
+        val ceiling = 4_194_304L
+        val threshold = EvidenceRepository.videoStopThresholdBytes(ceiling)
+        val guardBand = ceiling - threshold
+        assertTrue(guardBand > 29_857L * 2)
+    }
+
+    @Test
+    fun video_stop_threshold_never_reaches_zero_or_negative() {
+        assertEquals(0L, EvidenceRepository.videoStopThresholdBytes(0L))
+        assertTrue(EvidenceRepository.videoStopThresholdBytes(1L) >= 1L)
+    }
+
+    // ---- P4 closure: fail-closed real-file-size validation (the actual safety guarantee) ----
+
+    @Test
+    fun finalize_rejects_and_deletes_a_capture_whose_real_file_size_exceeds_the_task_budget() = runTest {
+        val assessment = repository.createOrResumeAssessment("w", "en", null)
+        val begin = repository.beginCapture(assessment.id, "T1", EvidenceType.VIDEO, false)
+        check(begin is BeginCaptureResult.Started)
+        assertEquals(15_728_640L, begin.ceilingBytes)
+        // Simulates CameraX's own real, bounded overshoot (or worse): the file that lands
+        // on disk is bigger than the ceiling the recording was told to stop at.
+        writeFakeBytes(begin.stagingFile, (begin.ceilingBytes + 100_000).toInt())
+
+        val result = repository.finalizeCapture(begin.evidenceId, success = true)
+
+        check(result is FinalizeResult.RejectedOverLimit)
+        assertEquals(begin.ceilingBytes, result.allowedBytes)
+        assertEquals(begin.ceilingBytes + 100_000, result.actualBytes)
+        assertFalse("the staging file must not survive a rejected capture", begin.stagingFile.exists())
+        assertFalse(
+            "no promoted final file may exist for a rejected capture",
+            fileManager.finalFile(assessment.id, "T1", begin.evidenceId, EvidenceType.VIDEO).exists(),
+        )
+        val row = db.evidenceDraftDao().getById(begin.evidenceId)!!
+        assertEquals(EvidenceDraftState.FAILED, row.state)
+        assertEquals(0L, row.byteSize)
+        val taskDraft = db.taskDraftDao().getOne(assessment.id, "T1")!!
+        assertEquals(0L, taskDraft.capturedBytes)
+        assertEquals(TaskDraftState.FAILED, taskDraft.state)
+    }
+
+    @Test
+    fun finalize_rejects_a_capture_whose_real_file_size_exceeds_the_total_budget_even_though_its_own_task_has_room() = runTest {
+        val tightRepo = repositoryWithSyntheticBudgets(mapOf("T1" to 10_000_000L, "T2" to 10_000_000L), totalBudget = 8_000_000L)
+        val assessment = tightRepo.createOrResumeAssessment("w", "en", null)
+        completeReadyEvidence(tightRepo, assessment.id, "T2", EvidenceType.PHOTO, 7_000_000L)
+
+        val begin = tightRepo.beginCapture(assessment.id, "T1", EvidenceType.PHOTO, false)
+        check(begin is BeginCaptureResult.Started)
+        assertEquals(1_000_000L, begin.ceilingBytes) // total remaining (8M-7M), tighter than T1's own 10M
+        writeFakeBytes(begin.stagingFile, 1_500_000)
+
+        val result = tightRepo.finalizeCapture(begin.evidenceId, success = true)
+
+        check(result is FinalizeResult.RejectedOverLimit)
+        assertEquals(1_000_000L, result.allowedBytes)
+        assertEquals(1_500_000L, result.actualBytes)
+        assertFalse(begin.stagingFile.exists())
+        val t2Draft = db.taskDraftDao().getOne(assessment.id, "T2")!!
+        assertEquals(7_000_000L, t2Draft.capturedBytes) // untouched by T1's rejected attempt
+    }
+
+    @Test
+    fun finalize_rejects_an_over_budget_replacement_and_preserves_the_old_ready_item_untouched() = runTest {
+        val assessment = repository.createOrResumeAssessment("w", "en", null)
+        val oldId = completeReadyEvidence(assessment.id, "T1", EvidenceType.PHOTO, 15_728_640L) // T1's full budget
+
+        val begin = repository.beginCapture(assessment.id, "T1", EvidenceType.PHOTO, false, replacesEvidenceId = oldId)
+        check(begin is BeginCaptureResult.Started)
+        assertEquals(15_728_640L, begin.ceilingBytes) // old item's bytes credited back
+        writeFakeBytes(begin.stagingFile, 16_000_000)
+
+        val result = repository.finalizeCapture(begin.evidenceId, success = true)
+
+        check(result is FinalizeResult.RejectedOverLimit)
+        val oldRow = db.evidenceDraftDao().getById(oldId)!!
+        assertEquals(EvidenceDraftState.READY, oldRow.state)
+        assertEquals(15_728_640L, oldRow.byteSize)
+        val taskDraft = db.taskDraftDao().getOne(assessment.id, "T1")!!
+        assertEquals(15_728_640L, taskDraft.capturedBytes)
+        assertEquals(1, taskDraft.evidenceCount)
+        assertFalse(fileManager.finalFile(assessment.id, "T1", begin.evidenceId, EvidenceType.PHOTO).exists())
+        assertFalse(begin.stagingFile.exists())
+    }
+
+    @Test
+    fun no_ready_evidence_or_ledger_state_ever_exceeds_its_task_or_total_budget_across_many_randomized_operations() = runTest {
+        val taskBudgets = mapOf("T1" to 10_000L, "T2" to 15_000L, "T3" to 20_000L)
+        val totalBudget = 35_000L // tighter than the sum of the three task budgets (45,000)
+        val repo = repositoryWithSyntheticBudgets(taskBudgets, totalBudget)
+        val assessment = repo.createOrResumeAssessment("w", "en", null)
+        val random = Random(42)
+        val taskIds = taskBudgets.keys.toList()
+
+        repeat(300) { i ->
+            val taskId = taskIds[i % taskIds.size]
+            val kind = if (i % 2 == 0) EvidenceType.PHOTO else EvidenceType.VIDEO
+            when (val begin = repo.beginCapture(assessment.id, taskId, kind, false)) {
+                is BeginCaptureResult.Started -> {
+                    // Most captures land safely inside the reported ceiling; roughly a
+                    // third deliberately overshoot it by a random amount, simulating
+                    // CameraX's real bounded per-tick overshoot (and worse) to stress the
+                    // fail-closed check under randomized conditions.
+                    val overshoot = if (i % 3 == 0) random.nextLong(1, 5_000) else 0L
+                    val size = (begin.ceilingBytes + overshoot).coerceAtLeast(1L)
+                    writeFakeBytes(begin.stagingFile, size.toInt())
+                    repo.finalizeCapture(begin.evidenceId, success = true)
+                }
+                is BeginCaptureResult.Rejected -> Unit
+            }
+
+            val tasks = db.taskDraftDao().getAllOnce(assessment.id)
+            for (task in tasks) {
+                assertTrue(
+                    "task ${task.taskId} exceeded its budget after operation $i: ${task.capturedBytes} > ${task.budgetBytes}",
+                    task.capturedBytes <= task.budgetBytes,
+                )
+            }
+            val readyTotal = db.evidenceDraftDao().getAllForAssessmentOnce(assessment.id)
+                .filter { it.state == EvidenceDraftState.READY }
+                .sumOf { it.byteSize }
+            assertTrue("total exceeded budget after operation $i: $readyTotal > $totalBudget", readyTotal <= totalBudget)
+        }
+    }
+
     // ---- test helpers ----
 
     private fun writeFakeBytes(file: File, size: Int) {
@@ -391,7 +547,7 @@ class EvidenceRepositoryTest {
         val begin = repo.beginCapture(assessmentId, taskId, kind, debugOverrideRequested = false)
         check(begin is BeginCaptureResult.Started) { "expected capture to start, got $begin" }
         writeFakeBytes(begin.stagingFile, bytes.toInt())
-        val result = repo.finalizeCapture(begin.evidenceId, success = true, actualByteSize = bytes)
+        val result = repo.finalizeCapture(begin.evidenceId, success = true)
         check(result is FinalizeResult.Ready)
         return begin.evidenceId
     }

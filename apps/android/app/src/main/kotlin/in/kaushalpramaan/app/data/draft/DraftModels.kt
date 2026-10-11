@@ -111,4 +111,10 @@ data class EvidenceDraftEntity(
      * instead of leaving two items where the UI expects one. */
     @ColumnInfo(name = "replaces_evidence_id") val replacesEvidenceId: String?,
     @ColumnInfo(name = "is_test_only") val isTestOnly: Boolean,
+    /** Whether the debug-only P4_TEST_ONLY ceiling override was requested for this specific
+     * capture, captured at beginCapture() time and replayed at finalizeCapture() time so the
+     * fail-closed final-size check recomputes the exact same effective ceiling that was
+     * active for this capture -- never a looser one. Always false in release builds (the
+     * override itself cannot be enabled there; see BuildConfig.P4_TEST_ONLY_CEILING_ENABLED). */
+    @ColumnInfo(name = "debug_ceiling_requested", defaultValue = "0") val debugCeilingRequested: Boolean = false,
 )

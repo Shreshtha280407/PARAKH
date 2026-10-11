@@ -172,11 +172,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun finalizeCapture(
         evidenceId: String,
         success: Boolean,
-        actualByteSize: Long = 0L,
         widthPx: Int? = null,
         heightPx: Int? = null,
         durationMillis: Long? = null,
-    ): FinalizeResult = repository.finalizeCapture(evidenceId, success, actualByteSize, widthPx, heightPx, durationMillis)
+    ): FinalizeResult = repository.finalizeCapture(evidenceId, success, widthPx, heightPx, durationMillis)
 
     suspend fun cancelCapture(evidenceId: String) = repository.cancelCapture(evidenceId)
 
