@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.Presentation
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.DefaultEncoderFactory
@@ -57,6 +58,7 @@ sealed class VideoOptimizationResult {
  * requires its own Looper thread. It never loads video frame data into the JVM heap itself;
  * Transformer's own pipeline reads/writes file-to-file through MediaCodec.
  */
+@OptIn(UnstableApi::class)
 class VideoOptimizer(private val context: Context) {
 
     /** Reads only container metadata (duration/dimensions) via [MediaMetadataRetriever] --
