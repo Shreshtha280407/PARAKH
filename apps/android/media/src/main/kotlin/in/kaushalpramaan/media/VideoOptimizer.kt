@@ -58,7 +58,7 @@ sealed class VideoOptimizationResult {
  * requires its own Looper thread. It never loads video frame data into the JVM heap itself;
  * Transformer's own pipeline reads/writes file-to-file through MediaCodec.
  */
-@OptIn(UnstableApi::class)
+@UnstableApi
 class VideoOptimizer(private val context: Context) {
 
     /** Reads only container metadata (duration/dimensions) via [MediaMetadataRetriever] --
