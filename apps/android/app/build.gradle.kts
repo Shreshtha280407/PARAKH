@@ -23,7 +23,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "0.3.0-p3"
+        versionName = "0.5.0-p5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,11 +41,23 @@ android {
             // ever enable it in a release build.
             buildConfigField("boolean", "P4_TEST_ONLY_CEILING_ENABLED", "true")
             buildConfigField("long", "P4_TEST_ONLY_CEILING_BYTES", "4_194_304L")
+            // P5_TEST_ONLY: debug-build-only compile-time constants, same pattern as
+            // P4_TEST_ONLY above. FORCE_OPTIMIZE lets a physical-device test force a smaller
+            // virtual remaining budget through the SAME production BudgetLedger/optimiser
+            // path (SealOrchestrator.ledgerFor), so real Media3 optimisation can be observed
+            // on a short real clip instead of needing to fill the real 120 MB budget.
+            // DEBUG_EXPORT_ENABLED gates the decrypt-for-verification export screen. Both are
+            // hardcoded false in the release block below -- no runtime flag can enable either
+            // in a release build.
+            buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "true")
+            buildConfigField("boolean", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED", "true")
         }
         release {
             isMinifyEnabled = false
             buildConfigField("boolean", "P4_TEST_ONLY_CEILING_ENABLED", "false")
             buildConfigField("long", "P4_TEST_ONLY_CEILING_BYTES", "0L")
+            buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "false")
+            buildConfigField("boolean", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED", "false")
         }
     }
 
@@ -91,15 +103,24 @@ tasks.withType<Test>().configureEach {
 
 // P-3 is offline-first by construction: no android.permission.INTERNET is declared anywhere
 // in AndroidManifest.xml, and no networking dependency is declared here. This task fails the
-// build if either ever creeps in, rather than relying on someone remembering to check.
+// build if either ever creeps in, rather than relying on someone remembering to check. Stays
+// on preBuild (fast, no manifest-merge dependency, so no risk of the task-graph cycle
+// verifyMergedManifestHasNoNetworkPermissions below would create if it also ran this early).
 val verifyNoNetworkDependencies = tasks.register("verifyNoNetworkDependencies") {
     doLast {
         // Strip XML comments first so this can't false-positive on explanatory
         // comments mentioning the permission names (as this file's manifest does).
         val manifest = file("src/main/AndroidManifest.xml").readText()
             .replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
-        val usesPermissionTag = Regex("""<uses-permission\s+[^>]*android:name\s*=\s*"([^"]+)"""")
-        val declared = usesPermissionTag.findAll(manifest).map { it.groupValues[1] }.toSet()
+        // Captures the whole tag (not just the name) so a tools:node="remove" override --
+        // which declares intent to STRIP a dependency-injected permission during manifest
+        // merging, not to request it -- is correctly excluded from "declared" below.
+        val usesPermissionTag = Regex("""<uses-permission\s+[^>]*?/>""")
+        val declared = usesPermissionTag.findAll(manifest)
+            .map { it.value }
+            .filterNot { it.contains("""tools:node="remove"""") }
+            .mapNotNull { Regex("""android:name\s*=\s*"([^"]+)"""").find(it)?.groupValues?.get(1) }
+            .toSet()
         check("android.permission.INTERNET" !in declared) {
             "P-3 must stay offline-first: AndroidManifest.xml must not declare android.permission.INTERNET"
         }
@@ -107,6 +128,41 @@ val verifyNoNetworkDependencies = tasks.register("verifyNoNetworkDependencies") 
             "P-3 must stay offline-first: AndroidManifest.xml must not declare ACCESS_NETWORK_STATE"
         }
     }
+}
+
+// P5 found a real gap in the source-only check above: it cannot see a permission a
+// dependency's own manifest injects during Android's manifest merge step
+// (media3-exoplayer/media3-common, pulled in transitively for real local Media3 Transformer
+// video processing, both declare ACCESS_NETWORK_STATE for ExoPlayer's network-playback
+// features this app never uses -- confirmed by a real connectedDebugAndroidTest failure, not
+// caught by the source-only task before this fix). This task inspects the real MERGED
+// manifest for both variants -- the only artifact that reflects what dependencies actually
+// contribute -- so this class of regression cannot silently recur. Wired to `check`, not
+// `preBuild`, since it genuinely needs the manifest-merge tasks to have already run.
+val verifyMergedManifestHasNoNetworkPermissions = tasks.register("verifyMergedManifestHasNoNetworkPermissions") {
+    dependsOn("processDebugMainManifest", "processReleaseMainManifest")
+    doLast {
+        val usesPermissionTag = Regex("""<uses-permission\s+[^>]*android:name\s*=\s*"([^"]+)"""")
+        val forbidden = setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE")
+        for (variant in listOf("debug", "release")) {
+            val mergedManifestFile = fileTree(layout.buildDirectory.dir("intermediates/merged_manifest/$variant")) {
+                include("**/AndroidManifest.xml")
+            }.files.firstOrNull()
+            checkNotNull(mergedManifestFile) { "could not locate the merged $variant manifest" }
+            val merged = mergedManifestFile.readText().replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
+            val declaredInMerged = usesPermissionTag.findAll(merged).map { it.groupValues[1] }.toSet()
+            for (permission in forbidden) {
+                check(permission !in declaredInMerged) {
+                    "P-3/P5 must stay offline-first: the real MERGED $variant manifest must not contain $permission " +
+                        "(found even though app/src/main/AndroidManifest.xml doesn't declare it directly -- a " +
+                        "dependency's own manifest is injecting it; add a tools:node=\"remove\" override)"
+                }
+            }
+        }
+    }
+}
+tasks.named("check") {
+    dependsOn(verifyMergedManifestHasNoNetworkPermissions)
 }
 tasks.named("preBuild") {
     dependsOn(verifyNoNetworkDependencies)
@@ -156,6 +212,57 @@ tasks.named("check") {
     dependsOn(verifyP4TestCeilingDisabledInRelease)
 }
 
+// P5_TEST_ONLY: same proof as verifyP4TestCeilingDisabledInRelease above, for the two P5
+// debug-only compile-time flags (forced-budget optimiser test mode, decrypt-for-verification
+// debug export).
+val verifyP5DebugFeaturesDisabledInRelease = tasks.register("verifyP5DebugFeaturesDisabledInRelease") {
+    dependsOn("generateReleaseBuildConfig")
+    doLast {
+        val buildConfig = file("build/generated/source/buildConfig/release/in/kaushalpramaan/app/BuildConfig.java").readText()
+        for (field in listOf("P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED")) {
+            val match = Regex("""$field\s*=\s*(\w+);""").find(buildConfig)
+            checkNotNull(match) { "$field not found in release BuildConfig.java" }
+            check(match.groupValues[1] == "false") { "$field must be false in release builds, found ${match.groupValues[1]}" }
+        }
+    }
+}
+tasks.named("check") {
+    dependsOn(verifyP5DebugFeaturesDisabledInRelease)
+}
+
+// P5_TEST_ONLY debug export (spec part H.3/H.7): proves the REAL decrypting implementation
+// (app/src/debug's RealDebugExportHooks) is genuinely absent from the release variant's
+// compiled output -- not merely disabled by a runtime/BuildConfig flag, which
+// verifyP5DebugFeaturesDisabledInRelease above already covers for the OTHER P5 debug flag.
+// Also asserts the real class IS present in the debug variant and that release's no-op
+// counterpart (NoOpDebugExportHooks) is the one actually compiled in, so this fails loudly if
+// the whole feature silently vanished from both variants instead of being correctly
+// variant-split.
+val verifyP5DebugExportAbsentFromRelease = tasks.register("verifyP5DebugExportAbsentFromRelease") {
+    dependsOn("compileDebugKotlin", "compileReleaseKotlin")
+    doLast {
+        fun findClass(variantDir: String, simpleClassName: String): File? =
+            fileTree(layout.buildDirectory.dir("intermediates")) {
+                include("**/$variantDir/**/in/kaushalpramaan/app/debug/$simpleClassName.class")
+            }.files.firstOrNull()
+
+        checkNotNull(findClass("debug", "RealDebugExportHooks")) {
+            "RealDebugExportHooks.class must be present in the debug build's compiled output"
+        }
+        check(findClass("release", "RealDebugExportHooks") == null) {
+            "RealDebugExportHooks.class (the real decrypting P5_TEST_ONLY debug-export implementation) " +
+                "must never exist in the release build's compiled output"
+        }
+        checkNotNull(findClass("release", "NoOpDebugExportHooks")) {
+            "NoOpDebugExportHooks.class must be present in the release build's compiled output " +
+                "(the debug export feature must be correctly variant-split, not silently missing from both)"
+        }
+    }
+}
+tasks.named("check") {
+    dependsOn(verifyP5DebugExportAbsentFromRelease)
+}
+
 // P4: Room's schema export (versioned migrations, not just "latest wins").
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
@@ -164,6 +271,9 @@ ksp {
 
 dependencies {
     implementation(project(":core:mapping"))
+    implementation(project(":core:budget"))
+    implementation(project(":core:seal"))
+    implementation(project(":media"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

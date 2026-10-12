@@ -24,6 +24,17 @@ import org.junit.runner.RunWith
  * human usability study, which is outside the approved technical IC-1A
  * scope; not claimed as completed here or anywhere in this codebase -- see
  * docs/gates/IC1A.md and docs/gates/P3.md.
+ *
+ * P5 note: sealing now genuinely requires at least one real, optimized, attested evidence
+ * item -- the attestation checkbox is disabled until evidence exists and automatic
+ * optimisation has run (see PreviewScreen's `canSeal`), unlike P3's placeholder "attest with
+ * no evidence" stand-in this test originally exercised. Real capture needs a human-granted
+ * camera permission (OEM-restriction-dependent -- see EvidenceCaptureFlowTest's doc comment),
+ * which this declaration/match journey test deliberately does not request, to avoid making
+ * every worker-journey test flaky on that restriction. This test therefore ends at the real
+ * review screen (still verifying real Hindi string rendering there) rather than tapping
+ * through attestation/seal; the full real capture -> optimize -> attest -> seal pipeline is
+ * covered end to end by EvidenceCaptureFlowTest and SealOrchestratorInstrumentedTest.
  */
 @RunWith(AndroidJUnit4::class)
 class HindiFlowTest {
@@ -70,13 +81,12 @@ class HindiFlowTest {
         composeRule.onNodeWithText("अभ्यास कार्य").assertIsDisplayed() // "Practice tasks"
         composeRule.tapTag("btn_preview")
 
-        // Preview + attestation + submit in Hindi.
-        composeRule.onNodeWithText("यह प्रमाण मेरे अपने काम को दिखाता है।").assertIsDisplayed()
-        composeRule.tapTag("attestation_checkbox")
-        composeRule.tapTag("btn_submit")
-
-        // submitted_title appears both in the top bar and the body -- assert via the
-        // body's testTag rather than text to avoid an ambiguous "2 nodes found" match.
-        composeRule.onNodeWithTag("submitted_title").assertIsDisplayed()
+        // Final review screen in Hindi -- real P5 attestation copy, real-rendered (not a
+        // placeholder). The checkbox stays correctly disabled here (no evidence captured --
+        // see the class doc comment), so this test verifies real string rendering for the
+        // P5 screen without tapping through to seal.
+        composeRule.onNodeWithTag("attestation_checkbox").scrollToIfPossible().assertIsDisplayed()
+        composeRule.onNodeWithText("सील करने से पहले").assertIsDisplayed() // attestation_title
+        composeRule.onNodeWithText("मैं पुष्टि करता/करती हूं कि यह प्रमाण मेरे अपने काम को दिखाता है।").assertIsDisplayed()
     }
 }

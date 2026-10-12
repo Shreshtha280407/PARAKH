@@ -2,12 +2,18 @@ package `in`.kaushalpramaan.app.ui.screens
 
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
-import `in`.kaushalpramaan.app.data.SubmissionState
+import `in`.kaushalpramaan.app.data.EvidenceType
+import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
+import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
+import `in`.kaushalpramaan.app.data.draft.SealState
+import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import `in`.kaushalpramaan.app.ui.components.formatMb
-import androidx.compose.foundation.clickable
+import `in`.kaushalpramaan.app.data.seal.ProcessOutcome
+import `in`.kaushalpramaan.app.data.seal.SealOutcome
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,33 +21,70 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
+private fun EvidenceDraftEntity.effectiveBytes(): Long = finalBytes ?: byteSize
+
+/**
+ * P5's final evidence-review / seal screen (spec part A) -- replaces P3/P4's placeholder
+ * "preview and submit" stand-in. Shows every final item's real optimisation outcome, lets the
+ * worker trigger the real automatic-optimisation pass, attest, and seal a real encrypted
+ * local package. No bitrate/resolution/JPEG-quality/file-size control is ever exposed here.
+ */
 @Composable
 fun PreviewScreen(
     viewModel: AppViewModel,
     onBack: () -> Unit,
     onEditTask: (String) -> Unit,
+    onPreviewEvidence: (String) -> Unit,
+    onTrimEvidence: (String) -> Unit,
     onSubmitted: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val tasks = viewModel.rules.tasksFile.tasks
+    val scope = rememberCoroutineScope()
+    var showDiscardConfirm by remember { mutableStateOf(false) }
+    var lastProcessOutcome by remember { mutableStateOf<ProcessOutcome?>(null) }
+    var sealErrorMessage by remember { mutableStateOf<Int?>(null) }
+
     val totalUsed = uiState.totalEvidenceBytes()
-    val totalBudget = viewModel.totalBudgetBytes()
-    val sealed = uiState.submissionState == SubmissionState.SEALED_LOCALLY
+    val totalBudget = uiState.debugForcedBudgetBytes ?: viewModel.totalBudgetBytes()
+    val sealed = uiState.sealState == SealState.READY_TO_SYNC
+    val allProcessed = tasks.all { task ->
+        uiState.evidenceByTask[task.id].orEmpty().all { it.finalState != FinalEvidenceState.NOT_PROCESSED }
+    }
+    val anyOverBudget = tasks.any { task ->
+        uiState.evidenceByTask[task.id].orEmpty().any { it.finalState == FinalEvidenceState.QUALITY_FLOOR_EXCEEDED }
+    }
+    val hasAnyEvidence = tasks.any { uiState.evidenceByTask[it.id].orEmpty().isNotEmpty() }
+    val canSeal = uiState.sealState == SealState.FINAL_REVIEW_READY && uiState.attestationConfirmed && !uiState.sealActionInFlight
 
     KpScaffold(
         title = stringResource(R.string.preview_title),
@@ -54,27 +97,52 @@ fun PreviewScreen(
                 stringResource(R.string.preview_total_usage, formatMb(totalUsed), formatMb(totalBudget)),
                 style = MaterialTheme.typography.titleMedium,
             )
+            LinearProgressIndicator(
+                progress = { if (totalBudget > 0) (totalUsed.toFloat() / totalBudget).coerceIn(0f, 1f) else 0f },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp),
+            )
+
+            if (BuildConfigP5ForceOptimizeEnabled()) {
+                DebugForcedBudgetControl(
+                    currentOverrideMb = uiState.debugForcedBudgetBytes?.let { it / (1024 * 1024) },
+                    onSet = { mb -> viewModel.setDebugForcedBudgetBytes(mb?.let { it * 1024L * 1024L }) },
+                )
+            }
 
             for (task in tasks) {
                 val items = uiState.evidenceByTask[task.id].orEmpty()
                 val used = uiState.taskEvidenceBytes(task.id)
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp)
-                        .let { if (!sealed) it.clickable { onEditTask(task.id) } else it }
-                        .defaultMinTapTarget(),
-                ) {
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).testTag("final_review_task_${task.id}")) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("${task.id} — " + stringResource(taskTitleRes(task.id)), style = MaterialTheme.typography.titleMedium)
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                "${task.id} — " + stringResource(taskTitleRes(task.id)),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = { onEditTask(task.id) }, modifier = Modifier.testTag("btn_open_task_${task.id}")) {
+                                Text(stringResource(R.string.action_view))
+                            }
+                        }
                         Text(
                             stringResource(R.string.preview_task_usage, formatMb(used), formatMb(task.budgetBytes)),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                        LinearProgressIndicator(
+                            progress = { if (task.budgetBytes > 0) (used.toFloat() / task.budgetBytes).coerceIn(0f, 1f) else 0f },
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp),
+                        )
                         if (items.isEmpty()) {
                             Text(stringResource(R.string.preview_empty_task), style = MaterialTheme.typography.bodySmall)
                         } else {
-                            Text("${items.size} item(s)", style = MaterialTheme.typography.bodySmall)
+                            items.forEach { item ->
+                                FinalReviewItemRow(
+                                    item = item,
+                                    editable = uiState.sealState.isEditable(),
+                                    onOpen = { onPreviewEvidence(item.id) },
+                                    onTrim = { onTrimEvidence(item.id) },
+                                )
+                            }
                         }
                     }
                 }
@@ -82,20 +150,64 @@ fun PreviewScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
+            when (val outcome = lastProcessOutcome) {
+                ProcessOutcome.AllFit -> Text(
+                    stringResource(R.string.final_review_optimized_message, formatMb(totalUsed)),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp).testTag("final_review_optimized_message"),
+                )
+                ProcessOutcome.SomeItemsExceedBudget -> Text(
+                    stringResource(R.string.final_review_item_exceeds_budget),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp).testTag("final_review_budget_exceeded_message"),
+                )
+                else -> if (anyOverBudget) {
+                    Text(
+                        stringResource(R.string.final_review_item_exceeds_budget),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+            }
+
+            if (uiState.sealState == SealState.DRAFT_EDITABLE || uiState.sealState == SealState.PROCESSING) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val outcome = viewModel.processEvidence()
+                            lastProcessOutcome = outcome
+                        }
+                    },
+                    enabled = hasAnyEvidence && !uiState.sealActionInFlight,
+                    modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("btn_optimize_evidence"),
+                ) {
+                    if (uiState.sealActionInFlight || uiState.sealState == SealState.PROCESSING) {
+                        CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
+                        Text(stringResource(R.string.final_review_optimizing))
+                    } else {
+                        Text(stringResource(R.string.final_review_action_optimize))
+                    }
+                }
+            }
+
             if (!sealed) {
-                Text(stringResource(R.string.attestation_title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.attestation_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp).defaultMinTapTarget(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Checkbox(
-                        checked = uiState.attestationChecked,
-                        onCheckedChange = viewModel::setAttestation,
+                        checked = uiState.attestationConfirmed,
+                        onCheckedChange = { viewModel.setAttestation(it) },
+                        enabled = allProcessed && !anyOverBudget,
                         modifier = Modifier.testTag("attestation_checkbox"),
                     )
                     Text(stringResource(R.string.attestation_text), modifier = Modifier.padding(start = 8.dp))
                 }
-                if (!uiState.attestationChecked) {
+                if (!canSeal) {
                     Text(
                         stringResource(R.string.action_submit_disabled_hint),
                         color = MaterialTheme.colorScheme.error,
@@ -103,18 +215,160 @@ fun PreviewScreen(
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
+                sealErrorMessage?.let {
+                    Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                }
                 Button(
                     onClick = {
-                        viewModel.submit()
-                        onSubmitted()
+                        scope.launch {
+                            when (val outcome = viewModel.seal()) {
+                                SealOutcome.Sealed -> onSubmitted()
+                                SealOutcome.ItemsNotReady, SealOutcome.NotReady -> sealErrorMessage = R.string.final_review_item_exceeds_budget
+                                SealOutcome.AttestationRequired -> sealErrorMessage = R.string.action_submit_disabled_hint
+                                SealOutcome.NoEvidence -> sealErrorMessage = R.string.preview_empty_task
+                                SealOutcome.VerificationFailed, SealOutcome.NoActiveAssessment -> sealErrorMessage = R.string.capture_error_finalize_failed
+                            }
+                        }
                     },
-                    enabled = uiState.attestationChecked,
+                    enabled = canSeal,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_submit"),
                 ) {
                     Text(stringResource(R.string.action_submit))
                 }
             } else {
-                Text(stringResource(R.string.submitted_title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.submitted_body), style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("sealed_status_message"))
+                if (viewModel.debugExportHooks.isAvailable) {
+                    DebugExportCard(viewModel = viewModel, assessmentId = uiState.assessmentDraftId.orEmpty())
+                }
+                TextButton(
+                    onClick = { showDiscardConfirm = true },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_discard_and_reopen"),
+                ) {
+                    Text(stringResource(R.string.action_discard_and_reopen), color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
+    }
+
+    if (showDiscardConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDiscardConfirm = false },
+            title = { Text(stringResource(R.string.discard_reopen_confirm_title)) },
+            text = { Text(stringResource(R.string.discard_reopen_confirm_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscardConfirm = false
+                        scope.launch { viewModel.discardSealAndReopen() }
+                    },
+                    modifier = Modifier.testTag("btn_confirm_discard_and_reopen"),
+                ) { Text(stringResource(R.string.action_discard_and_reopen)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardConfirm = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun FinalReviewItemRow(item: EvidenceDraftEntity, editable: Boolean, onOpen: () -> Unit, onTrim: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("final_review_item_${item.id}"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            if (item.kind == EvidenceType.PHOTO) Icons.Filled.PhotoCamera else Icons.Filled.Videocam,
+            contentDescription = null,
+        )
+        Column(modifier = Modifier.padding(start = 8.dp).weight(1f)) {
+            Text(formatMb(item.effectiveBytes()), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(
+                    when (item.finalState) {
+                        FinalEvidenceState.NOT_PROCESSED -> R.string.final_review_item_not_processed
+                        FinalEvidenceState.FITS_AS_IS -> R.string.final_review_item_fits
+                        FinalEvidenceState.OPTIMIZED -> R.string.final_review_item_optimized
+                        FinalEvidenceState.QUALITY_FLOOR_EXCEEDED -> R.string.final_review_item_exceeds_budget
+                        FinalEvidenceState.SEALED -> R.string.final_review_item_sealed
+                    },
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (item.finalState == FinalEvidenceState.QUALITY_FLOOR_EXCEEDED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TextButton(onClick = onOpen, modifier = Modifier.defaultMinTapTarget().testTag("btn_view_item_${item.id}")) {
+            Text(stringResource(R.string.action_view))
+        }
+        if (editable && item.kind == EvidenceType.VIDEO && item.finalState != FinalEvidenceState.SEALED) {
+            TextButton(onClick = onTrim, modifier = Modifier.defaultMinTapTarget().testTag("btn_trim_item_${item.id}")) {
+                Text(stringResource(R.string.action_trim))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DebugForcedBudgetControl(currentOverrideMb: Long?, onSet: (Long?) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag("p5_test_only_force_budget_card")) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                stringResource(R.string.p5_test_only_force_budget_label, currentOverrideMb?.let { "$it MB" } ?: "off"),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Row(modifier = Modifier.padding(top = 8.dp)) {
+                OutlinedButton(onClick = { onSet(1L) }, modifier = Modifier.testTag("btn_force_budget_1mb")) { Text("1 MB") }
+                OutlinedButton(onClick = { onSet(null) }, modifier = Modifier.padding(start = 8.dp).testTag("btn_force_budget_off")) { Text(stringResource(R.string.action_cancel)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BuildConfigP5ForceOptimizeEnabled(): Boolean = `in`.kaushalpramaan.app.BuildConfig.P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED
+
+/** P5_TEST_ONLY debug-only verification export (spec part H) -- only ever rendered when
+ * [AppViewModel.debugExportHooks] reports available, which is only ever true in a debug
+ * build (app/src/release's factory always returns an unavailable no-op). */
+@Composable
+private fun DebugExportCard(viewModel: AppViewModel, assessmentId: String) {
+    val scope = rememberCoroutineScope()
+    var summary by remember { mutableStateOf<`in`.kaushalpramaan.app.debug.DebugExportSummary?>(null) }
+    var exporting by remember { mutableStateOf(false) }
+
+    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag("p5_test_only_debug_export_card")) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(stringResource(R.string.p5_test_only_debug_export_title), style = MaterialTheme.typography.titleSmall)
+            Button(
+                onClick = {
+                    scope.launch {
+                        exporting = true
+                        summary = viewModel.debugExportHooks.export(assessmentId)
+                        exporting = false
+                    }
+                },
+                enabled = !exporting,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("btn_debug_export"),
+            ) { Text(stringResource(R.string.p5_test_only_debug_export_action)) }
+
+            summary?.let { s ->
+                Text(
+                    stringResource(
+                        R.string.p5_test_only_debug_export_result,
+                        s.signatureVerified.toString(),
+                        s.items.size,
+                        s.allHashesMatch.toString(),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp).testTag("debug_export_result"),
+                )
+                TextButton(
+                    onClick = {
+                        viewModel.debugExportHooks.cleanup(assessmentId)
+                        summary = null
+                    },
+                    modifier = Modifier.testTag("btn_debug_export_cleanup"),
+                ) { Text(stringResource(R.string.p5_test_only_debug_export_cleanup_action)) }
             }
         }
     }

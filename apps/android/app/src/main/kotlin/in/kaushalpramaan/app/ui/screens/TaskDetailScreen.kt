@@ -3,8 +3,10 @@ package `in`.kaushalpramaan.app.ui.screens
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
 import `in`.kaushalpramaan.app.data.EvidenceType
+import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
+import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.SafetyNoticeCard
@@ -63,6 +65,10 @@ fun TaskDetailScreen(
     val usedForTask = uiState.taskEvidenceBytes(taskId)
     val scope = rememberCoroutineScope()
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    // Once sealing has started, evidence is immutable in normal worker flow (spec part E.3)
+    // -- edits are only possible again via an explicit discard/reopen from the final review
+    // screen, never silently here.
+    val editable = uiState.sealState.isEditable()
 
     KpScaffold(
         title = "${task.id} — " + stringResource(taskTitleRes(task.id)),
@@ -118,6 +124,7 @@ fun TaskDetailScreen(
                     EvidenceRow(
                         item = item,
                         index = index,
+                        editable = editable,
                         onOpen = { if (item.state == EvidenceDraftState.READY) onPreviewEvidence(item.id) },
                         onReplace = { onCapture(item.id) },
                         onRemove = { pendingDeleteId = item.id },
@@ -125,11 +132,20 @@ fun TaskDetailScreen(
                 }
             }
 
-            OutlinedButton(
-                onClick = { onCapture(null) },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_add_evidence"),
-            ) {
-                Text(stringResource(R.string.action_add_evidence))
+            if (editable) {
+                OutlinedButton(
+                    onClick = { onCapture(null) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_add_evidence"),
+                ) {
+                    Text(stringResource(R.string.action_add_evidence))
+                }
+            } else {
+                Text(
+                    stringResource(R.string.task_detail_sealed_read_only),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp).testTag("task_detail_sealed_read_only"),
+                )
             }
 
             Button(
@@ -160,7 +176,7 @@ fun TaskDetailScreen(
 }
 
 @Composable
-private fun EvidenceRow(item: EvidenceDraftEntity, index: Int, onOpen: () -> Unit, onReplace: () -> Unit, onRemove: () -> Unit) {
+private fun EvidenceRow(item: EvidenceDraftEntity, index: Int, editable: Boolean, onOpen: () -> Unit, onReplace: () -> Unit, onRemove: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
             .let { if (item.state == EvidenceDraftState.READY) it.clickable(onClick = onOpen) else it }
@@ -187,7 +203,7 @@ private fun EvidenceRow(item: EvidenceDraftEntity, index: Int, onOpen: () -> Uni
                     EvidenceDraftState.DELETED -> Unit
                 }
             }
-            if (item.state == EvidenceDraftState.READY || item.state == EvidenceDraftState.FAILED) {
+            if (editable && (item.state == EvidenceDraftState.READY || item.state == EvidenceDraftState.FAILED)) {
                 TextButton(
                     onClick = onReplace,
                     modifier = Modifier.defaultMinTapTarget().testTag("btn_replace_evidence_$index"),

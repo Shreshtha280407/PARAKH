@@ -50,7 +50,7 @@ fun SubmittedScreen(viewModel: AppViewModel, onViewPreviewAgain: () -> Unit) {
             Text(
                 stringResource(R.string.submitted_body),
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 16.dp),
+                modifier = Modifier.padding(top = 16.dp).testTag("sealed_status_message"),
             )
             uiState.registration?.let {
                 Text(

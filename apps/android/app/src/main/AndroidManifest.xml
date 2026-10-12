@@ -3,19 +3,28 @@
   Offline-first by construction: this manifest deliberately declares NO
   android.permission.INTERNET and NO ACCESS_NETWORK_STATE. Every screen must
   work with the phone in airplane mode; app/build.gradle.kts's
-  verifyNoNetworkDependencies task fails the build if either permission is
-  ever added. Upload/sync is explicitly out of scope through P4 (see
-  SubmittedScreen's on-screen explanation and docs/gates/P4.md).
+  verifyNoNetworkDependencies task fails the build if either permission
+  appears in THIS file — but that source-only scan cannot see permissions a
+  dependency's own manifest injects during manifest merging. P5's Media3
+  Transformer (media3-exoplayer/media3-common, pulled in for real local
+  video transcoding — never network playback) does exactly that: both
+  declare ACCESS_NETWORK_STATE for ExoPlayer's network-playback features,
+  which this app never uses. tools:node="remove" below strips it back out
+  of the final merged manifest; confirmed by inspecting
+  app/build/intermediates/merged_manifest/*/AndroidManifest.xml directly
+  after this was added, not merely by re-running the source-only check.
+  Upload/sync is explicitly out of scope through P5 (see docs/gates/P5.md).
 
   CAMERA/RECORD_AUDIO (P4) are the only runtime permissions this app
   requests, used solely for in-app CameraX photo/video capture into
   app-private storage, never for Gallery/media reading, and never
   combined with any network capability.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />

@@ -13,6 +13,7 @@ import `in`.kaushalpramaan.app.ui.screens.RegistrationScreen
 import `in`.kaushalpramaan.app.ui.screens.SubmittedScreen
 import `in`.kaushalpramaan.app.ui.screens.TaskDetailScreen
 import `in`.kaushalpramaan.app.ui.screens.TaskListScreen
+import `in`.kaushalpramaan.app.ui.screens.TrimScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,11 +38,13 @@ object Routes {
     const val EVIDENCE_PREVIEW = "evidence_preview/{evidenceId}"
     const val PREVIEW = "preview"
     const val SUBMITTED = "submitted"
+    const val TRIM = "trim/{evidenceId}"
 
     fun taskDetail(taskId: String) = "task_detail/$taskId"
     fun capture(taskId: String, replaceId: String? = null) =
         "capture/$taskId" + if (replaceId != null) "?replaceId=$replaceId" else ""
     fun evidencePreview(evidenceId: String) = "evidence_preview/$evidenceId"
+    fun trim(evidenceId: String) = "trim/$evidenceId"
 }
 
 @Composable
@@ -137,7 +140,14 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 viewModel = viewModel,
                 evidenceId = evidenceId,
                 onBack = { navController.popBackStack() },
-                onRetake = { taskId, oldId -> navController.navigate(Routes.capture(taskId, oldId)) { popUpTo(Routes.TASK_DETAIL) } },
+                onRetake = { taskId, oldId ->
+                    // This screen is reachable from both TaskDetail and the final review
+                    // screen, so there is no single fixed ancestor to popUpTo. Pop this
+                    // screen first -- capture's own onDone=popBackStack() then lands back on
+                    // whichever screen actually opened it, never on this now-stale evidenceId.
+                    navController.popBackStack()
+                    navController.navigate(Routes.capture(taskId, oldId))
+                },
                 onDeleted = { navController.popBackStack() },
             )
         }
@@ -146,11 +156,22 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onEditTask = { taskId -> navController.navigate(Routes.taskDetail(taskId)) },
+                onPreviewEvidence = { evidenceId -> navController.navigate(Routes.evidencePreview(evidenceId)) },
+                onTrimEvidence = { evidenceId -> navController.navigate(Routes.trim(evidenceId)) },
                 onSubmitted = {
                     navController.navigate(Routes.SUBMITTED) {
                         popUpTo(Routes.LANGUAGE) { inclusive = false }
                     }
                 },
+            )
+        }
+        composable(Routes.TRIM) { backStackEntry ->
+            val evidenceId = requireNotNull(backStackEntry.arguments?.getString("evidenceId"))
+            TrimScreen(
+                viewModel = viewModel,
+                evidenceId = evidenceId,
+                onDone = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
             )
         }
         composable(Routes.SUBMITTED) {

@@ -1,6 +1,8 @@
 package `in`.kaushalpramaan.app.data
 
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
+import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
+import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.app.data.draft.TaskDraftEntity
 import `in`.kaushalpramaan.core.mapping.MatchOutput
 import java.util.Locale
@@ -22,9 +24,16 @@ enum class AppLanguage(val localeTag: String) {
     fun toLocale(): Locale = Locale.forLanguageTag(localeTag)
 }
 
-enum class EvidenceType { PHOTO, VIDEO }
+/** Evidence stays editable (retake/replace/delete/trim/add) throughout
+ * DRAFT_EDITABLE/PROCESSING/FINAL_REVIEW_READY -- the worker can keep refining right up to
+ * the moment they actually seal. It only becomes immutable in normal worker flow (spec part
+ * E.3) once a seal attempt is genuinely underway or complete: SEAL_IN_PROGRESS, VAULT_READY,
+ * READY_TO_SYNC. (Editing during FINAL_REVIEW_READY correctly invalidates it back to
+ * DRAFT_EDITABLE -- see SealOrchestrator's capture/delete/trim hooks.) */
+fun SealState.isEditable(): Boolean =
+    this != SealState.SEAL_IN_PROGRESS && this != SealState.VAULT_READY && this != SealState.READY_TO_SYNC
 
-enum class SubmissionState { NOT_SUBMITTED, SEALED_LOCALLY }
+enum class EvidenceType { PHOTO, VIDEO }
 
 data class WorkerRegistration(
     val workerId: String,
@@ -50,8 +59,6 @@ data class AppUiState(
     val registration: WorkerRegistration? = null,
     val declaration: DeclarationState = DeclarationState(),
     val matchOutput: MatchOutput? = null,
-    val attestationChecked: Boolean = false,
-    val submissionState: SubmissionState = SubmissionState.NOT_SUBMITTED,
     val lastErrorMessageRes: Int? = null,
 
     // P4 durable draft state -- see EvidenceRepository. startRouteResolved flips to true
@@ -64,8 +71,32 @@ data class AppUiState(
     val gapTaskIds: Set<String> = emptySet(),
     val taskDrafts: Map<String, TaskDraftEntity> = emptyMap(),
     val evidenceByTask: Map<String, List<EvidenceDraftEntity>> = emptyMap(),
-) {
-    fun totalEvidenceBytes(): Long = taskDrafts.values.sumOf { it.capturedBytes }
 
-    fun taskEvidenceBytes(taskId: String): Long = taskDrafts[taskId]?.capturedBytes ?: 0L
+    // P5: seal state machine + attestation, mirrored live from the active AssessmentDraft
+    // (see SealOrchestrator/AppViewModel.observeDraft) -- never a locally-faked flag.
+    val sealState: SealState = SealState.DRAFT_EDITABLE,
+    val attestationConfirmed: Boolean = false,
+    val sealedAtMillis: Long? = null,
+    /** True while a processEvidence()/seal() call is in flight, for disabling buttons --
+     * distinct from [sealState] == PROCESSING, which can also be true on resume before the
+     * worker has tapped anything this session. */
+    val sealActionInFlight: Boolean = false,
+    /** Debug-build-only (`P5_TEST_ONLY`) forced virtual remaining-budget override, see
+     * CaptureScreen's equivalent P4_TEST_ONLY pattern. Null means "not active" (use real
+     * budgets). */
+    val debugForcedBudgetBytes: Long? = null,
+) {
+    /** The real current byte footprint of one task's READY evidence: the FINAL
+     * (post-optimisation) size once known, the raw captured size otherwise. Deliberately
+     * computed live from [evidenceByTask] rather than trusting [TaskDraftEntity
+     * .capturedBytes] (P4's own cached sum, which only ever reflects raw capture bytes and
+     * goes stale the moment P5 optimisation/trim changes an item's effective size) -- every
+     * screen that shows a budget bar must agree with the P5 ledger, never show a value above
+     * its configured maximum because of a stale cache. */
+    fun taskEvidenceBytes(taskId: String): Long =
+        evidenceByTask[taskId].orEmpty()
+            .filter { it.state == EvidenceDraftState.READY }
+            .sumOf { it.finalBytes ?: it.byteSize }
+
+    fun totalEvidenceBytes(): Long = taskDrafts.keys.sumOf { taskEvidenceBytes(it) }
 }

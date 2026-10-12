@@ -90,3 +90,18 @@ interface EvidenceDraftDao {
     @Query("DELETE FROM evidence_drafts WHERE assessmentId = :assessmentId")
     suspend fun hardDeleteAllForAssessment(assessmentId: String)
 }
+
+@Dao
+interface OutboxDao {
+    @Insert
+    suspend fun insertAll(entities: List<OutboxItemEntity>)
+
+    @Query("SELECT * FROM outbox_items WHERE assessmentId = :assessmentId ORDER BY priority, created_at_millis")
+    fun observeForAssessment(assessmentId: String): Flow<List<OutboxItemEntity>>
+
+    @Query("SELECT * FROM outbox_items WHERE assessmentId = :assessmentId ORDER BY priority, created_at_millis")
+    suspend fun getAllForAssessmentOnce(assessmentId: String): List<OutboxItemEntity>
+
+    @Query("DELETE FROM outbox_items WHERE assessmentId = :assessmentId")
+    suspend fun deleteAllForAssessment(assessmentId: String)
+}

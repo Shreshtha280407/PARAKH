@@ -11,7 +11,8 @@ Prior-skill Assessment &amp; Recognition through AI-driven Knowledge
 | P-3 | Offline Android worker flow (Kotlin/Compose) with mock evidence, Kotlin/Python matcher parity | Complete | `docs/gates/P3.md` |
 | IC-1A | Technical & standards-traceability acceptance (replaces earlier expert-agreement IC-1 wording) | Passed | `docs/gates/IC1A.md` |
 | P-4 | Offline evidence capture (real CameraX photo/video, no mock evidence), SQLCipher-encrypted Room drafts, crash-safe preview/retake/replace/delete, physical-device gate on a real OnePlus 13R | Complete | `docs/gates/P4.md` |
-| P5+ | Final evidence compression/fitting, final encryption, SHA-256 receipts, sealing, encrypted outbox, resumable upload/sync, CV models, assessor-dashboard changes | Outside the approved P-4 scope; not claimed as completed | — |
+| P-5 | Automatic local photo/video optimisation to fit budget (no bitrate/resolution/quality control exposed to workers), deterministic budget ledger, canonical signed manifest, Android Keystore ECDSA signing, Tink-encrypted local vault, durable Room outbox, crash-safe seal state machine, physical-device gate (incl. live crash recovery) on a real OnePlus 13R | Complete | `docs/gates/P5.md` |
+| P6+ | Resumable network upload/sync of the sealed outbox, CV models, assessor-dashboard changes | Outside the approved P-5 scope; not claimed as completed | — |
 
 Independent assessor-agreement validation (the original master-plan IC-1
 ≥90%-agreement study) was **not performed** and is not claimed anywhere in

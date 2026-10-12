@@ -92,6 +92,7 @@
     <string name="add_evidence_error_total_budget">इससे कुल 120 MB प्रमाण बजट पार हो जाएगा। आकार कम करें या पहले दूसरा प्रमाण हटाएं।</string>
     <string name="action_save">सहेजें</string>
     <string name="action_cancel">रद्द करें</string>
+    <string name="action_view">देखें</string>
     <string name="action_delete">हटाएं</string>
     <string name="action_retake">फिर से लें</string>
 
@@ -136,22 +137,43 @@
     <string name="capture_error_insufficient_space">इस डिवाइस पर नया प्रमाण रिकॉर्ड करने के लिए पर्याप्त खाली जगह नहीं है (300 MB चाहिए)। जगह खाली करें और फिर कोशिश करें।</string>
     <string name="capture_error_finalize_failed">प्रमाण सहेजा नहीं जा सका। कृपया फिर कोशिश करें।</string>
     <string name="capture_safety_limit_reached">सुरक्षा सीमा पूरी हो गई — रिकॉर्डिंग अपने-आप बंद हो गई और क्लिप सहेज ली गई है।</string>
+    <string name="capture_error_over_limit">यह रेकॉर्डिंग शेष टास्क या कुल प्रमाण सीमा से बड़ी है और सहेजी नहीं गई। कृपया फिर से लें, बदलें, या पहले अन्य प्रमाण हटाएँ।</string>
 
-    <!-- Preview screen -->
-    <string name="preview_title">सबमिट करने से पहले पूर्वावलोकन</string>
+    <!-- P5: final review / seal screen -->
+    <string name="preview_title">समीक्षा करें और सील करें</string>
     <string name="preview_task_usage">%2$s में से %1$s इस्तेमाल हुआ</string>
     <string name="preview_total_usage">कुल: %2$s में से %1$s</string>
     <string name="preview_empty_task">इस कार्य के लिए कोई प्रमाण नहीं जोड़ा गया।</string>
-    <string name="attestation_title">सबमिट करने से पहले</string>
-    <string name="attestation_text">यह प्रमाण मेरे अपने काम को दिखाता है।</string>
-    <string name="action_submit">सबमिट करें</string>
-    <string name="action_submit_disabled_hint">सबमिट करने के लिए कृपया ऊपर दिया गया प्रमाणीकरण स्वीकार करें।</string>
+    <string name="attestation_title">सील करने से पहले</string>
+    <string name="attestation_text">मैं पुष्टि करता/करती हूं कि यह प्रमाण मेरे अपने काम को दिखाता है।</string>
+    <string name="action_submit">आकलन सील करें</string>
+    <string name="action_submit_disabled_hint">प्रमाण का अनुकूलन पूरा करें और सील करने के लिए ऊपर दिया गया प्रमाणीकरण स्वीकार करें।</string>
+    <string name="final_review_action_optimize">प्रमाण अनुकूलित करें</string>
+    <string name="final_review_optimizing">प्रमाण अनुकूलित हो रहा है…</string>
+    <string name="final_review_optimized_message">प्रमाण सफलतापूर्वक अनुकूलित हुआ। अंतिम आकार: %1$s। सबमिट करने से पहले प्रमाण की समीक्षा करें।</string>
+    <string name="final_review_item_fits">कैप्चर के अनुसार ही फिट है</string>
+    <string name="final_review_item_optimized">फिट करने के लिए अनुकूलित</string>
+    <string name="final_review_item_exceeds_budget">शेष टास्क/कुल बजट के लिए बहुत बड़ा है — फिर से लें, बदलें, ट्रिम करें, या हटाएं।</string>
+    <string name="final_review_item_sealed">सील किया गया</string>
+    <string name="final_review_item_not_processed">अभी अनुकूलित नहीं हुआ</string>
+    <string name="action_trim">ट्रिम करें</string>
+    <string name="action_discard_and_reopen">सील हटाएं और प्रमाण संपादित करें</string>
+    <string name="discard_reopen_confirm_title">यह सील हटाएं?</string>
+    <string name="discard_reopen_confirm_body">यह स्थानीय सील हटाकर संपादन योग्य ड्राफ्ट पर वापस ले जाता है। आपका प्रमाण सुरक्षित रहेगा (ज़रूरत पड़ने पर एन्क्रिप्टेड वॉल्ट से पुनर्स्थापित किया जाएगा) — कुछ भी नहीं खोता, लेकिन आपको फिर से प्रमाणीकरण और सील करना होगा।</string>
+    <string name="p5_test_only_force_budget_label">P5_TEST_ONLY बाध्य कुल बजट: %1$s (केवल डिबग बिल्ड)</string>
+    <string name="task_detail_sealed_read_only">यह आकलन सील है। प्रमाण बदलने के लिए पहले समीक्षा स्क्रीन से सील हटाएं।</string>
+    <string name="trim_range_label">%1$s से %2$s तक रखें</string>
+    <string name="trim_error">यह क्लिप ट्रिम नहीं हो सकी। मूल क्लिप अपरिवर्तित है — कृपया अलग सीमा आज़माएं।</string>
+    <string name="p5_test_only_debug_export_title">P5_TEST_ONLY सत्यापन निर्यात (केवल डिबग बिल्ड)</string>
+    <string name="p5_test_only_debug_export_action">सत्यापन के लिए डिक्रिप्ट करें</string>
+    <string name="p5_test_only_debug_export_cleanup_action">निर्यात को सुरक्षित रूप से हटाएं</string>
+    <string name="p5_test_only_debug_export_result">हस्ताक्षर सत्यापित: %1$s · %2$d आइटम निर्यात किए गए · सभी हैश मेनिफेस्ट से मेल खाते हैं: %3$s</string>
 
-    <!-- Submitted screen -->
-    <string name="submitted_title">स्थानीय रूप से सील — सिंक की प्रतीक्षा में</string>
-    <string name="submitted_body">आपकी घोषणा, मैच परिणाम और अभ्यास प्रमाण इस फ़ोन पर सील कर दिए गए हैं। यह ऑफ़लाइन डेमो ऐप कुछ भी अपलोड, एन्क्रिप्ट, हैश या सिंक नहीं करता — यह बाद के चरण में होगा। इस डिवाइस से कुछ भी बाहर नहीं गया है।</string>
+    <!-- Sealed (post-seal) screen -->
+    <string name="submitted_title">आकलन सील किया गया</string>
+    <string name="submitted_body">आकलन इस डिवाइस पर सील कर दिया गया है। इंटरनेट उपलब्ध होने पर सिंक के लिए तैयार।</string>
     <string name="submitted_worker_id">वर्कर आईडी: %1$s</string>
-    <string name="action_view_preview_again">मेरा सील किया गया सबमिशन देखें</string>
+    <string name="action_view_preview_again">सील किया गया प्रमाण देखें</string>
 
     <!-- Common -->
     <string name="content_desc_back">वापस</string>

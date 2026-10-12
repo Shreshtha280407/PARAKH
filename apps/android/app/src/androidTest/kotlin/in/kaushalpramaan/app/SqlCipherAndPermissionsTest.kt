@@ -91,7 +91,7 @@ class SqlCipherAndPermissionsTest {
         check(begin is BeginCaptureResult.Started)
         begin.stagingFile.parentFile?.mkdirs()
         begin.stagingFile.writeBytes(ByteArray(64))
-        val finalize = repository.finalizeCapture(begin.evidenceId, success = true, actualByteSize = 64L)
+        val finalize = repository.finalizeCapture(begin.evidenceId, success = true)
         check(finalize is FinalizeResult.Ready)
         db.close()
 

@@ -43,3 +43,13 @@ test-artifacts/
 *.db-wal
 *.db-shm
 /local-debug-evidence/
+
+# P5: local test video fixtures pulled off-device, local decrypted debug-export dumps, and
+# any local copy of the Tink keyset/vault SharedPreferences files -- same reasoning as the P4
+# rule above. The real versions only ever exist in the app's private on-device storage
+# (files/vault/, files/p5_debug_export/) or inside Android's own app-private shared_prefs/;
+# this only guards a local working copy landing in the repo tree by accident.
+/local-debug-export/
+*.vault
+kp_vault_keyset_prefs.xml
+kp_seal_test_key*

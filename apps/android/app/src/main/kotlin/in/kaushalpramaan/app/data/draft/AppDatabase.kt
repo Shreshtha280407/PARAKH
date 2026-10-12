@@ -4,21 +4,85 @@ import android.content.Context
 import android.util.Base64
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import androidx.sqlite.db.SupportSQLiteDatabase
 import java.security.SecureRandom
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
 
+/** P4 closure: adds `debug_ceiling_requested` to `evidence_drafts` so the fail-closed
+ * final-size check at finalizeCapture() can recompute the exact ceiling that was active
+ * for a given capture (see EvidenceRepository). A real, additive migration -- never
+ * fallbackToDestructiveMigration -- since existing drafts (even P4_TEST_ONLY ones) must
+ * never be silently wiped by a schema change. */
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN debug_ceiling_requested INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/** P5: adds the seal state machine columns to `assessment_drafts`, the per-item
+ * optimisation-outcome columns to `evidence_drafts`, and the new `outbox_items` table -- real,
+ * additive migration, never fallbackToDestructiveMigration, same reasoning as MIGRATION_1_2. */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN seal_state TEXT NOT NULL DEFAULT 'DRAFT_EDITABLE'")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN revision_id TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN attestation_confirmed INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN attestation_at_millis INTEGER")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN sealed_at_millis INTEGER")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN manifest_vault_relative_path TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN signer_key_id TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN signer_public_key_base64 TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN idempotency_key TEXT")
+
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_state TEXT NOT NULL DEFAULT 'NOT_PROCESSED'")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_relative_path TEXT")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_bytes INTEGER")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_sha256 TEXT")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_mime_type TEXT")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_width_px INTEGER")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_height_px INTEGER")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN final_duration_millis INTEGER")
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN vault_relative_path TEXT")
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `outbox_items` (
+                `id` TEXT NOT NULL,
+                `assessmentId` TEXT NOT NULL,
+                `revision_id` TEXT NOT NULL,
+                `idempotency_key` TEXT NOT NULL,
+                `kind` TEXT NOT NULL,
+                `evidence_id` TEXT,
+                `task_id` TEXT,
+                `vault_relative_path` TEXT NOT NULL,
+                `priority` INTEGER NOT NULL,
+                `created_at_millis` INTEGER NOT NULL,
+                `retry_count` INTEGER NOT NULL DEFAULT 0,
+                `last_attempt_at_millis` INTEGER,
+                PRIMARY KEY(`id`),
+                FOREIGN KEY(`assessmentId`) REFERENCES `assessment_drafts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_outbox_items_assessmentId` ON `outbox_items` (`assessmentId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_outbox_items_idempotencyKey` ON `outbox_items` (`idempotency_key`)")
+    }
+}
+
 @androidx.room.Database(
-    entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class],
-    version = 1,
+    entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class, OutboxItemEntity::class],
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun assessmentDraftDao(): AssessmentDraftDao
     abstract fun taskDraftDao(): TaskDraftDao
     abstract fun evidenceDraftDao(): EvidenceDraftDao
+    abstract fun outboxDao(): OutboxDao
 
     companion object {
         private const val DB_FILE_NAME = "kp_drafts.db"
@@ -53,6 +117,7 @@ abstract class AppDatabase : RoomDatabase() {
             val factory = SupportFactory(passphrase)
             return Room.databaseBuilder(appContext, AppDatabase::class.java, dbFileName)
                 .openHelperFactory(factory)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
         }
     }
