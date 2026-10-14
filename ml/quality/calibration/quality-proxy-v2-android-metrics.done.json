@@ -1,0 +1,9 @@
+{
+  "run_id": "full_proxy_metrics_v2",
+  "status": "COMPLETED",
+  "error": null,
+  "wall_ms": 318039.595504,
+  "observed_peak_pss_kb": 195546,
+  "observed_peak_native_bytes": 107601648,
+  "memory_samples": 2261
+}

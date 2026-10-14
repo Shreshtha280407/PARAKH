@@ -1,0 +1,176 @@
+{
+  "calibration_provenance": {
+    "algorithm": "finite grid v3: condition F1 then precision/recall and conservative ties; dark first, photo blur and video blur fitted separately, then camera motion; no holdout inputs",
+    "android_results_sha256": "28a4e6318bf15672a47fa3692833300c6820c12d61a8ff9722c55ec850d1459b",
+    "calibration_code_sha256": "28c237c31e1096b4c7fdc5861158e212298e30439b48d7b80670b8e3a88365f4",
+    "calibration_result": {
+      "captures": 187,
+      "confusion": {
+        "fn": 8,
+        "fp": 18,
+        "tn": 62,
+        "tp": 99,
+        "unavailable_negative": 0,
+        "unavailable_positive": 0
+      },
+      "false_positive_rate_on_technically_good": 0.225,
+      "precision": 0.8461538461538461,
+      "recall": 0.9252336448598131
+    },
+    "captures": 187,
+    "highlight_rule": "engineering saturation guard: mean >245 and highlight clipping >0.95; deterministic/synthetic verification only; no real positive highlight cases in the supplied proxy collection",
+    "metrics_profile_sha256": "0f186ec5c41b25c2104982f2b4c65785058ff9a3eb25529803979f7ae1435889",
+    "parameter_fits": {
+      "laplacian_variance_below": {
+        "condition": "BLURRY",
+        "kind": "photo",
+        "result": {
+          "captures": 119,
+          "confusion": {
+            "fn": 7,
+            "fp": 7,
+            "tn": 51,
+            "tp": 54,
+            "unavailable_negative": 0,
+            "unavailable_positive": 0
+          },
+          "false_positive_rate_on_technically_good": 0.1206896551724138,
+          "precision": 0.8852459016393442,
+          "recall": 0.8852459016393442
+        }
+      },
+      "mean_dark_below": {
+        "condition": "DARK",
+        "kind": null,
+        "result": {
+          "captures": 187,
+          "confusion": {
+            "fn": 6,
+            "fp": 3,
+            "tn": 153,
+            "tp": 25,
+            "unavailable_negative": 0,
+            "unavailable_positive": 0
+          },
+          "false_positive_rate_on_technically_good": 0.019230769230769232,
+          "precision": 0.8928571428571429,
+          "recall": 0.8064516129032258
+        }
+      },
+      "motion_translation_px_at_least": {
+        "condition": "CAMERA_MOTION",
+        "kind": "video",
+        "result": {
+          "captures": 27,
+          "confusion": {
+            "fn": 2,
+            "fp": 3,
+            "tn": 19,
+            "tp": 3,
+            "unavailable_negative": 0,
+            "unavailable_positive": 0
+          },
+          "false_positive_rate_on_technically_good": 0.13636363636363635,
+          "precision": 0.5,
+          "recall": 0.6
+        }
+      },
+      "video_laplacian_variance_below": {
+        "condition": "BLURRY",
+        "kind": "video",
+        "result": {
+          "captures": 37,
+          "confusion": {
+            "fn": 0,
+            "fp": 3,
+            "tn": 19,
+            "tp": 15,
+            "unavailable_negative": 0,
+            "unavailable_positive": 0
+          },
+          "false_positive_rate_on_technically_good": 0.13636363636363635,
+          "precision": 0.8333333333333334,
+          "recall": 1.0
+        }
+      }
+    },
+    "per_condition_calibration": {
+      "BLURRY": {
+        "captures": 156,
+        "confusion": {
+          "fn": 7,
+          "fp": 10,
+          "tn": 70,
+          "tp": 69,
+          "unavailable_negative": 0,
+          "unavailable_positive": 0
+        },
+        "false_positive_rate_on_technically_good": 0.125,
+        "precision": 0.8734177215189873,
+        "recall": 0.9078947368421053
+      },
+      "CAMERA_MOTION": {
+        "captures": 27,
+        "confusion": {
+          "fn": 2,
+          "fp": 3,
+          "tn": 19,
+          "tp": 3,
+          "unavailable_negative": 0,
+          "unavailable_positive": 0
+        },
+        "false_positive_rate_on_technically_good": 0.13636363636363635,
+        "precision": 0.5,
+        "recall": 0.6
+      },
+      "DARK": {
+        "captures": 187,
+        "confusion": {
+          "fn": 6,
+          "fp": 3,
+          "tn": 153,
+          "tp": 25,
+          "unavailable_negative": 0,
+          "unavailable_positive": 0
+        },
+        "false_positive_rate_on_technically_good": 0.019230769230769232,
+        "precision": 0.8928571428571429,
+        "recall": 0.8064516129032258
+      }
+    },
+    "protocol": "drive-proxy-functional-v1",
+    "quality_labels_sha256": "a511db082e6b0eb786d16034b02e0a3dd1b5f40aa8e36094375e713729de8f0f",
+    "scope": "Proxy resubstitution only; no independent validation/holdout or field generalisation proof"
+  },
+  "calibration_status": "calibrated",
+  "clip_bad_fraction": 0.2,
+  "clipping": {
+    "dark_inclusive": 16,
+    "highlight_inclusive": 235,
+    "unit": "fraction [0,1]"
+  },
+  "dataset_manifest_sha256": "7ec33b6ad081b80d736243d489d19066657afce71ffbb1769ebf1b313ae2c60a",
+  "evaluation_design": "owner_approved_proxy_resubstitution",
+  "laplacian": "left+right+up+down-4*center; 1px border omitted; population variance in squared luma units",
+  "longest_edge_px": 320,
+  "metric_definition": "luma77-150-29-laplacian4-interior-population-v1",
+  "motion": "1s anchors plus 125ms partners; box-mean 4x4 reduction; 9 textured tiles; centered MAD +/-4px search; densest +/-1px vector neighbourhood; coordinate-wise median; >=5 textured tiles and >=2/3 consensus, residual <=20",
+  "motion_definition": "tile9-centered-mad-translation-radius4-patch12-neighbour1-v2",
+  "preprocessing": "Android bounded ARGB_8888 decode; EXIF baked; no upscale; aspect preserved; bilinear downscale; Y=(77R+150G+29B+128)>>8",
+  "semantic_framing": "unsupported; explicitly outside owner-approved revised Q2 scope",
+  "severity": "review is an assistance hint, never a probability or competence score",
+  "split_sha256": "d32721b038cd42de22db3aceff40094bd971fb70e75a77581b4eb0ee33b05331",
+  "thresholds": {
+    "highlight_fraction_above": 0.95,
+    "laplacian_variance_below": 400.0,
+    "mean_bright_above": 245.0,
+    "mean_dark_below": 60.0,
+    "motion_translation_px_at_least": 2.0,
+    "video_laplacian_variance_below": 100.0
+  },
+  "version": "quality-proxy-v2",
+  "video_preprocessing_paths": {
+    "comparison_api27_plus": "platform scaled RGB retriever, container rotation baked; benchmark comparison only, not the calibrated default",
+    "default_api26_plus": "sequential MediaCodec SDR YUV420; selected-frame nearest-neighbour sampling; explicit limited/full-range colour conversion; container rotation applied exactly once"
+  }
+}

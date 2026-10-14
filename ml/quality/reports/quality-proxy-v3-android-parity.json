@@ -1,0 +1,2045 @@
+{
+  "partition": "proxy",
+  "protocol_version": "drive-proxy-functional-v1",
+  "protocol_sha256": "d32721b038cd42de22db3aceff40094bd971fb70e75a77581b4eb0ee33b05331",
+  "android_results_sha256": "784288773fb255b57710e0b7b2f26deabbf5cc8145491dc9ee39196e5007625f",
+  "threshold_sha256": "ba22f4bd6654691ed8c41c7a315ae74084bb88c2cd5b5bcd2c57738af42f3e77",
+  "unique_captures": 187,
+  "unjudgeable_or_unreviewed_captures": 1,
+  "aggregate": {
+    "confusion": {
+      "tp": 99,
+      "fp": 8,
+      "fn": 8,
+      "tn": 72,
+      "unavailable_positive": 0,
+      "unavailable_negative": 0
+    },
+    "precision": 0.9252336448598131,
+    "recall": 0.9252336448598131,
+    "captures": 187,
+    "false_positive_rate_on_technically_good": 0.1
+  },
+  "by_kind": {
+    "photo": {
+      "confusion": {
+        "tp": 82,
+        "fp": 7,
+        "fn": 8,
+        "tn": 51,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.9213483146067416,
+      "recall": 0.9111111111111111,
+      "captures": 148,
+      "false_positive_rate_on_technically_good": 0.1206896551724138
+    },
+    "video": {
+      "confusion": {
+        "tp": 17,
+        "fp": 1,
+        "fn": 0,
+        "tn": 21,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.9444444444444444,
+      "recall": 1.0,
+      "captures": 39,
+      "false_positive_rate_on_technically_good": 0.045454545454545456
+    }
+  },
+  "by_original_category": {
+    "blurry": {
+      "confusion": {
+        "tp": 37,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "captures": 37,
+      "false_positive_rate_on_technically_good": null
+    },
+    "dark": {
+      "confusion": {
+        "tp": 30,
+        "fp": 1,
+        "fn": 1,
+        "tn": 5,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.967741935483871,
+      "recall": 0.967741935483871,
+      "captures": 37,
+      "false_positive_rate_on_technically_good": 0.16666666666666666
+    },
+    "good": {
+      "confusion": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 38,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": null,
+      "recall": null,
+      "captures": 38,
+      "false_positive_rate_on_technically_good": 0.0
+    },
+    "motion_blurry": {
+      "confusion": {
+        "tp": 29,
+        "fp": 0,
+        "fn": 7,
+        "tn": 1,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 1.0,
+      "recall": 0.8055555555555556,
+      "captures": 37,
+      "false_positive_rate_on_technically_good": 0.0
+    },
+    "out_of_frame": {
+      "confusion": {
+        "tp": 3,
+        "fp": 7,
+        "fn": 0,
+        "tn": 28,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.3,
+      "recall": 1.0,
+      "captures": 38,
+      "false_positive_rate_on_technically_good": 0.2
+    }
+  },
+  "by_verified_condition": {
+    "DARK": {
+      "confusion": {
+        "tp": 25,
+        "fp": 3,
+        "fn": 6,
+        "tn": 153,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.8928571428571429,
+      "recall": 0.8064516129032258,
+      "captures": 187,
+      "false_positive_rate_on_technically_good": 0.019230769230769232
+    },
+    "BLURRY": {
+      "confusion": {
+        "tp": 69,
+        "fp": 10,
+        "fn": 7,
+        "tn": 70,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.8734177215189873,
+      "recall": 0.9078947368421053,
+      "captures": 156,
+      "false_positive_rate_on_technically_good": 0.125
+    },
+    "CAMERA_MOTION": {
+      "confusion": {
+        "tp": 3,
+        "fp": 3,
+        "fn": 2,
+        "tn": 19,
+        "unavailable_positive": 0,
+        "unavailable_negative": 0
+      },
+      "precision": 0.5,
+      "recall": 0.6,
+      "captures": 27,
+      "false_positive_rate_on_technically_good": 0.13636363636363635
+    }
+  },
+  "semantic_framing": "unsupported, outside owner-approved revised scope; original categories retained",
+  "capture_weighting": "one photo or unique clip is one capture; aggregate is descriptive, not independent extracted frames",
+  "limits": "Proxy data, small sample and correlated scene/session coverage; no trade or entry/mid-device acceptance inferred",
+  "details": [
+    {
+      "id": "m-008be1a6f560",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-02db9e22ccd9",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-03367ba4ff26",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-06fbc5eeb87b",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0719eeadd530",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0771c692bfef",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-085921bcbf87",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0a264271a1d6",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0c25b30eade7",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0d1ca225c8ee",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0ea431e40e0d",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0f1b9b788a89",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-0feb67e47ca2",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-106f1c886efc",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 11,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-10c1eb235f3a",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-12510738b174",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-1376976e6749",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-14b28d6a842b",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-15e0fde1e8b1",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-162972210921",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-198bc62c25b7",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 3,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-1d453cb241bf",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-21964c7ab06c",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 8,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-22758650c5e5",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-281632bf12aa",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-298e72a5f40c",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-307098f2d53e",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-30af80fe7fb1",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-32217e28655a",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-33928a4eb54e",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 7,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-352c3b7a4835",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-35346f8eb14e",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 7,
+      "motion_requested_pairs": 16
+    },
+    {
+      "id": "m-3546c5aff5db",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-3bf74f451f41",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-3c1f4cc6ca13",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-3c8e5593498a",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-3e019e88238b",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 2,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-409af93f1f3c",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-427db7381079",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-42cfecff11e9",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-451346b40501",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-455be0aa5df7",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-45eed5fcbba0",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-4619a5231e7f",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-4667b047679e",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-4827bab12a6a",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-4b0884af3cf6",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-4ded4bedd73f",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 10,
+      "motion_requested_pairs": 16
+    },
+    {
+      "id": "m-4f0c05cc1ce2",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 12,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-50b88b3b07d7",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY|CAMERA_MOTION",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-51d3f3decff0",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 13,
+      "motion_requested_pairs": 14
+    },
+    {
+      "id": "m-522eaaf153f8",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-52c3f149037b",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5402cf0e33ec",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 8
+    },
+    {
+      "id": "m-55860b685eb0",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-55a59bf5fedf",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-563857d11812",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5a860bbc8007",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5a9019b28dfe",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5b3025d30739",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5b535017da7a",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5dba026ae2fe",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 9,
+      "motion_requested_pairs": 10
+    },
+    {
+      "id": "m-5eade9875c52",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-5f3d2d7fe85e",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-60e52dc7f0bd",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 11,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-61dab4faddeb",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-641992b1e26b",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-6711bf9d5b8c",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-683d3f8c6d57",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-6861a2dfd955",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-6a559196639a",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-6bafddc71d03",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-6be3467f2f4a",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 10,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-6dc885e024e2",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-6dee09433e51",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY|CAMERA_MOTION",
+      "motion_analysed_pairs": 5,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-724ad434c611",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-746a3b5a8401",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-7546840e14ed",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-757b26858e6a",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-762815968a91",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-7657cbcfabdf",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-7940e72abb74",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-79d8a5ac39e4",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-7b1165dc65b3",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-7d3aa8cce439",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-7d4e9992b88a",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY|CAMERA_MOTION",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-7dd2cb5b1de0",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY|CAMERA_MOTION",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-7eef224252af",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-81e5d94ceaa5",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-828225ceb34f",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-8361be4b6c24",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 9,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-83a24ccaf744",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-86611f65e0a0",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-86a1c32e1126",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 5,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-8756cb47d4e3",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-882cf9b60175",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-88dac17b3b52",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 5,
+      "motion_requested_pairs": 15
+    },
+    {
+      "id": "m-8d57488fd95e",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-918634a1b9c0",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-94992fa662ae",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-955cad60a16b",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 8,
+      "motion_requested_pairs": 14
+    },
+    {
+      "id": "m-9588ef917fe7",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 4,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-9699b8647511",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-97e12778be8b",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9805e7c3617e",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9af046da45e5",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9c302f029287",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9c3457270f6d",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9d03a500a62c",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9d6048b32530",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9e4cf918bc03",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-9ffdfdc5d959",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a101adbc89ae",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 19
+    },
+    {
+      "id": "m-a2fb689b880a",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a3a4c8229e24",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a3c4cb68526b",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 4,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-a3da07bde8ef",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a408868a80cb",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a4b3a0ae52c7",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a861494f95b6",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a8771f41c703",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 9,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-a94dfb44ff6b",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-a9e1457d61e8",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-aaf1bcfac0f0",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 10,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-abaafb27d816",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ac62ce784aec",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ad1fcd96ad88",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ae2b04a78ade",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 2,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-af13f5b9b6f0",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-af3ee4cbcb14",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-b0700fccc117",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-b0fde0787e8b",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-b1dbdc51e76f",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-b26004d60a60",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-b6f18b9db792",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 8,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-b92df65eeb54",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-bd665b5fed55",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c0e9074143df",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c13fbb75318d",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c1ae0aee4233",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c2000c6e3a0b",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c2534ad23e61",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c27f1b9e4dad",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 13,
+      "motion_requested_pairs": 14
+    },
+    {
+      "id": "m-c7ff70168615",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c8c93906069f",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-c95f491b74da",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ca564619e29c",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-caa99b75d4bc",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-cb0067b62af2",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-cd9d62e4cfc4",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-cddfebf7040d",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-cdf7f8220a62",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ce918cb103b3",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d07ec87d5506",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d0bc89e06e7a",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d378ddf0ae53",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d4315c9667f7",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d50c2a106b68",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d576c18649c6",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d698f3c6bbe1",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 11,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-d778d949bc7e",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d833b3ec084f",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d9542241b116",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-d9ecc547d24a",
+      "kind": "video",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 7,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-da2de92fd211",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-dc4c0113ba56",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-df196564d88d",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 6,
+      "motion_requested_pairs": 11
+    },
+    {
+      "id": "m-e1ea3f307a25",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": false,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-e2401eea3a07",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": true,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-e2d88d3bec1a",
+      "kind": "photo",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-e5b558115551",
+      "kind": "video",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY|CAMERA_MOTION",
+      "motion_analysed_pairs": 5,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-e6f8c673be53",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-e83d3acf3877",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-e995c95e475c",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ec8b81f0f6ea",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-ed1542a3e449",
+      "kind": "video",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 14,
+      "motion_requested_pairs": 15
+    },
+    {
+      "id": "m-ef0dfc7e9e3a",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 10,
+      "motion_requested_pairs": 12
+    },
+    {
+      "id": "m-ef3d1f62c4d4",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f0d3e8f0f933",
+      "kind": "video",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 11,
+      "motion_requested_pairs": 13
+    },
+    {
+      "id": "m-f1d8028de3a9",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f23e5325e1cf",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f3512800d5f5",
+      "kind": "video",
+      "original_category": "dark",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "DARK",
+      "motion_analysed_pairs": 8,
+      "motion_requested_pairs": 8
+    },
+    {
+      "id": "m-f45a0820fe59",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f52546ca15ef",
+      "kind": "photo",
+      "original_category": "blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f90d98b1d077",
+      "kind": "photo",
+      "original_category": "motion_blurry",
+      "truth": true,
+      "prediction": true,
+      "verified_conditions": "BLURRY",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f9203a49cc9c",
+      "kind": "photo",
+      "original_category": "good",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    },
+    {
+      "id": "m-f9b7d7fc55ba",
+      "kind": "photo",
+      "original_category": "out_of_frame",
+      "truth": false,
+      "prediction": false,
+      "verified_conditions": "",
+      "motion_analysed_pairs": 0,
+      "motion_requested_pairs": 0
+    }
+  ],
+  "quality_numeric_gate": "NOT_APPLICABLE: owner-approved proxy functional scope; no independent heldout claim"
+}

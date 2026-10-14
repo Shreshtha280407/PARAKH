@@ -1,0 +1,31 @@
+{
+  "version": "quality-pending-calibration-v0",
+  "calibration_status": "pending_independent_group_coverage",
+  "metric_definition": "luma77-150-29-laplacian4-interior-population-v1",
+  "motion_definition": "tile9-centered-mad-translation-radius4-patch12-neighbour1-v2",
+  "longest_edge_px": 320,
+  "preprocessing": "Android bounded ARGB_8888 decode; EXIF baked; no upscale; aspect preserved; bilinear downscale; Y=(77R+150G+29B+128)>>8",
+  "video_preprocessing_paths": {
+    "default_api26_plus": "sequential MediaCodec SDR YUV420; selected-frame nearest-neighbour sampling; explicit limited/full-range colour conversion; container rotation applied exactly once",
+    "comparison_api27_plus": "platform scaled RGB retriever, container rotation baked; benchmark comparison only, not the calibrated default"
+  },
+  "clipping": {
+    "dark_inclusive": 16,
+    "highlight_inclusive": 235,
+    "unit": "fraction [0,1]"
+  },
+  "laplacian": "left+right+up+down-4*center; 1px border omitted; population variance in squared luma units",
+  "motion": "1s anchors plus 125ms partners; box-mean 4x4 reduction; 9 textured tiles; centered MAD +/-4px search; densest +/-1px vector neighbourhood; coordinate-wise median; >=5 textured tiles and >=2/3 consensus, residual <=20",
+  "thresholds": {
+    "mean_dark_below": 0.0,
+    "mean_bright_above": 245.0,
+    "highlight_fraction_above": 0.95,
+    "laplacian_variance_below": 0.0,
+    "motion_translation_px_at_least": 6.0
+  },
+  "dataset_manifest_sha256": "7ec33b6ad081b80d736243d489d19066657afce71ffbb1769ebf1b313ae2c60a",
+  "split_sha256": null,
+  "calibration_provenance": "No tuning performed. Metrics-only development profile; analyzer returns PARTIAL and thresholds_not_calibrated, with no quality flags. Acceptance is BLOCKED until independent splits and calibration exist.",
+  "semantic_framing": "unsupported; explicitly outside owner-approved revised Q2 scope",
+  "severity": "review is an assistance hint, never a probability or competence score"
+}

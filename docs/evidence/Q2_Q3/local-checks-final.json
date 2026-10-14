@@ -1,0 +1,95 @@
+{
+  "source_version": "36e0178405b5ad84f410de51d664bac9cab6c1b0+assistance-tree-sha256:66b49e8e4837eaff27c2d94032aca6699a4cef6f0429fb1ca88edc6dcf250d98",
+  "unit_test_reports": {
+    "assist-quality": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "assist-hands": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core/mapping": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core/budget": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "media": {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core/seal": {
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "app": {
+      "tests": 68,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "executed_gradle_logs": {
+    "final_assistance_build": {
+      "status": "PASS",
+      "sha256": "8038965120a237c9cee738f8e92904f5168d8eab5cb94b4a5d38a99d7f65b505",
+      "completion_line": "BUILD SUCCESSFUL in 11s"
+    },
+    "production_security_boundaries": {
+      "status": "PASS",
+      "sha256": "56d879da42b7ea4a4b181087de89e4c5be08898d83795c85a35c7d6524dfcf50",
+      "completion_line": "BUILD SUCCESSFUL in 1s"
+    },
+    "earlier_existing_android_regression": {
+      "status": "PASS",
+      "sha256": "351855c9c6aa1947f2a7615486c73a743edb8970c7c7b651c9ba94ab2637121c",
+      "completion_line": "BUILD SUCCESSFUL in 14s"
+    }
+  },
+  "physical_instrumentation": {
+    "tests": 7,
+    "failures": 0,
+    "seconds": 4.924,
+    "evidence": "oneplus13r-instrumentation-final.txt"
+  },
+  "workflow_python_tests": {
+    "tests": 15,
+    "failures": 0
+  },
+  "independent_synthetic_gray_vectors": 16,
+  "actual_android_photo_metric_parity": {
+    "unique_photos": 148,
+    "status": "PASS"
+  },
+  "actual_android_calibrated_flag_parity": {
+    "unique_captures": 188,
+    "status": "PASS"
+  },
+  "actual_android_hand_aggregation_parity": {
+    "unique_clips": 40,
+    "status": "PASS"
+  },
+  "string_parity": "PASS:418 EN/HI values,3 files,26 declaration card IDs",
+  "ci_yaml": "PASS parsed6 jobs; new assistance checks present; no private dataset dependency",
+  "production_apks": "No assistance model/profile/native entries in existing production debug/release APKs",
+  "hosted_ci": "NOT RUN: owner will manually commit/push; no hosted success asserted",
+  "scope_note": "133 existing core/app unit tests ran earlier on unchanged production source. Final assistance source separately rebuilt/tested. No backend rerun or historical P7 test-count reassignment.",
+  "recorded_android_scalar_ci_replay": "PASS locally for Q2 threshold flags/proxy metrics and Q3 aggregation/coverage; no native hardware execution implied by replay",
+  "git_review": "No raw private media/frames/gray files; only two synthetic test videos. No commit/push/PR.",
+  "final_verification_utc": "2026-10-14 18:25:07 UTC"
+}

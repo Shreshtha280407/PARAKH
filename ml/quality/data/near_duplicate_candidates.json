@@ -1,0 +1,572 @@
+[
+  {
+    "a": "m-409af93f1f3c",
+    "b": "m-4fcfe37c4939",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-409af93f1f3c",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-641992b1e26b",
+    "b": "m-21964c7ab06c",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-a3a4c8229e24",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-522eaaf153f8",
+    "b": "m-50b88b3b07d7",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c7ff70168615",
+    "b": "m-f1d8028de3a9",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-8d57488fd95e",
+    "b": "m-12510738b174",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-a94dfb44ff6b",
+    "b": "m-cd9d62e4cfc4",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-da2de92fd211",
+    "b": "m-4fcfe37c4939",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-da2de92fd211",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-b0700fccc117",
+    "b": "m-aaf1bcfac0f0",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-b0700fccc117",
+    "b": "m-60e52dc7f0bd",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-af3ee4cbcb14",
+    "b": "m-4fcfe37c4939",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-af3ee4cbcb14",
+    "b": "m-8361be4b6c24",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-af3ee4cbcb14",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-06fbc5eeb87b",
+    "b": "m-b6f18b9db792",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-0c25b30eade7",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-0c25b30eade7",
+    "b": "m-7d4e9992b88a",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-0c25b30eade7",
+    "b": "m-198bc62c25b7",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-0c25b30eade7",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-55860b685eb0",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-52c3f149037b",
+    "b": "m-9d6048b32530",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-3bf74f451f41",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-d07ec87d5506",
+    "b": "m-d378ddf0ae53",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-9c302f029287",
+    "b": "m-7dd2cb5b1de0",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-aaf1bcfac0f0",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-f0d3e8f0f933",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-106f1c886efc",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-e5b558115551",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-7d4e9992b88a",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-198bc62c25b7",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-86a1c32e1126",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-4fcfe37c4939",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-88dac17b3b52",
+    "b": "m-35346f8eb14e",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-88dac17b3b52",
+    "b": "m-60e52dc7f0bd",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-88dac17b3b52",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-35346f8eb14e",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-ed1542a3e449",
+    "b": "m-60e52dc7f0bd",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-9588ef917fe7",
+    "b": "m-aaf1bcfac0f0",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-aaf1bcfac0f0",
+    "b": "m-c27f1b9e4dad",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-aaf1bcfac0f0",
+    "b": "m-106f1c886efc",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-aaf1bcfac0f0",
+    "b": "m-86a1c32e1126",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-aaf1bcfac0f0",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-aaf1bcfac0f0",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-aaf1bcfac0f0",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-ef0dfc7e9e3a",
+    "b": "m-4619a5231e7f",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-60e52dc7f0bd",
+    "b": "m-106f1c886efc",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-60e52dc7f0bd",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-f0d3e8f0f933",
+    "b": "m-6dee09433e51",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-f0d3e8f0f933",
+    "b": "m-50b88b3b07d7",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-f0d3e8f0f933",
+    "b": "m-8361be4b6c24",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-f0d3e8f0f933",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-f0d3e8f0f933",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-f0d3e8f0f933",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-106f1c886efc",
+    "min_dhash_distance": 6,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-e5b558115551",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-6dee09433e51",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-7dd2cb5b1de0",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-8361be4b6c24",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-86a1c32e1126",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 7,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-c27f1b9e4dad",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-106f1c886efc",
+    "b": "m-7dd2cb5b1de0",
+    "min_dhash_distance": 7,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-106f1c886efc",
+    "b": "m-86a1c32e1126",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-106f1c886efc",
+    "b": "m-a101adbc89ae",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-106f1c886efc",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-106f1c886efc",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 6,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-106f1c886efc",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-e5b558115551",
+    "b": "m-7d4e9992b88a",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-e5b558115551",
+    "b": "m-7dd2cb5b1de0",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-e5b558115551",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-6dee09433e51",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-7d4e9992b88a",
+    "b": "m-a101adbc89ae",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-7d4e9992b88a",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-7d4e9992b88a",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-198bc62c25b7",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-198bc62c25b7",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-7dd2cb5b1de0",
+    "b": "m-a101adbc89ae",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-7dd2cb5b1de0",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-8361be4b6c24",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-86a1c32e1126",
+    "b": "m-3e019e88238b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-86a1c32e1126",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-86a1c32e1126",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-86a1c32e1126",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-3e019e88238b",
+    "b": "m-ae2b04a78ade",
+    "min_dhash_distance": 9,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-3e019e88238b",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-3e019e88238b",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-ae2b04a78ade",
+    "b": "m-d9ecc547d24a",
+    "min_dhash_distance": 10,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-ae2b04a78ade",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 11,
+    "status": "candidate_requires_visual_review"
+  },
+  {
+    "a": "m-d9ecc547d24a",
+    "b": "m-a3c4cb68526b",
+    "min_dhash_distance": 12,
+    "status": "candidate_requires_visual_review"
+  }
+]

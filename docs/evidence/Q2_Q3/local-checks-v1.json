@@ -1,0 +1,78 @@
+{
+  "source_base": "36e0178405b5ad84f410de51d664bac9cab6c1b0",
+  "unit_test_reports": {
+    "assist-quality": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "assist-hands": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core/mapping": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core/budget": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "media": {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core/seal": {
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "app": {
+      "tests": 68,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "executed_gradle_logs": {
+    "final_assistance_build": {
+      "status": "PASS",
+      "sha256": "4b06cf21442c38240ac4fbab5df4992d85d235e41fccfc669b94574de74a4c5f",
+      "completion_line": "BUILD SUCCESSFUL in 14s"
+    },
+    "production_security_boundaries": {
+      "status": "PASS",
+      "sha256": "56d879da42b7ea4a4b181087de89e4c5be08898d83795c85a35c7d6524dfcf50",
+      "completion_line": "BUILD SUCCESSFUL in 1s"
+    },
+    "earlier_existing_android_regression": {
+      "status": "PASS",
+      "sha256": "351855c9c6aa1947f2a7615486c73a743edb8970c7c7b651c9ba94ab2637121c",
+      "completion_line": "BUILD SUCCESSFUL in 14s"
+    }
+  },
+  "physical_instrumentation": {
+    "tests": 7,
+    "failures": 0,
+    "seconds": 4.907,
+    "evidence": "oneplus13r-instrumentation-v1.txt"
+  },
+  "workflow_python_tests": {
+    "tests": 14,
+    "failures": 0
+  },
+  "independent_synthetic_gray_vectors": 16,
+  "string_parity": "PASS:418 EN/HI values,3 files,26 declaration card IDs",
+  "hosted_ci": "NOT RUN: owner will manually commit/push; no hosted success asserted",
+  "scope_note": "Existing core/app regression ran earlier on unchanged production source; final assistance source and additional telemetry were separately rebuilt/tested. No backend rerun or historical test-count reassignment."
+}

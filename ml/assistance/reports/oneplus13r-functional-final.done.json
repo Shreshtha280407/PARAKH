@@ -1,0 +1,9 @@
+{
+  "run_id": "final_full_v3",
+  "status": "COMPLETED",
+  "error": null,
+  "wall_ms": 383313.091938,
+  "observed_peak_pss_kb": 199288,
+  "observed_peak_native_bytes": 111547568,
+  "memory_samples": 2682
+}

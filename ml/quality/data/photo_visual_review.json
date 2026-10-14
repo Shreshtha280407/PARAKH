@@ -1,0 +1,2298 @@
+{
+  "version": "proxy-photo-quality-review-v1",
+  "reviewed_on": "2026-10-14",
+  "manifest_sha256": "7ec33b6ad081b80d736243d489d19066657afce71ffbb1769ebf1b313ae2c60a",
+  "scope": "owner-approved exposure, blur and temporal camera motion; semantic target framing unsupported",
+  "rubric": {
+    "DARK": "Visible substantial underexposure/shadow detail loss; ordinary directional lighting alone is not a defect.",
+    "BLURRY": "Visible lost edge detail, haze/softening or doubled/smeared edges across scene or visible evidence subject; physical cause not inferred.",
+    "CAMERA_MOTION": "Not judgeable from still photos. Temporal camera instability requires separate video-sequence review.",
+    "OVEREXPOSED": "Broad highlight detail loss, not an isolated lamp/reflection. No positive cases established in this photo review.",
+    "bad_capture": "At least one independently observed technical defect; semantic framing and hand presence never determine this label."
+  },
+  "reviewed_unique_photos": 148,
+  "photos": [
+    {
+      "id": "m-1376976e6749",
+      "sha256": "78979eae6ccd194beb3adfa240fe6ed7ac03463489c91b70d30321ea46f7939b",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-b0fde0787e8b",
+      "sha256": "709dd05ce0d8890bb20b554970ebd1bd72f80f6c05b61c69156edb0c7427f3f1",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-5a9019b28dfe",
+      "sha256": "c838356611e25bd5e3e7257efca76843e1e9d05204934162e78ccf7bae20b9c2",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-757b26858e6a",
+      "sha256": "8fea3633713dad86afbe2f8bd299c34c99084b2b90abc7ce6b5fd2081c35a313",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-409af93f1f3c",
+      "sha256": "25cc490ceb464dfbf9d3ff7af1538621a801553f164186b72ceb52d06948c0c7",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-ef3d1f62c4d4",
+      "sha256": "66c07f37191698027391c937a1e83be320432ecd81f602a5f3793a8b79421494",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-9ffdfdc5d959",
+      "sha256": "ae288f215667ea6fc12c47410e9861773f6bb44e101a503eafc84bdd63fb0b11",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-14b28d6a842b",
+      "sha256": "1b856fe8450698587c2bccb13e1f45892952fdc9474b59d64bd5b87a2ede83c1",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-c8c93906069f",
+      "sha256": "056eb63d659f1fe591b1604b2a2942d103b6672519f797aa34f00e612cf28f59",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-d778d949bc7e",
+      "sha256": "5fa4fe7f148b0ef5590ae06bfc6f816cf70c068ccefa77797459413c85bb8dc9",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-caa99b75d4bc",
+      "sha256": "759235cf0cad5f1fa7873453a3a46598a2bcac299299480175637d6244e6effc",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-a408868a80cb",
+      "sha256": "0505a1d71b650863e14685a453749007fe61d1d269fc79e9eba8f9f55793c095",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-55a59bf5fedf",
+      "sha256": "3ea89a7bf4bd1ce56154c189223d06298833263cce2c079581ef3467ecd32c72",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-6711bf9d5b8c",
+      "sha256": "587a53d46b485b0ef3112578bc3263cfc14a44308853b053f0f137ea4e911282",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-641992b1e26b",
+      "sha256": "ab58d0cd161715a673463eb24586a07731d5079d6315c7897ac6bba626b268fb",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-86611f65e0a0",
+      "sha256": "0c82bf5d2cf05dfe56d95125e36a129fc1e8c060d4e39c272df0bdc46441dbcc",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-f45a0820fe59",
+      "sha256": "d332915359a0edfaa33163f3be3fbfd11c686852a3300ace39b2495b56650768",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-0feb67e47ca2",
+      "sha256": "146c06b9016ae6b6c41396aa5750d4ac9f23454efaa1a49b29465f4f74a54338",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-0d1ca225c8ee",
+      "sha256": "546217dc22ac1fdd68426aea39cca3d350dfc053fd1b837ce171912c22864ebc",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-e83d3acf3877",
+      "sha256": "15c5b6c02cb261c0fda4ba974f2bc1f7fe8ab7e3e944774696185e4ad1ac5417",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-f52546ca15ef",
+      "sha256": "b03fa5347f1e9231ae56bec03159e5f749eec3b336bd71abecfd394946aae72b",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-0771c692bfef",
+      "sha256": "e4fe7235e6015fee0233abae5ab04bedc6425e698c546d88590d67029d0c7195",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-0ea431e40e0d",
+      "sha256": "319864bf9019cec3b6f6cce2c5fb29987abcc3d38605fec9bf4bdf0fa7836106",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-427db7381079",
+      "sha256": "7646be6e2f97c862f62a0178a809c9d25d1c2c080257171cd8107e4ea0dba721",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-455be0aa5df7",
+      "sha256": "6bed1ba7309c363203e7321791134ea580532a0233b40540a66214f9047eb31c",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-bd665b5fed55",
+      "sha256": "4bd9a87faaac3d4bca4c24b4d3d1d6daae50a9a2e8111d163f6c19cdb2829d46",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-b26004d60a60",
+      "sha256": "6ab97cf80ca2275bc769b670e3e05fa38a7060fac9345d25db126a8e41e2738a",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-6bafddc71d03",
+      "sha256": "ebf3c2f5a96f9af31cc576980ffbe9b107d76353936e269c8d2a08bfe64baddd",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-9805e7c3617e",
+      "sha256": "4cae7ab692886f8b6260230740247910379ed94c8dbc3e5f65f45b904a0989ed",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Haze/softening visibly reduces fine scene/object edges; do not infer a particular physical cause of blur."
+    },
+    {
+      "id": "m-c2000c6e3a0b",
+      "sha256": "ce6d90305fe60614a713e3b19ca04fbd1abee60f17a600f85fefe094c56e2bff",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-af13f5b9b6f0",
+      "sha256": "4564da12b713769523851e89f0a15e9425bb52ca349cb6ca95b0528b4ba9110b",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-a3a4c8229e24",
+      "sha256": "fa0a70139d45c0b78cf786728413f81a5da08be5cd88ddbe414d5a5a49ea050b",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-b1dbdc51e76f",
+      "sha256": "b9e9d652afaefbe7599d169dd0ec94f8b396ae995a5996d5cf78362fe202dc1d",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-c1ae0aee4233",
+      "sha256": "c48a83e6af503049e64f7c7036ed52501a93d185e5f7cfbd5b190360a2cc6440",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-ad1fcd96ad88",
+      "sha256": "9f1699d2e5dea20d23ab3083c4f70f84bf5bdea6682b21efdecf8a1406d583b2",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-9699b8647511",
+      "sha256": "730b964cccc19731828a733aba0384edb031492c0a8f9a99e7b2fe1e48910754",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-9af046da45e5",
+      "sha256": "3d4ea1425d502568fa019e2b914dbf91ce2dae6bc6cb4ff31cb0695413c0577b",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-cdf7f8220a62",
+      "sha256": "b6587a3dca985d60270d5b9692d7db49a9abfd233d99cc2deae735aa6442caf4",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-5b535017da7a",
+      "sha256": "147db5dfa9d5dace5d796499bfb1741b150f3cd9f08a494527205c8c16fb7b11",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-7b1165dc65b3",
+      "sha256": "9cbff7a42e41f8c5ac7ed194f942da56d91d64c7bd64520cd896e75efd499f1d",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-7940e72abb74",
+      "sha256": "1826f9145550fdcd0602855f1b0d7bd28a10190caa2a17c1bf9380a1c6adb1b9",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-a4b3a0ae52c7",
+      "sha256": "da03716fd5d024fcaee893dbc962d3b1a27143c4beb690e289d0e4731114ab17",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-d833b3ec084f",
+      "sha256": "70083065ad957a4a1486e3bbe2595067ba11726e51b4c9746e9204a47b98a59d",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-9e4cf918bc03",
+      "sha256": "de45ed60c1c17cdb031acfe8a6f0d923f2b7f43c72562bbaa5aef08c629a6ebc",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-c2534ad23e61",
+      "sha256": "d1cc57901fb67bdf9e69d98d332d76bf0cbecb2a77afa901a9e16ba9e49128fb",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-97e12778be8b",
+      "sha256": "86c80886dbf5fd4bea057a6a31ff5861085e84510a62a02a5a97fd6f3406b940",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-683d3f8c6d57",
+      "sha256": "32287193025cbd6a5d959938b69e4ee15ec94b71ee74d087c3e8754753f4436c",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-1d453cb241bf",
+      "sha256": "653ef9121be06334b32074af266bb69afa5f894fa8ed2921659097e48e71081b",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-828225ceb34f",
+      "sha256": "58993268e5412ceee220ae1787aac5a2d569486d2467438852325fdfad7f1017",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-e2d88d3bec1a",
+      "sha256": "146a7eaa3e229b260153e6a9f4dfded848ca42adf35142b62fce764e9e253107",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-d0bc89e06e7a",
+      "sha256": "70e525efb0bdf35be1e04211903fb73e5a577b60a88a4980cf114469c698e419",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-cddfebf7040d",
+      "sha256": "9e25ab17c9fb77ae07298c3748cebaff0e7d62a21f520157042f94f3c54e92b5",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-352c3b7a4835",
+      "sha256": "c85ca9d206144336e5df782c8ea20a5c145c07fcb49e62efeb618227000f898a",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-7546840e14ed",
+      "sha256": "ffbf8713e0d1edba73cf57f42b4329334f161d0f981df5ec0a43034662488890",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-3c8e5593498a",
+      "sha256": "1e73ba1ff9a26c8123c66fadc45ac99ab1a0fa05267e05bf1dab2a98744cc955",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-d576c18649c6",
+      "sha256": "fa8c55420dac799d9f94b9ed47374e72bb2d584c5d65ae2d188db148e17b11e2",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-522eaaf153f8",
+      "sha256": "42acf2ad244880b628dd9ad952e8ac5b09cc1a73d1b891f52bd73bb3e6f35abf",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-02db9e22ccd9",
+      "sha256": "e5057ec2d35c5e0a59284c8e80e80b97dc91cdc8fe1dec05cf3ca5dd62491a2e",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION",
+        "BLURRY"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Substantial shadow/detail loss on visible scene/hand; blur cannot be confidently separated from darkness."
+    },
+    {
+      "id": "m-c7ff70168615",
+      "sha256": "cd742ac9bcd150950d8faa1abaccfb84605fc81194ab7a647dae9b682108655b",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-f1d8028de3a9",
+      "sha256": "26e19d673d57179878a1c7bca8e69e4a70128e55e5cf81740aa0fe4ee415798e",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-8d57488fd95e",
+      "sha256": "64bcf3ad996aeb56c35f5c482402e077cae7911fee79284b519fd78c84906289",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-a94dfb44ff6b",
+      "sha256": "0cff6ecdb39b3c44e1d53308d29586f8a1204c1d0e4844789bf87e28454c52bd",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-cd9d62e4cfc4",
+      "sha256": "ab1a32481d45dba40d48cdbfdcc707e4e520d7f0334433fab5a151eaac786abd",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-085921bcbf87",
+      "sha256": "ec29e01974ec5f0519a8d1f4a0018f7b218db08e708287c9aa8ccbf91115cb38",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-da2de92fd211",
+      "sha256": "928605058ac64909275a92a93e70ee981d58c1e1c7459e1d72d165e71d8e05e8",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-b0700fccc117",
+      "sha256": "1a0636043b2a5d3dfaabdac7fcf0c31b0f54113405c905a17424328e08bcb5e0",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-c95f491b74da",
+      "sha256": "e5f0e04584fdaecfae7abfc5d96ea2f086d58a799fefcd4ddd1e7ee3ac684532",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-746a3b5a8401",
+      "sha256": "37c17cda7af13bb26b0bcac851c9a10e70e6dfa77de2c4839770acf38b960b5a",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-a2fb689b880a",
+      "sha256": "4ffea8f22eae57f8a2396a1df0ccee1edfc157719c56eed78e144f527ca522b9",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-42cfecff11e9",
+      "sha256": "616212ba4144f52e9caa8ed6e3ec879d41d5e4c76d60219ed06a75aee1e27c83",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-83a24ccaf744",
+      "sha256": "37fe12f94622fe39461b3a6b512b9d9c71d24111978060a3066ccdb6a030db77",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-61dab4faddeb",
+      "sha256": "4cfef584aecb3a9a865ba7d8e3346712064aec83c0af34a7bca8287f63fc5f41",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-563857d11812",
+      "sha256": "d2a1dfbe011d4d60e668526c0d07e6a9f39c02067cba006d84fb7419d2ddbee3",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-9d03a500a62c",
+      "sha256": "94197f3b470c95217a59aaa9dd311122875a6388ac38ec0f3b5b4ae7448f3afc",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-0a264271a1d6",
+      "sha256": "3d5779b67266333125bfa33e1dcfe88c6ac3a65327442fae85b910071057eb10",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-12510738b174",
+      "sha256": "5c773db53244ce115ff5ade95909bc2823b6fd9d0da1e75fece2fe2e54806086",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-0f1b9b788a89",
+      "sha256": "3e1d0369dc36969fdb825226d9c8584a5b163d05b3956f482ae2352966e4292f",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-af3ee4cbcb14",
+      "sha256": "942b592c44018bfd456f91467d8f4b4ffdc65b6a6792081e8608d294740472e3",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-06fbc5eeb87b",
+      "sha256": "98809c3d5ff2594ac7a9467f8db6f6dad9eaab699054d28d1f22ea7c4807a6b5",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-7d3aa8cce439",
+      "sha256": "251ed730a91dc088231a0ab18b2ae07e1300da444e4e52192f4234ba0d88785d",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-0c25b30eade7",
+      "sha256": "bbd8066ed0e028caccbe6b349eb5b17bc75e814c48f4365d727a1cff0c80e7ce",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-a9e1457d61e8",
+      "sha256": "9427255f3db635e29ee4a2e11cc513d2822eb1262d5234de8b2d23426ec4d7f5",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-ce918cb103b3",
+      "sha256": "b5fee388d93409f812cd6e9fb62ae810db119a46915ab840d0444fdfffd6e65e",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-94992fa662ae",
+      "sha256": "cfdefee671c62c339f177e195062b94fc2bc09eb765e48d14e2b481e097723f3",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-f9203a49cc9c",
+      "sha256": "dfba38d74869559a7877aa2431d32d6e8443bdfae693c5269fc389da0a62c05c",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-307098f2d53e",
+      "sha256": "23fad52af0f93e075a02f3c63d07da56d0a39aab11586f59b5fe8140b19fdd62",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-55860b685eb0",
+      "sha256": "63c7d7f06f7dacaaf450f4b2c610ccf2b4e623245aaee559701bf29ab9820c26",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-52c3f149037b",
+      "sha256": "9ab69410b8f04639a088394c5cd719b6c712513eb58d530e07a4047c95960642",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-d9542241b116",
+      "sha256": "2b4bdcd88054436747c9f7176bb612d08a8e50053d32d370c6b960f85312d3f5",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-a3da07bde8ef",
+      "sha256": "5a3088f86281c82e04a51642503405f08c6aaf5b399f1fc8af0a6069b153749e",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-4827bab12a6a",
+      "sha256": "be4e671f959a3457059f68961803db27b8259f8c3902b944edd16f5510ffeff6",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-f90d98b1d077",
+      "sha256": "523d788b2e33ed62382f502dabaeaeb14dff949235519dbca273bbd39e37d93c",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-81e5d94ceaa5",
+      "sha256": "55a04c3e12bf29d4d1cb4b08b72b376471583d20966ee139acc47e363de2bafd",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-008be1a6f560",
+      "sha256": "798df2925017700655011530b63b9b96b3c8ea4f85cc7f7ae81d4766dabc2f01",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-6dc885e024e2",
+      "sha256": "bbd4fb2c83eeec742be37dd8ea715f143521a43462c47b03e966b475e6f2b7af",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-e995c95e475c",
+      "sha256": "7a6d8072a5f0de535dfb8a222677a313d6615c5cfc1420bde6aa7e3f4f18f78a",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-45eed5fcbba0",
+      "sha256": "f4193e49f5a1b25007cec2d277b28e8a7c8ceba3285f01a3938946577a21a96d",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-d50c2a106b68",
+      "sha256": "c55a04434c1e930017f3ea46ca0693310583a64cb94b81ba140ca6d22211f7a8",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-451346b40501",
+      "sha256": "99bca1b83f1000ed337124fa73a7fdd0838e947b42dc405518b8a0514fca8fa5",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-7657cbcfabdf",
+      "sha256": "682730a43433019735677774f2cfa301f9b94a0f32d32e9514b4d5fbe7d2bcab",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-ec8b81f0f6ea",
+      "sha256": "cb19c9432a082500da4d153007f30de51661abfabe2bc72ff84be54256d5ed7e",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Full-resolution follow-up: hand/cable/laptop edges remain discernible; bright reflection is local, without broad highlight detail loss. Original motion label retained separately."
+    },
+    {
+      "id": "m-ac62ce784aec",
+      "sha256": "d7ab35e903e9410908476c4e41088aa1ed4f1126eecaa3290c37852c80c10f03",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-3bf74f451f41",
+      "sha256": "7a0323f444a661587167dbe06f8bf0033044b5ed0347194a3d8256ee86f56ed7",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-b92df65eeb54",
+      "sha256": "1bbac764aeda71e28e65d91a7415341edcf33cdaeae0d79b5476790f6a69f978",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-9d6048b32530",
+      "sha256": "34478dd86efbdbbda17326504e82451eb14a931e98e29113966f39312fd44ce2",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-918634a1b9c0",
+      "sha256": "882581a934e1365637f2ac76e821dee62ccdba806490a8aca80a5f0113d6241c",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-10c1eb235f3a",
+      "sha256": "ab3bda55c72b067be95eb65c5db1d30fa945947d6e4bc2e9263844c0752af93f",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-5f3d2d7fe85e",
+      "sha256": "4f4dfbb9e93140bc20c74426ecc3662802ac418effcfb9b2e8bfcf3ee2817a95",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-dc4c0113ba56",
+      "sha256": "146c107c542a05c04c822114ba2d52415ad4a49b8a7fc1c41b60b8bcf5fcab17",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-4b0884af3cf6",
+      "sha256": "ba936f1cce07701ba90ad7cda83544a213588979ad6fc2a725b49d1bac63b2b2",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-724ad434c611",
+      "sha256": "c39963e2b41a5eff8a78bf3772db403085f1d84a9b7d0002191b307a9a5fb134",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-162972210921",
+      "sha256": "1d87a9a00561afe32548974457c76dfa4c0edbe826e67b9802008da88b9561fa",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-762815968a91",
+      "sha256": "aff7e8ff2f66eaff9432c63eb395b9816cdd29b4a69cb93047733dcf94ad9a95",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-6861a2dfd955",
+      "sha256": "9d85cff78576a0cadd4c1ce628685129fb7df45f48410d39fdbd180bac974cfe",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-79d8a5ac39e4",
+      "sha256": "9b0f00cd9cbb02b937649ed0f0b182576e1227692711db975ac9a1082ef14277",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-0719eeadd530",
+      "sha256": "2f8ae11532b7ece8561105911dc6b49ec26a1087f273436d1c7e1ccf37186268",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-7eef224252af",
+      "sha256": "4d5d49442123526e2007128d60a2dd46157147e68a1a987bc4ad722f9ba93681",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-e1ea3f307a25",
+      "sha256": "c43bee9035a4da2d646ac3308337b23c5ef4b6ed36212a1044548d7f612abe88",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Visible softened/doubled edges or hand/object motion smear. A still image cannot establish temporal camera shake."
+    },
+    {
+      "id": "m-281632bf12aa",
+      "sha256": "8fdadabb64f50e18fb128359c852ad4098d0e642ddcc1eed5af27202d9acd363",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-298e72a5f40c",
+      "sha256": "e8e4f18800b37724b531318cc82f4758843bed8b5358e9ef567cfd37f9e7a12a",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-4667b047679e",
+      "sha256": "091521a39bd853220c157a1421201144b73007eefea9c78c37d7e6603f1e9679",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-5a860bbc8007",
+      "sha256": "33f5887e97eb3783f0d4fd4f1c0f3fb1f379965810e9f99750f3632c673900d8",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-a861494f95b6",
+      "sha256": "672fac9460132e1c4ddcea1b6ba617646a8c3660e6ee6133d41594d1760456ce",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-d4315c9667f7",
+      "sha256": "cd5144bceb54f4e7d3f2185ebaf85f76f9d997370cae212a7cd7a52c8a8ae0c5",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-6a559196639a",
+      "sha256": "cfd50889940c595db61ae3f019dc064588d6e7f3a57a93da142e89343df5e7ac",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-5eade9875c52",
+      "sha256": "ba75a274b0fd0f73e2761bcf347192c6df17e167e75b9ce0d0ca5bb1487ae843",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-abaafb27d816",
+      "sha256": "f8baea825dc38862c34943dfc7bb89c972aa95b56b5743d65165800e48a12ebe",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-22758650c5e5",
+      "sha256": "1a01401d645b872fec9deaf1ece2630ba14c1eb410e40f00649b019ce0fb4017",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-30af80fe7fb1",
+      "sha256": "4f697b24cf396ebfc02a4e050236f238bf7612c245f73db0accd578e4ed0771f",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-5b3025d30739",
+      "sha256": "a210a004a50c135b3eadefc0ec4a4cf2e8e94ead1d9d4d6fe911cf1d9778410b",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-f23e5325e1cf",
+      "sha256": "1c9930e7688fc6cfeeccfa20e83d0f1ff3c9293664e67ad728eb80a414a087c2",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-15e0fde1e8b1",
+      "sha256": "e7d47fbf2ef930f3f2a3d14e9b5f3040f159bba2963b9f0f0bcdbeb3d61f4bf8",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-e2401eea3a07",
+      "sha256": "29dc09e406b84a0dc41f831edf7cd18e1737df68ab736ec2e6172237434fe6fe",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-f9b7d7fc55ba",
+      "sha256": "10ddc6a38c1bc2836ea1936654892373e93e1a3b9b985ee822a0aaa1b9a4affb",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-d07ec87d5506",
+      "sha256": "4e89410cebda4b99e534fb248b7b4d3c16f91d50a9dad591fd648c9a7b226a30",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-c0e9074143df",
+      "sha256": "1687cb9bcb0c9e61de022531535aec773e0074fd6b0b6ce0d7c8104d0a0655fd",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-882cf9b60175",
+      "sha256": "d0105d14380f3c1d3c35c76e0066332ce80a4a88fe1ffac26093b568d4aef5c4",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-03367ba4ff26",
+      "sha256": "0eafa30c46178724da5b58fd304a6374204389d8337e87e07e08bae62a4dc159",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-c13fbb75318d",
+      "sha256": "adc15d964134ebefe5ceb3647cf67397606f5ec73ed556786914d992258fcadc",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-d378ddf0ae53",
+      "sha256": "66f35a3c3301223f86399ff694e9d6303c5cf8f52b31b30d47f597a7d6dd0885",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-3c1f4cc6ca13",
+      "sha256": "1ef464737d081010ff2b3f12b3c765c7fffc7e1254de430949b37a0e96f8c7b6",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-e6f8c673be53",
+      "sha256": "d64e5b2c2be54c74cdd63a7d43bd10907dad821336c2d7b1e80ba8941dc45b57",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-8756cb47d4e3",
+      "sha256": "46e09b7a6858a91dd11848baa4a00853b6c2dfac130bb565959de9cf264191a6",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-32217e28655a",
+      "sha256": "733b2c38c5bd43a30080e8a4e12855647f3475377f0bcb32039da9f86bad692e",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Full-resolution follow-up: doubled/smeared stationary pouch/pen/writing edges. Technical blur despite original Out_of_frame category."
+    },
+    {
+      "id": "m-3546c5aff5db",
+      "sha256": "f6e9a38007e0d342b03f8ccecc3dd59067b81a4a9f8ebf91d59d949d56c5206f",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Full-resolution follow-up: doubled/smeared stationary pouch/pen/writing edges. Technical blur despite original Out_of_frame category."
+    },
+    {
+      "id": "m-ca564619e29c",
+      "sha256": "ebe6a65663c71ec59c576d81ddd442ade00bb31eed071583376f3f2e23ca3d42",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Full-resolution follow-up: doubled/smeared stationary pouch/pen/writing edges. Technical blur despite original Out_of_frame category."
+    },
+    {
+      "id": "m-9c302f029287",
+      "sha256": "26be7bca4e2cc420033e26d29410929214c4dee30e7edc744894301c6830c8b7",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    },
+    {
+      "id": "m-9c3457270f6d",
+      "sha256": "a7d6bb59242a0066ec6c6d56862ac31c420cc90e9a734d8161e8108e84a7add3",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "all category contact sheets (15 pages); questionable originals inspected directly; no algorithm scores/predictions used",
+      "review_note": "Fine scene/object edges discernible; exposure permits visual review. Missing semantic target is not a technical defect."
+    }
+  ],
+  "video_review": "pending; this file does not establish complete quality truth or frozen partitions"
+}

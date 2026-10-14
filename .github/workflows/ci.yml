@@ -116,7 +116,7 @@ jobs:
           if-no-files-found: ignore
 
   android-app-build:
-    name: P-3/P4/P5/P6 Android unit tests + debug/release build
+    name: P3/P4/P5/P6 + Q2/Q3 Android tests and debug/release builds
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -191,6 +191,32 @@ jobs:
           name: kaushalpramaan-debug-apk
           path: apps/android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: ignore
+      # Assistance uses synthetic fixtures and public model assets; never private Drive media.
+      # Frozen proxy metadata/threshold checks do not assert independent field performance.
+      - name: Assistance intake, protocol and reproducible privacy-safe fixture checks
+        run: |
+          python3 -m pip install Pillow==12.3.0
+          python3 -m unittest discover -s ml/assistance -v
+          python3 ml/quality/generate_vectors.py --check
+          python3 tools/verify_assistance_assets.py --require-calibrated
+      - name: Replay recorded Android scalar outputs (no hardware execution or private pixels)
+        run: |
+          python3 ml/quality/eval.py --protocol ml/quality/data/splits.json --partition proxy \
+            --android-results ml/assistance/reports/oneplus13r-functional-final-results.jsonl --out /tmp/quality-ci-replay.json
+          python3 ml/hands/eval.py --protocol ml/hands/data/splits.json --partition proxy \
+            --android-results ml/assistance/reports/oneplus13r-functional-final-results.jsonl --out /tmp/hands-ci-replay.json
+      - name: Q2/Q3 unit parity, builds, instrumentation compilation and offline harness permissions
+        working-directory: apps/android
+        run: |
+          ./gradlew :assist-quality:testDebugUnitTest :assist-hands:testDebugUnitTest \
+            :assist-quality:bundleReleaseAar :assist-hands:bundleReleaseAar \
+            :assist-benchmark:assembleDebug :assist-benchmark:assembleRelease \
+            :assist-benchmark:assembleDebugAndroidTest :assist-benchmark:verifyOfflineHarnessManifest --console=plain
+      - name: Assistance model/profile assets available identically in debug and release
+        run: |
+          python3 tools/verify_assistance_assets.py --require-calibrated \
+            --apk apps/android/assist-benchmark/build/outputs/apk/debug/assist-benchmark-debug.apk \
+            --apk apps/android/assist-benchmark/build/outputs/apk/release/assist-benchmark-release-unsigned.apk
     # Real-device-only coverage (CameraX capture, Media3 Transformer video transcoding, real
     # AndroidKeyStore ECDSA signing, real Tink StreamingAead vault encryption, SQLCipher's
     # native library, and P6's real-Keystore-backed sync tests) is NOT run on GitHub-hosted

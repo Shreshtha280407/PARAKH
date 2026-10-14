@@ -29,6 +29,9 @@ app's user-visible display name is "PARAKH"; the Android package
 | `:core:mapping` | Pure Kotlin/JVM port of `ml/mapping/matcher.py` (match-rules@r3, 20 declaration cards + 6 tools). No Android dependency — its `GoldenVectorsTest` runs as a plain fast JUnit `test` task. `:app` depends on it like any other library. |
 | `:core:budget` | Pure Kotlin/JVM deterministic budget ledger (P5) — per-task/total byte accounting, no Android dependency. |
 | `:core:seal` | Android library: streaming SHA-256, the canonical signed manifest, Android Keystore ECDSA signing/verification, and the Tink `StreamingAead`-encrypted vault — including P6's bounded `decryptingStream` API the sync layer reads from. |
+| `:assist-quality` | Reusable offline technical-quality metrics and camera-motion proxy; bounded decoding, typed errors/coverage and versioned thresholds. Proxy-calibrated functional scope verified; independent field acceptance is not claimed. |
+| `:assist-hands` | Bundled CPU MediaPipe Tasks Hand Landmarker; 1–2fps samples, visible ratio, absence cells and explicit failures. Offline functional scope verified; proxy misses and absence-interval limits are documented. |
+| `:assist-benchmark` | Separate Assistance Lab application/test package, private USB staging and measurements. No production-app dependency or assessment-data access. See [module contracts](../../docs/assistance_modules.md) and [acceptance evidence](../../docs/gates/Q2_Q3_progress.md). |
 | `:media` | Android library: real local photo/video optimisation (Media3 Transformer) to fit the task/total byte budgets (P5) — never exposes a bitrate/resolution/quality control to the worker. |
 
 ## One-time environment setup

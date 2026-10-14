@@ -1,0 +1,9 @@
+{
+  "run_id": "full_proxy_calibrated_v1",
+  "status": "COMPLETED",
+  "error": null,
+  "wall_ms": 381903.161885,
+  "observed_peak_pss_kb": 175876,
+  "observed_peak_native_bytes": 111919008,
+  "memory_samples": 2674
+}
