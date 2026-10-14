@@ -12,7 +12,8 @@ Prior-skill Assessment &amp; Recognition through AI-driven Knowledge
 | IC-1A | Technical & standards-traceability acceptance (replaces earlier expert-agreement IC-1 wording) | Passed | `docs/gates/IC1A.md` |
 | P-4 | Offline evidence capture (real CameraX photo/video, no mock evidence), SQLCipher-encrypted Room drafts, crash-safe preview/retake/replace/delete, physical-device gate on a real OnePlus 13R | Complete | `docs/gates/P4.md` |
 | P-5 | Automatic local photo/video optimisation to fit budget (no bitrate/resolution/quality control exposed to workers), deterministic budget ledger, canonical signed manifest, Android Keystore ECDSA signing, Tink-encrypted local vault, durable Room outbox, crash-safe seal state machine, physical-device gate (incl. live crash recovery) on a real OnePlus 13R | Complete | `docs/gates/P5.md` |
-| P6+ | Resumable network upload/sync of the sealed outbox, CV models, assessor-dashboard changes | Outside the approved P-5 scope; not claimed as completed | — |
+| P-6 | Resumable WorkManager sync of the P5 sealed outbox (1 MiB streamed chunks over HTTPS, server-side ECDSA signature + hash verification, resumable/idempotent protocol), background metadata extraction, assessor review workspace (protected evidence gallery/player, declaration/sync status, audit log) | Automated work complete, all CI green; physical-device manual gate pending | `docs/gates/P6.md` |
+| P8+ | CV/AI quality analysis, MediaPipe Hands, model training, additional qualification packs/trades, Q2/Q3/Q4 | Outside the approved P-6 scope; not claimed as completed | — |
 
 Independent assessor-agreement validation (the original master-plan IC-1
 ≥90%-agreement study) was **not performed** and is not claimed anywhere in

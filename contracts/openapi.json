@@ -79,6 +79,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "current_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Revision Id"
+          },
           "decision": {
             "anyOf": [
               {
@@ -100,6 +111,42 @@
               }
             ],
             "title": "Decision Notes"
+          },
+          "declared_coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Coverage Fraction"
+          },
+          "declared_gap_task_codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Gap Task Codes"
+          },
+          "declared_match_result": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Match Result"
           },
           "id": {
             "title": "Id",
@@ -218,6 +265,65 @@
           "status"
         ],
         "title": "AssessmentTaskOut",
+        "type": "object"
+      },
+      "AuditLogEntryOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "actor_role": {
+            "title": "Actor Role",
+            "type": "string"
+          },
+          "actor_user_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor User Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "actor_user_id",
+          "actor_name",
+          "actor_role",
+          "action",
+          "details",
+          "created_at"
+        ],
+        "title": "AuditLogEntryOut",
         "type": "object"
       },
       "ChunkAck": {
@@ -525,12 +631,39 @@
             "title": "Declared Size Bytes",
             "type": "integer"
           },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "height_px": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Px"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
           },
           "kind": {
             "title": "Kind",
+            "type": "string"
+          },
+          "metadata_status": {
+            "default": "not_run",
+            "title": "Metadata Status",
             "type": "string"
           },
           "mime": {
@@ -540,6 +673,22 @@
           "sha256": {
             "title": "Sha256",
             "type": "string"
+          },
+          "thumbnail_status": {
+            "default": "not_applicable",
+            "title": "Thumbnail Status",
+            "type": "string"
+          },
+          "width_px": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width Px"
           }
         },
         "required": [
@@ -605,6 +754,75 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "ManifestReceipt": {
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "declared_total_bytes": {
+            "title": "Declared Total Bytes",
+            "type": "integer"
+          },
+          "item_count": {
+            "title": "Item Count",
+            "type": "integer"
+          },
+          "manifest_id": {
+            "title": "Manifest Id",
+            "type": "integer"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "received",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "manifest_id",
+          "assessment_id",
+          "revision_id",
+          "sha256",
+          "item_count",
+          "declared_total_bytes",
+          "status",
+          "received_at"
+        ],
+        "title": "ManifestReceipt",
         "type": "object"
       },
       "MeOut": {
@@ -727,6 +945,34 @@
           }
         },
         "title": "PackImportRequest",
+        "type": "object"
+      },
+      "PackLookupOut": {
+        "properties": {
+          "pack_id": {
+            "title": "Pack Id",
+            "type": "integer"
+          },
+          "pack_version": {
+            "title": "Pack Version",
+            "type": "string"
+          },
+          "qp_code": {
+            "title": "Qp Code",
+            "type": "string"
+          },
+          "qp_version": {
+            "title": "Qp Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pack_id",
+          "qp_code",
+          "qp_version",
+          "pack_version"
+        ],
+        "title": "PackLookupOut",
         "type": "object"
       },
       "QueueItemOut": {
@@ -875,6 +1121,153 @@
         "title": "SignedReportOut",
         "type": "object"
       },
+      "SyncItemStatusOut": {
+        "properties": {
+          "client_evidence_id": {
+            "title": "Client Evidence Id",
+            "type": "string"
+          },
+          "declared_bytes": {
+            "title": "Declared Bytes",
+            "type": "integer"
+          },
+          "evidence_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Id"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "received_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received Bytes"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "uploading",
+              "verified",
+              "rejected"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "task_code": {
+            "title": "Task Code",
+            "type": "string"
+          },
+          "upload_session_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upload Session Id"
+          }
+        },
+        "required": [
+          "client_evidence_id",
+          "task_code",
+          "kind",
+          "declared_bytes",
+          "state"
+        ],
+        "title": "SyncItemStatusOut",
+        "type": "object"
+      },
+      "SyncStatusOut": {
+        "properties": {
+          "all_items_verified": {
+            "default": false,
+            "title": "All Items Verified",
+            "type": "boolean"
+          },
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "assessment_status": {
+            "title": "Assessment Status",
+            "type": "string"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SyncItemStatusOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "manifest_rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manifest Rejection Reason"
+          },
+          "manifest_state": {
+            "default": "none",
+            "enum": [
+              "none",
+              "received",
+              "complete",
+              "rejected"
+            ],
+            "title": "Manifest State",
+            "type": "string"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "assessment_status"
+        ],
+        "title": "SyncStatusOut",
+        "type": "object"
+      },
       "TokenOut": {
         "properties": {
           "access_token": {
@@ -974,28 +1367,77 @@
             "title": "Claimed Size Bytes",
             "type": "integer"
           },
-          "kind": {
-            "enum": [
-              "photo",
-              "video"
+          "client_evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Kind",
-            "type": "string"
+            "title": "Client Evidence Id"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "photo",
+                  "video"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
           },
           "mime": {
-            "title": "Mime",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mime"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "target": {
+            "default": "evidence",
+            "enum": [
+              "evidence",
+              "manifest"
+            ],
+            "title": "Target",
             "type": "string"
           },
           "task_code": {
-            "title": "Task Code",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Code"
           }
         },
         "required": [
           "assessment_id",
-          "task_code",
-          "kind",
-          "mime",
           "claimed_size_bytes"
         ],
         "title": "UploadSessionCreate",
@@ -1003,13 +1445,35 @@
       },
       "UploadSessionOut": {
         "properties": {
-          "assessment_task_id": {
-            "title": "Assessment Task Id",
+          "assessment_id": {
+            "title": "Assessment Id",
             "type": "integer"
+          },
+          "assessment_task_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Task Id"
           },
           "claimed_size_bytes": {
             "title": "Claimed Size Bytes",
             "type": "integer"
+          },
+          "client_evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Evidence Id"
           },
           "expires_at": {
             "format": "date-time",
@@ -1021,12 +1485,26 @@
             "type": "integer"
           },
           "kind": {
-            "title": "Kind",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
           },
           "mime": {
-            "title": "Mime",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mime"
           },
           "next_chunk_index": {
             "title": "Next Chunk Index",
@@ -1041,13 +1519,40 @@
             "title": "Received Bytes",
             "type": "integer"
           },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
           "status": {
             "title": "Status",
             "type": "string"
           },
+          "target": {
+            "default": "evidence",
+            "enum": [
+              "evidence",
+              "manifest"
+            ],
+            "title": "Target",
+            "type": "string"
+          },
           "task_bytes_remaining": {
-            "title": "Task Bytes Remaining",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Bytes Remaining"
           },
           "total_bytes_remaining": {
             "title": "Total Bytes Remaining",
@@ -1056,16 +1561,13 @@
         },
         "required": [
           "id",
-          "assessment_task_id",
-          "kind",
-          "mime",
+          "assessment_id",
           "claimed_size_bytes",
           "received_bytes",
           "next_chunk_index",
           "status",
           "opened_at",
           "expires_at",
-          "task_bytes_remaining",
           "total_bytes_remaining"
         ],
         "title": "UploadSessionOut",
@@ -1111,6 +1613,41 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "WorkerRegisterOut": {
+        "properties": {
+          "worker_id": {
+            "title": "Worker Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "worker_id"
+        ],
+        "title": "WorkerRegisterOut",
+        "type": "object"
+      },
+      "WorkerRegisterRequest": {
+        "properties": {
+          "device_worker_id": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Device Worker Id",
+            "type": "string"
+          },
+          "display_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "device_worker_id",
+          "display_name"
+        ],
+        "title": "WorkerRegisterRequest",
+        "type": "object"
+      },
       "WorkerTokenOut": {
         "properties": {
           "assessment_id": {
@@ -1151,7 +1688,7 @@
   },
   "info": {
     "title": "KaushalPramaan API",
-    "version": "0.3.0"
+    "version": "0.6.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1400,6 +1937,106 @@
           }
         ],
         "summary": "Get Assessment",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
+    "/assessments/{assessment_id}/audit-log": {
+      "get": {
+        "description": "Assessor/admin only -- the full, append-only accountability trail for\none assessment (who did what, when), including P6's sync-specific\nactions (manifest received/rejected, cross-check mismatches, package\ncompletion) alongside the P2.2 lifecycle/scoring/decision/report/token\nactions. Oldest first, matching the order things actually happened.",
+        "operationId": "get_audit_log_assessments__assessment_id__audit_log_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogEntryOut"
+                  },
+                  "title": "Response Get Audit Log Assessments  Assessment Id  Audit Log Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Audit Log",
         "tags": [
           "assessments"
         ]
@@ -2613,6 +3250,134 @@
         ]
       }
     },
+    "/assessments/{assessment_id}/sync-status": {
+      "get": {
+        "description": "P6: consolidated begin/recover + per-item status, so the phone's\nWorkManager worker (and the dashboard) can learn, in one call, exactly\nwhich declared items are missing/uploading/verified/rejected for a\nrevision -- used to resolve a possibly-lost acknowledgement via server\nstatus rather than blindly re-uploading, and to decide which chunks (if\nany) are actually missing before resuming.\n\n`revision_id` is optional and defaults to the assessment's current\n(most recently ACCEPTED) revision -- but the phone always knows its own\nrevision_id locally (from Room) and should pass it explicitly to check\non a revision that was outright REJECTED (which never becomes\n\"current\"), e.g. right after a failed sync attempt.",
+        "operationId": "get_sync_status_assessments__assessment_id__sync_status_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Sync Status",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
     "/assessments/{assessment_id}/worker-token/revoke": {
       "post": {
         "description": "No new token is issued -- every worker-token-authenticated endpoint\n(uploads, submit, GET, report download) rejects it from this point on,\nregardless of whether the hash would otherwise still match.",
@@ -2976,9 +3741,60 @@
         ]
       }
     },
+    "/packs/by-code": {
+      "get": {
+        "operationId": "lookup_pack_by_code_packs_by_code_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "qp_code",
+            "required": true,
+            "schema": {
+              "title": "Qp Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "qp_version",
+            "required": true,
+            "schema": {
+              "title": "Qp Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackLookupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup Pack By Code",
+        "tags": [
+          "packs"
+        ]
+      }
+    },
     "/queue": {
       "get": {
-        "description": "Submitted (or further-along) assessments waiting on an assessor,\noldest first. Assessor/admin only -- see server/app/auth.py. No scoring\nhere yet -- that's P6/P7.",
+        "description": "Submitted (or further-along) assessments waiting on an assessor,\noldest first. Assessor/admin only -- see server/app/auth.py. Scoring,\ndecisions, reassessment and signed reports all exist (P2.2) and are\nreached from here via GET /assessments/{id} -- this endpoint itself\nstays a plain queue listing, not a scored summary.",
         "operationId": "assessor_queue_queue_get",
         "parameters": [
           {
@@ -3339,7 +4155,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UploadReceipt"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/UploadReceipt"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ManifestReceipt"
+                    }
+                  ],
+                  "title": "Response Complete Upload Uploads  Session Id  Complete Post"
                 }
               }
             },
@@ -3359,6 +4183,47 @@
         "summary": "Complete Upload",
         "tags": [
           "uploads"
+        ]
+      }
+    },
+    "/workers/register": {
+      "post": {
+        "operationId": "register_worker_workers_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerRegisterOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register Worker",
+        "tags": [
+          "workers"
         ]
       }
     }

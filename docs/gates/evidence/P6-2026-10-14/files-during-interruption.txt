@@ -1,0 +1,8 @@
+files/profileInstalled
+files/vault/430713ef-a547-4d8e-a164-c2dd3b60482b/fa273812-886c-40fe-ae96-1ede2e4f2f86/f7e3b9e0-0892-42af-b73d-28f73d56deac.vault
+files/p5_debug_export/faa52e78-66af-4408-b7e5-48d0ec1ddee7/1791915704861/manifest_package.json
+files/p5_debug_export/faa52e78-66af-4408-b7e5-48d0ec1ddee7/1791915704861/e4d2413d-e551-457d-81a7-fc463bfa894b.jpg
+files/p5_debug_export/faa52e78-66af-4408-b7e5-48d0ec1ddee7/1791915704861/85b63003-c8a9-41f4-8a6a-1d085cf5f8e2.jpg
+Starting: Intent { cmp=in.kaushalpramaan.app/.MainActivity }
+UI hierchary dumped to: /sdcard/parakh-ui.xml
+/sdcard/parakh-ui.xml: 1 file pulled, 0 skipped. 0.4 MB/s (16359 bytes in 0.044s)

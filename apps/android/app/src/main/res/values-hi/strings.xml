@@ -175,6 +175,24 @@
     <string name="submitted_worker_id">वर्कर आईडी: %1$s</string>
     <string name="action_view_preview_again">सील किया गया प्रमाण देखें</string>
 
+    <!-- P6: resumable sync status -->
+    <string name="sync_section_title">सिंक स्थिति</string>
+    <string name="sync_overall_synced">सिंक हो गया और मूल्यांकनकर्ता समीक्षा के लिए सबमिट किया गया।</string>
+    <string name="sync_overall_in_progress">सर्वर से सिंक हो रहा है… (%2$d में से %1$d आइटम पूर्ण)</string>
+    <string name="sync_overall_not_started">अभी तक सिंक नहीं हुआ — नेटवर्क की प्रतीक्षा है, या \"अभी सिंक करें\" दबाएं।</string>
+    <string name="sync_item_manifest_label">मेनिफेस्ट</string>
+    <string name="sync_state_queued">कतार में</string>
+    <string name="sync_state_waiting_for_network">नेटवर्क की प्रतीक्षा में</string>
+    <string name="sync_state_uploading">अपलोड हो रहा है (%1$s अपलोड हुआ)</string>
+    <string name="sync_state_retrying">पुनः प्रयास हो रहा है… (प्रयास %1$d)</string>
+    <string name="sync_state_verifying">सर्वर से सत्यापित हो रहा है…</string>
+    <string name="sync_state_synced">सिंक हो गया</string>
+    <string name="sync_state_failed_action_required">सिंक नहीं हो सका — सर्वर द्वारा अस्वीकृत। फिर से प्रयास करने के लिए सील हटाकर दोबारा सील करें।</string>
+    <string name="sync_action_sync_now">अभी सिंक करें</string>
+    <string name="p6_test_only_sync_url_label">P6_TEST_ONLY सिंक सर्वर यूआरएल (केवल डिबग बिल्ड में)</string>
+    <string name="p6_test_only_sync_url_hint">उदाहरण: http://192.168.1.23:8000</string>
+    <string name="p6_test_only_sync_url_save">सहेजें</string>
+
     <!-- Common -->
     <string name="content_desc_back">वापस</string>
     <string name="content_desc_language_switch">भाषा बदलें</string>

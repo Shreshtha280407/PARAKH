@@ -7,6 +7,7 @@ Polls the jobs table (server/app/jobs.py -- PostgreSQL SELECT ... FOR UPDATE
 SKIP LOCKED) and processes one job at a time. No Celery/Redis: job volume
 at MVP scale (one verification per evidence upload) doesn't need it.
 """
+import json
 import logging
 import os
 import signal
@@ -100,9 +101,77 @@ def _generate_thumbnail(db, job: models.Job) -> None:
     logger.info("generated thumbnail for evidence id=%s key=%s", evidence_id, thumbnail_key)
 
 
+def _extract_metadata(db, job: models.Job) -> None:
+    """Real server-side width/height/duration extraction via ffprobe -- P6
+    requirement B: "Persist duration, dimensions, MIME, byte size and job
+    outcome," never trusting the client's (or the P5 manifest's) declared
+    values alone. Works for both photos and videos: ffprobe reports a
+    static image's dimensions on its single implicit video stream too, with
+    no 'duration' field, which is handled below (duration stays None for
+    photos). A failed/unavailable extraction is handled exactly like a
+    failed thumbnail job (section B.4 of the spec): the evidence item stays
+    fully servable, metadata_status just records 'unavailable' rather than
+    raising -- this is never a retryable integrity failure, unlike
+    _verify_evidence's hash check."""
+    evidence_id = job.payload["evidence_item_id"]
+    evidence = db.get(models.EvidenceItem, evidence_id)
+    if evidence is None:
+        raise RuntimeError(f"evidence item {evidence_id} not found")
+
+    storage = LocalDiskStorage(settings.evidence_dir)
+    source_path = storage.path_for(evidence.storage_key)
+
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-v", "error", "-print_format", "json",
+                "-show_entries", "stream=width,height,duration:format=duration",
+                str(source_path),
+            ],
+            capture_output=True, timeout=30,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        evidence.metadata_status = "unavailable"
+        logger.warning("metadata extraction unavailable for evidence id=%s: %s", evidence_id, e)
+        return
+
+    if result.returncode != 0:
+        evidence.metadata_status = "unavailable"
+        logger.warning(
+            "metadata extraction failed for evidence id=%s: %s",
+            evidence_id, result.stderr.decode(errors="replace")[:500],
+        )
+        return
+
+    try:
+        probe = json.loads(result.stdout)
+        streams = probe.get("streams") or []
+        video_stream = next((s for s in streams if "width" in s and "height" in s), None)
+        if video_stream is None:
+            raise ValueError("no stream with width/height in ffprobe output")
+        width = int(video_stream["width"])
+        height = int(video_stream["height"])
+        duration_str = video_stream.get("duration") or (probe.get("format") or {}).get("duration")
+        duration_ms = int(round(float(duration_str) * 1000)) if duration_str else None
+    except (ValueError, KeyError, TypeError) as e:
+        evidence.metadata_status = "unavailable"
+        logger.warning("metadata extraction produced unusable output for evidence id=%s: %s", evidence_id, e)
+        return
+
+    evidence.width_px = width
+    evidence.height_px = height
+    evidence.duration_ms = duration_ms if evidence.kind == "video" else None
+    evidence.metadata_status = "completed"
+    logger.info(
+        "extracted metadata for evidence id=%s width=%s height=%s duration_ms=%s",
+        evidence_id, width, height, evidence.duration_ms,
+    )
+
+
 JOB_HANDLERS = {
     "verify_evidence": _verify_evidence,
     "generate_thumbnail": _generate_thumbnail,
+    "extract_metadata": _extract_metadata,
 }
 
 

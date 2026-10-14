@@ -31,6 +31,11 @@ export interface EvidenceReceiptOut {
   declared_size_bytes: number;
   sha256: string;
   created_at: string;
+  thumbnail_status: string;
+  metadata_status: string;
+  duration_ms: number | null;
+  width_px: number | null;
+  height_px: number | null;
 }
 
 export interface AssessmentTaskOut {
@@ -57,7 +62,56 @@ export interface AssessmentOut {
   decision: string | null;
   decision_notes: string | null;
   reassessment_of_id: number | null;
+  // P6: honest, bounded declaration/match snapshot synced from the phone's durable
+  // AssessmentDraftEntity (matchResult/overallCoverage/gapTaskIdsCsv) -- the full
+  // declaration Q&A and on-device "because" reason text are NOT transmitted (see
+  // docs/gates/P6.md's stated limitation; this is inherited from P3/P4's own scope,
+  // not a P6 regression).
+  declared_match_result: string | null;
+  declared_coverage_fraction: string | null; // Decimal, serialised as a string
+  declared_gap_task_codes: string[] | null;
+  current_revision_id: string | null;
   tasks: AssessmentTaskOut[];
+}
+
+// ---- P6: resumable sync status ----
+
+export type SyncItemState = "pending" | "uploading" | "verified" | "rejected";
+
+export interface SyncItemStatusOut {
+  client_evidence_id: string;
+  task_code: string;
+  kind: string;
+  declared_bytes: number;
+  state: SyncItemState;
+  received_bytes: number | null;
+  upload_session_id: number | null;
+  evidence_id: number | null;
+  rejection_reason: string | null;
+}
+
+export type ManifestSyncState = "none" | "received" | "complete" | "rejected";
+
+export interface SyncStatusOut {
+  assessment_id: number;
+  assessment_status: string;
+  revision_id: string | null;
+  manifest_state: ManifestSyncState;
+  manifest_rejection_reason: string | null;
+  items: SyncItemStatusOut[];
+  all_items_verified: boolean;
+}
+
+// ---- P6: audit log ----
+
+export interface AuditLogEntryOut {
+  id: number;
+  actor_user_id: number | null;
+  actor_name: string | null;
+  actor_role: string;
+  action: string;
+  details: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface RubricItemOut {

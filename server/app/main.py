@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import admin, assessments, auth, decisions, evidence, health, queue, reports, scoring, tokens, uploads
+from .routers import admin, assessments, auth, decisions, evidence, health, packs, queue, reports, scoring, tokens, uploads, workers
 
-app = FastAPI(title="KaushalPramaan API", version="0.3.0")
+app = FastAPI(title="KaushalPramaan API", version="0.6.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,3 +25,5 @@ app.include_router(decisions.router)
 app.include_router(reports.router)
 app.include_router(evidence.router)
 app.include_router(tokens.router)
+app.include_router(workers.router)
+app.include_router(packs.router)

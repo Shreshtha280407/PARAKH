@@ -153,7 +153,14 @@ fun CaptureScreen(
     LaunchedEffect(mode, quality, permissionState) {
         if (permissionState == PermissionState.GRANTED) {
             session.bind(previewView, mode, quality)
-                .onSuccess { Log.d(LOG_TAG, "camera_bind mode=$mode result=success") }
+                .onSuccess {
+                    Log.d(LOG_TAG, "camera_bind mode=$mode result=success")
+                    // A PREVIOUS bind attempt for this same screen (e.g. right after the
+                    // permission grant, before the camera subsystem had settled) can have left
+                    // the unavailable-camera message on screen -- clear it now the live preview
+                    // is actually up, or it lingers forever despite a working feed.
+                    if (statusMessageRes == R.string.capture_error_camera_unavailable) statusMessageRes = null
+                }
                 .onFailure {
                     Log.w(LOG_TAG, "camera_bind mode=$mode result=failed category=${it::class.simpleName}")
                     statusMessageRes = R.string.capture_error_camera_unavailable

@@ -3,6 +3,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
 
@@ -23,9 +24,18 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "0.5.0-p5"
+        versionName = "0.6.0-p6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // P6: lets Room's MigrationTestHelper (androidTest's AppDatabaseMigrationTest) find the
+    // committed exported schema JSONs as real packaged assets, so a real migration can be
+    // proven against a real prior-version database rather than only diffed schema-export JSON.
+    sourceSets {
+        getByName("androidTest") {
+            assets.srcDirs("$projectDir/schemas")
+        }
     }
 
     buildTypes {
@@ -51,6 +61,16 @@ android {
             // in a release build.
             buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "true")
             buildConfigField("boolean", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED", "true")
+            // P6_TEST_ONLY: debug builds may point sync at a local Docker-Compose
+            // test backend over plain HTTP, and the base URL can be overridden
+            // in-app at runtime (SyncEndpointConfig, app/src/debug) without a
+            // rebuild -- needed because the physical device's reachable LAN IP
+            // for the test laptop isn't known at build time. 10.0.2.2 is the
+            // standard emulator-to-host alias, a reasonable zero-config default;
+            // a real device on the same Wi-Fi/hotspot must be told the laptop's
+            // actual LAN IP via the in-app debug-only field (see PreviewScreen).
+            buildConfigField("boolean", "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED", "true")
+            buildConfigField("String", "P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL", "\"http://10.0.2.2:8000\"")
         }
         release {
             isMinifyEnabled = false
@@ -58,6 +78,27 @@ android {
             buildConfigField("long", "P4_TEST_ONLY_CEILING_BYTES", "0L")
             buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "false")
             buildConfigField("boolean", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED", "false")
+            buildConfigField("boolean", "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED", "false")
+            // Never read by release's SyncEndpointConfig (app/src/release) --
+            // release always uses its own hardcoded HTTPS production base URL,
+            // with no override capability compiled in at all. This field only
+            // exists so verifyP6TestOnlySyncOverrideDisabledInRelease below has
+            // a concrete false/absent value to assert against.
+            buildConfigField("String", "P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL", "\"\"")
+            // The real production API's HTTPS base URL. No deployed production
+            // server exists for this MVP/hackathon build, so this is a
+            // documented placeholder -- set it via
+            // `-PreleaseSyncBaseUrl=https://the-real-host` at build time before
+            // ever distributing a real release build (same pattern as the
+            // server's own REPORT_SIGNING_PRIVATE_KEY/JWT_SECRET env vars: a
+            // deliberate placeholder for local/demo use, not a hidden default
+            // meant for production). Always HTTPS -- enforced architecturally,
+            // not just by convention: FixedSyncEndpointConfig never reads a
+            // scheme from anywhere else, and release's network security config
+            // forbids cleartext outright regardless of this value.
+            val releaseSyncBaseUrl = (project.findProperty("releaseSyncBaseUrl") as String?)
+                ?: "https://api.kaushalpramaan.example"
+            buildConfigField("String", "P6_RELEASE_SYNC_BASE_URL", "\"$releaseSyncBaseUrl\"")
         }
     }
 
@@ -101,49 +142,66 @@ tasks.withType<Test>().configureEach {
     )
 }
 
-// P-3 is offline-first by construction: no android.permission.INTERNET is declared anywhere
-// in AndroidManifest.xml, and no networking dependency is declared here. This task fails the
-// build if either ever creeps in, rather than relying on someone remembering to check. Stays
-// on preBuild (fast, no manifest-merge dependency, so no risk of the task-graph cycle
-// verifyMergedManifestHasNoNetworkPermissions below would create if it also ran this early).
-val verifyNoNetworkDependencies = tasks.register("verifyNoNetworkDependencies") {
+// P6 pivot: P3/P4/P5 were offline-first by construction (no INTERNET/
+// ACCESS_NETWORK_STATE anywhere). P6 genuinely needs real networking to sync
+// the P5 sealed outbox -- so this task's JOB FLIPS from "neither permission
+// may ever appear" to "exactly these two, and nothing else network/media/
+// storage-related, may appear" -- the same source-only scan, asserting the
+// opposite policy on purpose, not a leftover. Stays on preBuild (fast, no
+// manifest-merge dependency).
+val verifyExpectedNetworkPermissions = tasks.register("verifyExpectedNetworkPermissions") {
     doLast {
         // Strip XML comments first so this can't false-positive on explanatory
         // comments mentioning the permission names (as this file's manifest does).
         val manifest = file("src/main/AndroidManifest.xml").readText()
             .replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
-        // Captures the whole tag (not just the name) so a tools:node="remove" override --
-        // which declares intent to STRIP a dependency-injected permission during manifest
-        // merging, not to request it -- is correctly excluded from "declared" below.
         val usesPermissionTag = Regex("""<uses-permission\s+[^>]*?/>""")
         val declared = usesPermissionTag.findAll(manifest)
             .map { it.value }
             .filterNot { it.contains("""tools:node="remove"""") }
             .mapNotNull { Regex("""android:name\s*=\s*"([^"]+)"""").find(it)?.groupValues?.get(1) }
             .toSet()
-        check("android.permission.INTERNET" !in declared) {
-            "P-3 must stay offline-first: AndroidManifest.xml must not declare android.permission.INTERNET"
+        val expectedNetwork = setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE")
+        val allowed = expectedNetwork + setOf("android.permission.CAMERA", "android.permission.RECORD_AUDIO")
+        val missing = expectedNetwork - declared
+        check(missing.isEmpty()) {
+            "P6 genuinely needs real networking: AndroidManifest.xml must declare $missing"
         }
-        check("android.permission.ACCESS_NETWORK_STATE" !in declared) {
-            "P-3 must stay offline-first: AndroidManifest.xml must not declare ACCESS_NETWORK_STATE"
+        val unexpected = declared - allowed
+        check(unexpected.isEmpty()) {
+            "no unnecessary network/media/gallery/public-storage permission is allowed -- " +
+                "found unexpected declared permission(s): $unexpected"
         }
     }
 }
 
 // P5 found a real gap in the source-only check above: it cannot see a permission a
-// dependency's own manifest injects during Android's manifest merge step
-// (media3-exoplayer/media3-common, pulled in transitively for real local Media3 Transformer
-// video processing, both declare ACCESS_NETWORK_STATE for ExoPlayer's network-playback
-// features this app never uses -- confirmed by a real connectedDebugAndroidTest failure, not
-// caught by the source-only task before this fix). This task inspects the real MERGED
-// manifest for both variants -- the only artifact that reflects what dependencies actually
-// contribute -- so this class of regression cannot silently recur. Wired to `check`, not
-// `preBuild`, since it genuinely needs the manifest-merge tasks to have already run.
-val verifyMergedManifestHasNoNetworkPermissions = tasks.register("verifyMergedManifestHasNoNetworkPermissions") {
+// dependency's own manifest injects during Android's manifest merge step. This task
+// inspects the real MERGED manifest for both variants -- the only artifact that reflects
+// what dependencies actually contribute -- so a transitively-injected EXTRA permission
+// (e.g. a future dependency wanting ACCESS_WIFI_STATE or coarse location "to help" with
+// connectivity) cannot silently recur unnoticed. Wired to `check`, not `preBuild`, since it
+// genuinely needs the manifest-merge tasks to have already run. Also asserts the
+// networkSecurityConfig attribute is wired for both variants (see
+// verifyReleaseForbidsCleartextTraffic below for the actual cleartext-policy proof).
+val verifyMergedManifestHasExpectedNetworkPermissions = tasks.register("verifyMergedManifestHasExpectedNetworkPermissions") {
     dependsOn("processDebugMainManifest", "processReleaseMainManifest")
     doLast {
         val usesPermissionTag = Regex("""<uses-permission\s+[^>]*android:name\s*=\s*"([^"]+)"""")
-        val forbidden = setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE")
+        val expectedNetwork = setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE")
+        val allowed = expectedNetwork + setOf(
+            "android.permission.CAMERA", "android.permission.RECORD_AUDIO",
+            "in.kaushalpramaan.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+            // Transitively injected by androidx.work's own manifest, none of
+            // them network/media/gallery/public-storage: WAKE_LOCK (keep the
+            // CPU awake during a sync, same category P5 already allowed for
+            // Media3 processing), RECEIVE_BOOT_COMPLETED (reschedule pending
+            // sync work after a reboot -- required for correct resume
+            // behaviour, not optional), FOREGROUND_SERVICE (WorkManager's
+            // expedited-work execution path).
+            "android.permission.WAKE_LOCK", "android.permission.RECEIVE_BOOT_COMPLETED",
+            "android.permission.FOREGROUND_SERVICE",
+        )
         for (variant in listOf("debug", "release")) {
             val mergedManifestFile = fileTree(layout.buildDirectory.dir("intermediates/merged_manifest/$variant")) {
                 include("**/AndroidManifest.xml")
@@ -151,21 +209,115 @@ val verifyMergedManifestHasNoNetworkPermissions = tasks.register("verifyMergedMa
             checkNotNull(mergedManifestFile) { "could not locate the merged $variant manifest" }
             val merged = mergedManifestFile.readText().replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
             val declaredInMerged = usesPermissionTag.findAll(merged).map { it.groupValues[1] }.toSet()
-            for (permission in forbidden) {
-                check(permission !in declaredInMerged) {
-                    "P-3/P5 must stay offline-first: the real MERGED $variant manifest must not contain $permission " +
-                        "(found even though app/src/main/AndroidManifest.xml doesn't declare it directly -- a " +
-                        "dependency's own manifest is injecting it; add a tools:node=\"remove\" override)"
-                }
+            val missing = expectedNetwork - declaredInMerged
+            check(missing.isEmpty()) {
+                "the real MERGED $variant manifest is missing expected permission(s) $missing"
+            }
+            val unexpected = declaredInMerged - allowed
+            check(unexpected.isEmpty()) {
+                "the real MERGED $variant manifest declares unexpected permission(s) $unexpected -- " +
+                    "a dependency may be injecting a network/storage permission this app doesn't need; " +
+                    "add a tools:node=\"remove\" override if so"
+            }
+            check(merged.contains("""android:networkSecurityConfig="@xml/network_security_config"""")) {
+                "the real MERGED $variant manifest must reference android:networkSecurityConfig=" +
+                    "\"@xml/network_security_config\" (see verifyReleaseForbidsCleartextTraffic)"
             }
         }
     }
 }
 tasks.named("check") {
-    dependsOn(verifyMergedManifestHasNoNetworkPermissions)
+    dependsOn(verifyMergedManifestHasExpectedNetworkPermissions)
 }
 tasks.named("preBuild") {
-    dependsOn(verifyNoNetworkDependencies)
+    dependsOn(verifyExpectedNetworkPermissions)
+}
+
+// P6 rule 3: "Upload over HTTPS in release builds only. Cleartext HTTP may be allowed
+// solely in the DEBUG variant ... Add a release-build regression test proving a release
+// build does not allow cleartext traffic." Two independent, real proofs rather than one:
+// (1) release's EFFECTIVE network security config (main's, since release has no overlay)
+// forbids cleartext outright; (2) debug's override file exists and actually differs (proving
+// the permissive config is a genuine, intentional debug-only overlay, not an accidental
+// global default that release would also pick up).
+val verifyReleaseForbidsCleartextTraffic = tasks.register("verifyReleaseForbidsCleartextTraffic") {
+    doLast {
+        val mainConfig = file("src/main/res/xml/network_security_config.xml")
+        checkNotNull(mainConfig.takeIf { it.exists() }) { "missing src/main/res/xml/network_security_config.xml" }
+        val mainText = mainConfig.readText()
+        check(Regex("""cleartextTrafficPermitted\s*=\s*"false"""").containsMatchIn(mainText)) {
+            "src/main/res/xml/network_security_config.xml (release's EFFECTIVE config -- release has " +
+                "no debug-only overlay) must set cleartextTrafficPermitted=\"false\""
+        }
+
+        val debugConfig = file("src/debug/res/xml/network_security_config.xml")
+        checkNotNull(debugConfig.takeIf { it.exists() }) {
+            "missing src/debug/res/xml/network_security_config.xml -- the debug-only cleartext " +
+                "override must exist as its own separate resource overlay, never edited into main's"
+        }
+        val debugText = debugConfig.readText()
+        check(Regex("""cleartextTrafficPermitted\s*=\s*"true"""").containsMatchIn(debugText)) {
+            "src/debug/res/xml/network_security_config.xml must set cleartextTrafficPermitted=\"true\" " +
+                "(that's the whole point of the debug-only override); found no such attribute"
+        }
+
+        val mainManifest = file("src/main/AndroidManifest.xml").readText()
+        check(mainManifest.contains("""android:usesCleartextTraffic="false"""")) {
+            "src/main/AndroidManifest.xml must keep android:usesCleartextTraffic=\"false\" as a " +
+                "defense-in-depth legacy fallback alongside the network security config"
+        }
+    }
+}
+tasks.named("check") {
+    dependsOn(verifyReleaseForbidsCleartextTraffic)
+}
+
+// P6_TEST_ONLY: same false/absent-in-release proof pattern as
+// verifyP4TestCeilingDisabledInRelease/verifyP5DebugFeaturesDisabledInRelease above, for the
+// debug-only sync-endpoint-override capability.
+val verifyP6TestOnlySyncOverrideDisabledInRelease = tasks.register("verifyP6TestOnlySyncOverrideDisabledInRelease") {
+    dependsOn("generateReleaseBuildConfig")
+    doLast {
+        val buildConfig = file("build/generated/source/buildConfig/release/in/kaushalpramaan/app/BuildConfig.java").readText()
+        val enabledMatch = Regex("""P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED\s*=\s*(\w+);""").find(buildConfig)
+        checkNotNull(enabledMatch) { "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED not found in release BuildConfig.java" }
+        check(enabledMatch.groupValues[1] == "false") {
+            "P6_TEST_ONLY sync endpoint override must be false in release builds, found ${enabledMatch.groupValues[1]}"
+        }
+    }
+}
+tasks.named("check") {
+    dependsOn(verifyP6TestOnlySyncOverrideDisabledInRelease)
+}
+
+// P6_TEST_ONLY sync-endpoint override (same three-piece pattern as P5's debug export --
+// main interface, app/src/debug real implementation, app/src/release no-op): proves the REAL
+// overridable-base-URL implementation is genuinely absent from release's compiled output, not
+// merely disabled by the BuildConfig flag above (which only proves release's DEFAULT is
+// false/empty -- this proves the capability to override it at all doesn't exist in release).
+val verifyP6SyncEndpointOverrideAbsentFromRelease = tasks.register("verifyP6SyncEndpointOverrideAbsentFromRelease") {
+    dependsOn("compileDebugKotlin", "compileReleaseKotlin")
+    doLast {
+        fun findClass(variantDir: String, simpleClassName: String): File? =
+            fileTree(layout.buildDirectory.dir("intermediates")) {
+                include("**/$variantDir/**/in/kaushalpramaan/app/data/sync/$simpleClassName.class")
+            }.files.firstOrNull()
+
+        checkNotNull(findClass("debug", "DebugOverridableSyncEndpointConfig")) {
+            "DebugOverridableSyncEndpointConfig.class must be present in the debug build's compiled output"
+        }
+        check(findClass("release", "DebugOverridableSyncEndpointConfig") == null) {
+            "DebugOverridableSyncEndpointConfig.class (the real runtime-overridable sync base URL) " +
+                "must never exist in the release build's compiled output"
+        }
+        checkNotNull(findClass("release", "FixedSyncEndpointConfig")) {
+            "FixedSyncEndpointConfig.class must be present in the release build's compiled output " +
+                "(the sync-endpoint-override feature must be correctly variant-split, not silently missing from both)"
+        }
+    }
+}
+tasks.named("check") {
+    dependsOn(verifyP6SyncEndpointOverrideAbsentFromRelease)
 }
 
 // P4 evidence must be freshly captured through the app's own CameraX flow -- never
@@ -304,11 +456,17 @@ dependencies {
     implementation(libs.androidx.camera.video)
     implementation(libs.androidx.camera.view)
 
+    // P6: resumable WorkManager sync of the P5 sealed outbox over HTTPS.
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.okhttp)
+
     testImplementation(libs.junit)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.work.testing)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
@@ -317,4 +475,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.work.testing)
+    androidTestImplementation(libs.okhttp.mockwebserver)
 }

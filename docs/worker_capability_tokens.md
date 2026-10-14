@@ -1,9 +1,31 @@
-# Worker capability tokens (P2.1, rotation/revocation added P2.2)
+# Worker capability tokens (P2.1, rotation/revocation added P2.2, bootstrap added P6)
 
 Product decision: the worker mobile app has no conventional login/signup.
 Only assessors/admins get a web login (email + password, argon2 + JWT --
 see `server/app/auth.py`). This document covers how worker-side API calls
 are authorised instead, and its deliberate limitations.
+
+## Identity bootstrap (P6)
+
+Before P6, every example in this document assumed a `worker_id` already
+existed server-side (seeded directly into the database for local/demo use
+-- see `server/app/seed.py`). P3-P5 never contact the server at all
+(see `docs/gates/P5.md`), so the phone had no way to obtain one. P6 adds
+exactly one new, deliberately pre-authentication endpoint for this:
+
+`POST /workers/register` accepts the phone's own locally-generated, stable
+`device_worker_id` string (the same `"KP-" + UUID` value the app has
+generated at on-device registration since P3) and a display name, and is
+**idempotent**: the same `device_worker_id` always resolves to the same
+`worker_id`, created on first call rather than requiring any admin/seed
+step. This is still not a login -- no password, no OTP, nothing secret is
+exchanged -- it is bootstrap only. The capability-token mechanism below is
+what actually authorises everything that follows; `POST /workers/register`
+only ever returns a plain integer `worker_id`, never a token.
+
+A second, read-only, equally public endpoint, `GET /packs/by-code`, lets
+the phone resolve its pinned QP code/version (baked into the app) to the
+server's integer `pack_id`, which `POST /assessments` also requires.
 
 ## The mechanism
 
@@ -21,14 +43,20 @@ Every worker-facing mutation after that point requires the token, sent as
 an `X-Worker-Token` header, and it must match the specific assessment it's
 scoped to:
 
-- `POST /uploads` (open a resumable upload session)
+- `POST /uploads` (open/recover a resumable upload session -- P6: now also
+  carries the P5 signed manifest envelope via `target="manifest"`)
 - `PUT /uploads/{id}/chunks/{n}` (upload a chunk)
 - `GET /uploads/{id}` (resume/status)
-- `POST /uploads/{id}/complete` (finalise)
+- `POST /uploads/{id}/complete` (finalise -- P6: verifies the manifest's
+  ECDSA signature, or cross-checks an evidence item against it)
 - `GET /assessments/{id}` (read own progress — this one also accepts an
   assessor/admin JWT, since assessors need to read the same endpoint for
   review)
-- `POST /assessments/{id}/submit` (worker declares evidence capture done)
+- `GET /assessments/{id}/sync-status` (P6: per-item + manifest sync state,
+  for resume-after-lost-acknowledgement; same dual auth as above)
+- `POST /assessments/{id}/submit` (worker declares evidence capture done --
+  P6: additionally gated on the current revision's manifest being fully
+  verified when the assessment used the P6 sync path)
 - `GET /assessments/{id}/report` (download own signed report, once one exists)
 
 A raw numeric id alone (e.g. `assessment_id=42`) is never sufficient to act
@@ -72,10 +100,16 @@ not prove liveness, and is not tied to a device fingerprint.
   the assessment reaches `submitted`, there is currently no flow to recover
   access to that assessment's draft evidence. A fresh `POST /assessments`
   starts a new one.
-- **Transport security is assumed, not enforced here.** The token is a
-  bearer value over HTTP headers; it relies on TLS in any real deployment
-  (the Docker demo stack in `infra/docker-compose.yml` runs plain HTTP on
-  localhost, which is fine for a demo, not for a pilot).
+- **Transport security: enforced for the Android client as of P6, still a
+  demo-stack gap server-side.** The release Android build's network
+  security config forbids cleartext traffic outright (see
+  `docs/gates/P6.md`'s "Security properties" #3) -- a release build
+  genuinely cannot send this token (or anything else) over plain HTTP. The
+  Docker demo stack itself (`infra/docker-compose.yml`) still runs plain
+  HTTP on localhost with no TLS termination in front of it, which remains
+  fine for a demo, not for a pilot deployment -- that is an infrastructure
+  decision for whoever deploys this stack for real, not something the app
+  can enforce from its side.
 - **One token per assessment, not per worker.** A worker with multiple
   assessments holds multiple tokens, with no shared "worker session" concept.
 

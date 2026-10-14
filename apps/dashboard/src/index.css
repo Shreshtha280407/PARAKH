@@ -263,3 +263,69 @@ textarea {
   border-radius: 4px;
   border: 1px solid var(--border);
 }
+
+/* P6: evidence gallery/player -- a larger playable area than the plain receipt
+   thumbnail above, since these elements are the actual protected content (video
+   with controls, full photo), not just a small preview. */
+.evidence-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.evidence-gallery-item {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.evidence-gallery .thumb,
+.evidence-media video.thumb,
+.evidence-media img.thumb {
+  max-width: 100%;
+  max-height: 220px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  background: #000;
+}
+
+.evidence-media-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  background: #eaeef2;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.evidence-meta {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.tab-button-active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.audit-details {
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+}

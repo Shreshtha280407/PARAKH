@@ -1,8 +1,10 @@
 # contracts/
 
 `openapi.json` is generated from the FastAPI app, never hand-maintained --
-see `tools/export_openapi.py`. It covers the full P2.1 surface: auth,
-assessments, resumable uploads, queue, admin, and every error schema FastAPI
+see `tools/export_openapi.py`. It covers the full current backend surface:
+auth, assessments, resumable+manifest-verified uploads (P6), queue, admin,
+scoring/decisions/reports (P2.2), worker self-registration and pack lookup
+(P6), sync status and the audit log (P6), and every error schema FastAPI
 derives from the endpoints' declared response models and `HTTPException`
 usage.
 

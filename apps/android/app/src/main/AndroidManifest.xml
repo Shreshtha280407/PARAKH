@@ -1,30 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Offline-first by construction: this manifest deliberately declares NO
-  android.permission.INTERNET and NO ACCESS_NETWORK_STATE. Every screen must
-  work with the phone in airplane mode; app/build.gradle.kts's
-  verifyNoNetworkDependencies task fails the build if either permission
-  appears in THIS file — but that source-only scan cannot see permissions a
-  dependency's own manifest injects during manifest merging. P5's Media3
-  Transformer (media3-exoplayer/media3-common, pulled in for real local
-  video transcoding — never network playback) does exactly that: both
-  declare ACCESS_NETWORK_STATE for ExoPlayer's network-playback features,
-  which this app never uses. tools:node="remove" below strips it back out
-  of the final merged manifest; confirmed by inspecting
-  app/build/intermediates/merged_manifest/*/AndroidManifest.xml directly
-  after this was added, not merely by re-running the source-only check.
-  Upload/sync is explicitly out of scope through P5 (see docs/gates/P5.md).
+  P3/P4/P5 were offline-first by construction (no INTERNET/ACCESS_NETWORK_STATE
+  anywhere). P6 adds real resumable sync of the P5 sealed outbox, so this app now
+  genuinely needs both: INTERNET to actually make HTTPS requests, and
+  ACCESS_NETWORK_STATE for WorkManager's NetworkType.CONNECTED constraint (it
+  calls ConnectivityManager APIs that require the caller to hold this
+  permission). app/build.gradle.kts's verifyExpectedNetworkPermissions task
+  now asserts the OPPOSITE of P3-P5's policy on purpose: exactly these two
+  network permissions, and no unnecessary network/media/gallery/public-storage
+  permission, may ever be declared here.
 
-  CAMERA/RECORD_AUDIO (P4) are the only runtime permissions this app
-  requests, used solely for in-app CameraX photo/video capture into
-  app-private storage, never for Gallery/media reading, and never
-  combined with any network capability.
+  Upload is HTTPS-only in release builds; see res/xml/network_security_config.xml
+  (this file's effective config, since release has no debug overlay) and
+  src/debug/res/xml/network_security_config.xml (the debug-only cleartext
+  override, for a local Docker-Compose test backend). android:usesCleartextTraffic
+  below is kept as a defense-in-depth legacy fallback alongside the network
+  security config, not the sole enforcement mechanism.
+
+  CAMERA/RECORD_AUDIO (P4) remain the only runtime (dangerous) permissions this
+  app requests, used solely for in-app CameraX photo/video capture into
+  app-private storage, never for Gallery/media reading.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
@@ -35,6 +37,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.KaushalPramaan"

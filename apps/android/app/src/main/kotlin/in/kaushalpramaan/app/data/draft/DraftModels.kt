@@ -90,6 +90,26 @@ data class AssessmentDraftEntity(
     @ColumnInfo(name = "signer_key_id") val signerKeyId: String? = null,
     @ColumnInfo(name = "signer_public_key_base64") val signerPublicKeyBase64: String? = null,
     @ColumnInfo(name = "idempotency_key") val idempotencyKey: String? = null,
+
+    // ---- P6: server identity, established once at first sync (see SyncRepository) ----
+    /** Set once POST /assessments has succeeded for this draft -- the server's own integer
+     * assessment id, from then on the only id used in every sync API call. Null until the
+     * phone has actually talked to the server for the first time. */
+    @ColumnInfo(name = "server_assessment_id") val serverAssessmentId: Long? = null,
+    /** The opaque worker capability token returned ONCE by POST /assessments (see
+     * docs/worker_capability_tokens.md) -- stored only in this SQLCipher-encrypted database,
+     * never logged, never written anywhere else. Required on every subsequent sync call. */
+    @ColumnInfo(name = "server_worker_token") val serverWorkerToken: String? = null,
+
+    // ---- P6: final sync/submit completion (see SyncRepository) ----
+    /** Set only once every outbox row is server-verified SYNCED and POST
+     * /assessments/{id}/submit has itself succeeded -- the single terminal signal that this
+     * assessment is fully, verifiably in the assessor's queue and local cleanup (vault/outbox
+     * deletion) may proceed. Null the entire time sealState is READY_TO_SYNC but sync hasn't
+     * finished yet. Deliberately NOT a new SealState value (sealState's exhaustive `when`
+     * branches throughout this file are P5-tested crash-recovery logic; a simple nullable
+     * timestamp lets P6 add a terminal condition without touching any of them). */
+    @ColumnInfo(name = "synced_at_millis") val syncedAtMillis: Long? = null,
 )
 
 @Entity(
@@ -178,10 +198,26 @@ data class EvidenceDraftEntity(
 
 enum class OutboxItemKind { MANIFEST, EVIDENCE }
 
+/** P6's per-outbox-item sync progress (spec part G.9's "P6 is the only consumer", now true):
+ * [QUEUED] -- never attempted yet, or reset after a cancelled/superseded revision no longer
+ * applies. [WAITING_FOR_NETWORK] -- WorkManager's NetworkType.CONNECTED constraint is not
+ * currently satisfied; the row is queued but genuinely not running. [UPLOADING] -- a
+ * begin/recover session exists server-side and chunk PUTs are in flight or about to resume.
+ * [RETRYING] -- the last attempt failed with a retryable error (timeout, 5xx, connection
+ * drop) and WorkManager's exponential backoff is waiting before the next attempt.
+ * [VERIFYING] -- all bytes sent; waiting on the server's complete()/sync-status response to
+ * confirm server-side hash/signature verification. [SYNCED] -- server receipt verified; this
+ * item's encrypted vault file (and, once every row for the assessment is SYNCED, the whole
+ * outbox/vault tree) may be deleted. [FAILED_ACTION_REQUIRED] -- a non-retryable rejection
+ * (wrong hash reported by the server, manifest signature rejected, revision superseded) that
+ * will never succeed by itself retrying the same bytes; surfaced to the worker, requires a
+ * new seal (handled entirely by P5's existing discard/reopen, not a P6 retry). */
+enum class SyncState { QUEUED, WAITING_FOR_NETWORK, UPLOADING, RETRYING, VERIFYING, SYNCED, FAILED_ACTION_REQUIRED }
+
 /** P5's durable outbox (spec part G.8): one row per vault artifact (the manifest package, plus
  * one per encrypted evidence item), created only once that artifact is genuinely VAULT_READY.
- * P5 itself never acts on these rows beyond creating them -- no HTTP, no WorkManager, no
- * polling (spec part G.9); P6 is the only consumer. */
+ * P5 itself never acts on these rows beyond creating them; P6's WorkManager sync worker
+ * (data/sync/SyncWorker.kt) is the only writer of every column below this comment. */
 @Entity(
     tableName = "outbox_items",
     foreignKeys = [
@@ -208,9 +244,28 @@ data class OutboxItemEntity(
     /** Manifest first (priority 0), then evidence (priority 1+) -- see spec part G.8. */
     val priority: Int,
     @ColumnInfo(name = "created_at_millis") val createdAtMillis: Long,
-    /** Retry metadata placeholders only -- P5 never performs network I/O, so these are never
-     * incremented or read by anything in this phase; they exist so P6 does not need its own
-     * schema migration just to start recording attempts. */
     @ColumnInfo(name = "retry_count", defaultValue = "0") val retryCount: Int = 0,
     @ColumnInfo(name = "last_attempt_at_millis") val lastAttemptAtMillis: Long? = null,
+
+    // ---- P6: sync progress (see SyncState) ----
+    @ColumnInfo(name = "sync_state", defaultValue = "QUEUED") val syncState: SyncState = SyncState.QUEUED,
+    /** Server-assigned upload_session id for the CURRENT in-flight attempt -- persisted so a
+     * process death mid-upload can recover (GET /uploads/{id}) instead of blindly opening a
+     * new session and potentially re-reserving quota or losing resumability. */
+    @ColumnInfo(name = "server_session_id") val serverSessionId: Long? = null,
+    /** Set once the server has verified+accepted this row: the device_manifests.id for a
+     * MANIFEST row, the evidence_items.id for an EVIDENCE row. Non-null is exactly the
+     * "server receipt confirmed" condition this item's local vault file may be deleted on. */
+    @ColumnInfo(name = "server_object_id") val serverObjectId: Long? = null,
+    /** Bytes successfully chunk-PUT and acknowledged so far for the current attempt --
+     * independent of retryCount, purely for UI progress display. */
+    @ColumnInfo(name = "bytes_uploaded", defaultValue = "0") val bytesUploaded: Long = 0,
+    /** A short, pre-defined, UI-safe category -- never a raw exception message, stack trace,
+     * server response body, or anything that could contain a capability token/file path (see
+     * SyncErrorCategory). Null while syncState is not RETRYING/FAILED_ACTION_REQUIRED. */
+    @ColumnInfo(name = "last_error_category") val lastErrorCategory: String? = null,
+    /** Set only once a server receipt has been independently confirmed to cover this exact
+     * item (matching hash/size/revision) -- the single gate EvidenceFileManager's
+     * post-sync cleanup reads before deleting this row's vault file. */
+    @ColumnInfo(name = "receipt_verified_at_millis") val receiptVerifiedAtMillis: Long? = null,
 )

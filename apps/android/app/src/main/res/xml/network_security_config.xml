@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P6 release-safe default: cleartext (plain HTTP) traffic is forbidden for
+  every domain, with no exceptions. This is the EFFECTIVE config for a
+  release build (release has no overlay of this file), see
+  app/build.gradle.kts's verifyReleaseForbidsCleartextTraffic task, which
+  asserts this file keeps cleartextTrafficPermitted="false".
+
+  src/debug/res/xml/network_security_config.xml overrides this file
+  entirely for debug builds only, to allow testing against a local
+  Docker-Compose backend without TLS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

@@ -1,0 +1,562 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "2a29158b6ec92654c0123bebe7db82ea",
+    "entities": [
+      {
+        "tableName": "assessment_drafts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `state` TEXT NOT NULL, `qpCode` TEXT NOT NULL, `qpVersion` TEXT NOT NULL, `workerId` TEXT, `language` TEXT NOT NULL, `match_result` TEXT, `overall_coverage` REAL, `gap_task_ids_csv` TEXT NOT NULL, `is_test_only` INTEGER NOT NULL, `created_at_millis` INTEGER NOT NULL, `updated_at_millis` INTEGER NOT NULL, `seal_state` TEXT NOT NULL DEFAULT 'DRAFT_EDITABLE', `revision_id` TEXT, `attestation_confirmed` INTEGER NOT NULL DEFAULT 0, `attestation_at_millis` INTEGER, `sealed_at_millis` INTEGER, `manifest_vault_relative_path` TEXT, `signer_key_id` TEXT, `signer_public_key_base64` TEXT, `idempotency_key` TEXT, `server_assessment_id` INTEGER, `server_worker_token` TEXT, `synced_at_millis` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "qpCode",
+            "columnName": "qpCode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "qpVersion",
+            "columnName": "qpVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workerId",
+            "columnName": "workerId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "language",
+            "columnName": "language",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "matchResult",
+            "columnName": "match_result",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "overallCoverage",
+            "columnName": "overall_coverage",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gapTaskIdsCsv",
+            "columnName": "gap_task_ids_csv",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isTestOnly",
+            "columnName": "is_test_only",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updated_at_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sealState",
+            "columnName": "seal_state",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'DRAFT_EDITABLE'"
+          },
+          {
+            "fieldPath": "revisionId",
+            "columnName": "revision_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "attestationConfirmed",
+            "columnName": "attestation_confirmed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "attestationAtMillis",
+            "columnName": "attestation_at_millis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sealedAtMillis",
+            "columnName": "sealed_at_millis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "manifestVaultRelativePath",
+            "columnName": "manifest_vault_relative_path",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "signerKeyId",
+            "columnName": "signer_key_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "signerPublicKeyBase64",
+            "columnName": "signer_public_key_base64",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "serverAssessmentId",
+            "columnName": "server_assessment_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "serverWorkerToken",
+            "columnName": "server_worker_token",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "syncedAtMillis",
+            "columnName": "synced_at_millis",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "task_drafts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`assessmentId` TEXT NOT NULL, `taskId` TEXT NOT NULL, `state` TEXT NOT NULL, `evidence_count` INTEGER NOT NULL, `budget_bytes` INTEGER NOT NULL, `captured_bytes` INTEGER NOT NULL, `updated_at_millis` INTEGER NOT NULL, PRIMARY KEY(`assessmentId`, `taskId`), FOREIGN KEY(`assessmentId`) REFERENCES `assessment_drafts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "assessmentId",
+            "columnName": "assessmentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evidenceCount",
+            "columnName": "evidence_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "budgetBytes",
+            "columnName": "budget_bytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedBytes",
+            "columnName": "captured_bytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updated_at_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "assessmentId",
+            "taskId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_task_drafts_assessmentId",
+            "unique": false,
+            "columnNames": [
+              "assessmentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_task_drafts_assessmentId` ON `${TABLE_NAME}` (`assessmentId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "assessment_drafts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "assessmentId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "evidence_drafts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `assessmentId` TEXT NOT NULL, `taskId` TEXT NOT NULL, `kind` TEXT NOT NULL, `relative_path` TEXT NOT NULL, `byte_size` INTEGER NOT NULL, `created_at_millis` INTEGER NOT NULL, `width_px` INTEGER, `height_px` INTEGER, `duration_millis` INTEGER, `state` TEXT NOT NULL, `replaces_evidence_id` TEXT, `is_test_only` INTEGER NOT NULL, `debug_ceiling_requested` INTEGER NOT NULL DEFAULT 0, `final_state` TEXT NOT NULL DEFAULT 'NOT_PROCESSED', `final_relative_path` TEXT, `final_bytes` INTEGER, `final_sha256` TEXT, `final_mime_type` TEXT, `final_width_px` INTEGER, `final_height_px` INTEGER, `final_duration_millis` INTEGER, `vault_relative_path` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`assessmentId`, `taskId`) REFERENCES `task_drafts`(`assessmentId`, `taskId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assessmentId",
+            "columnName": "assessmentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relative_path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "byteSize",
+            "columnName": "byte_size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "widthPx",
+            "columnName": "width_px",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "heightPx",
+            "columnName": "height_px",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "durationMillis",
+            "columnName": "duration_millis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "replacesEvidenceId",
+            "columnName": "replaces_evidence_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isTestOnly",
+            "columnName": "is_test_only",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "debugCeilingRequested",
+            "columnName": "debug_ceiling_requested",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "finalState",
+            "columnName": "final_state",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'NOT_PROCESSED'"
+          },
+          {
+            "fieldPath": "finalRelativePath",
+            "columnName": "final_relative_path",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "finalBytes",
+            "columnName": "final_bytes",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "finalSha256",
+            "columnName": "final_sha256",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "finalMimeType",
+            "columnName": "final_mime_type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "finalWidthPx",
+            "columnName": "final_width_px",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "finalHeightPx",
+            "columnName": "final_height_px",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "finalDurationMillis",
+            "columnName": "final_duration_millis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "vaultRelativePath",
+            "columnName": "vault_relative_path",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evidence_drafts_assessmentId",
+            "unique": false,
+            "columnNames": [
+              "assessmentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_evidence_drafts_assessmentId` ON `${TABLE_NAME}` (`assessmentId`)"
+          },
+          {
+            "name": "index_evidence_drafts_assessmentId_taskId",
+            "unique": false,
+            "columnNames": [
+              "assessmentId",
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_evidence_drafts_assessmentId_taskId` ON `${TABLE_NAME}` (`assessmentId`, `taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "task_drafts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "assessmentId",
+              "taskId"
+            ],
+            "referencedColumns": [
+              "assessmentId",
+              "taskId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "outbox_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `assessmentId` TEXT NOT NULL, `revision_id` TEXT NOT NULL, `idempotency_key` TEXT NOT NULL, `kind` TEXT NOT NULL, `evidence_id` TEXT, `task_id` TEXT, `vault_relative_path` TEXT NOT NULL, `priority` INTEGER NOT NULL, `created_at_millis` INTEGER NOT NULL, `retry_count` INTEGER NOT NULL DEFAULT 0, `last_attempt_at_millis` INTEGER, `sync_state` TEXT NOT NULL DEFAULT 'QUEUED', `server_session_id` INTEGER, `server_object_id` INTEGER, `bytes_uploaded` INTEGER NOT NULL DEFAULT 0, `last_error_category` TEXT, `receipt_verified_at_millis` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`assessmentId`) REFERENCES `assessment_drafts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assessmentId",
+            "columnName": "assessmentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revisionId",
+            "columnName": "revision_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evidenceId",
+            "columnName": "evidence_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "task_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "vaultRelativePath",
+            "columnName": "vault_relative_path",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at_millis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retryCount",
+            "columnName": "retry_count",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "lastAttemptAtMillis",
+            "columnName": "last_attempt_at_millis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'QUEUED'"
+          },
+          {
+            "fieldPath": "serverSessionId",
+            "columnName": "server_session_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "serverObjectId",
+            "columnName": "server_object_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "bytesUploaded",
+            "columnName": "bytes_uploaded",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "lastErrorCategory",
+            "columnName": "last_error_category",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "receiptVerifiedAtMillis",
+            "columnName": "receipt_verified_at_millis",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_outbox_items_assessmentId",
+            "unique": false,
+            "columnNames": [
+              "assessmentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_outbox_items_assessmentId` ON `${TABLE_NAME}` (`assessmentId`)"
+          },
+          {
+            "name": "index_outbox_items_idempotency_key",
+            "unique": false,
+            "columnNames": [
+              "idempotency_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_outbox_items_idempotency_key` ON `${TABLE_NAME}` (`idempotency_key`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "assessment_drafts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "assessmentId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2a29158b6ec92654c0123bebe7db82ea')"
+    ]
+  }
+}

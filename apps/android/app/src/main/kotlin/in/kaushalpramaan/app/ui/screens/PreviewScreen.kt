@@ -5,7 +5,10 @@ import `in`.kaushalpramaan.app.data.AppViewModel
 import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
 import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
+import `in`.kaushalpramaan.app.data.draft.OutboxItemEntity
+import `in`.kaushalpramaan.app.data.draft.OutboxItemKind
 import `in`.kaushalpramaan.app.data.draft.SealState
+import `in`.kaushalpramaan.app.data.draft.SyncState
 import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
@@ -237,14 +240,26 @@ fun PreviewScreen(
                 }
             } else {
                 Text(stringResource(R.string.submitted_body), style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("sealed_status_message"))
+
+                SyncStatusSection(
+                    viewModel = viewModel,
+                    assessmentId = uiState.assessmentDraftId.orEmpty(),
+                    syncedAtMillis = uiState.syncedAtMillis,
+                )
+
                 if (viewModel.debugExportHooks.isAvailable) {
                     DebugExportCard(viewModel = viewModel, assessmentId = uiState.assessmentDraftId.orEmpty())
                 }
-                TextButton(
-                    onClick = { showDiscardConfirm = true },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_discard_and_reopen"),
-                ) {
-                    Text(stringResource(R.string.action_discard_and_reopen), color = MaterialTheme.colorScheme.error)
+                if (BuildConfigP6SyncEndpointOverrideEnabled()) {
+                    P6TestOnlySyncEndpointCard(viewModel = viewModel)
+                }
+                if (uiState.syncedAtMillis == null) {
+                    TextButton(
+                        onClick = { showDiscardConfirm = true },
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_discard_and_reopen"),
+                    ) {
+                        Text(stringResource(R.string.action_discard_and_reopen), color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         }
@@ -370,6 +385,109 @@ private fun DebugExportCard(viewModel: AppViewModel, assessmentId: String) {
                     modifier = Modifier.testTag("btn_debug_export_cleanup"),
                 ) { Text(stringResource(R.string.p5_test_only_debug_export_cleanup_action)) }
             }
+        }
+    }
+}
+
+/** P6: functional sync state/progress display (spec requirement -- "no visual redesign
+ * required"), reading [AppViewModel.observeOutbox]'s live Room flow directly -- never a
+ * locally-faked state, same discipline as the seal-state mirror above. */
+@Composable
+private fun SyncStatusSection(viewModel: AppViewModel, assessmentId: String, syncedAtMillis: Long?) {
+    val outboxItems by viewModel.observeOutbox(assessmentId).collectAsState(initial = emptyList<OutboxItemEntity>())
+
+    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag("sync_status_card")) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.sync_section_title), style = MaterialTheme.typography.titleMedium)
+
+            if (syncedAtMillis != null) {
+                Text(
+                    stringResource(R.string.sync_overall_synced),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 8.dp).testTag("sync_overall_synced"),
+                )
+            } else {
+                val doneCount = outboxItems.count { it.syncState == SyncState.SYNCED }
+                val total = outboxItems.size
+                Text(
+                    if (total > 0) stringResource(R.string.sync_overall_in_progress, doneCount, total)
+                    else stringResource(R.string.sync_overall_not_started),
+                    modifier = Modifier.padding(top = 8.dp).testTag("sync_overall_status"),
+                )
+
+                for (item in outboxItems.sortedBy { it.priority }) {
+                    SyncItemRow(item)
+                }
+
+                Button(
+                    onClick = { viewModel.syncNow() },
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp).defaultMinTapTarget().testTag("btn_sync_now"),
+                ) {
+                    Text(stringResource(R.string.sync_action_sync_now))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SyncItemRow(item: OutboxItemEntity) {
+    val label = if (item.kind == OutboxItemKind.MANIFEST) {
+        stringResource(R.string.sync_item_manifest_label)
+    } else {
+        item.taskId.orEmpty()
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("sync_item_${item.id}"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                when (item.syncState) {
+                    SyncState.QUEUED -> stringResource(R.string.sync_state_queued)
+                    SyncState.WAITING_FOR_NETWORK -> stringResource(R.string.sync_state_waiting_for_network)
+                    SyncState.UPLOADING -> stringResource(R.string.sync_state_uploading, formatMb(item.bytesUploaded))
+                    SyncState.RETRYING -> stringResource(R.string.sync_state_retrying, item.retryCount)
+                    SyncState.VERIFYING -> stringResource(R.string.sync_state_verifying)
+                    SyncState.SYNCED -> stringResource(R.string.sync_state_synced)
+                    SyncState.FAILED_ACTION_REQUIRED -> stringResource(R.string.sync_state_failed_action_required)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (item.syncState == SyncState.FAILED_ACTION_REQUIRED) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+        }
+    }
+}
+
+private fun BuildConfigP6SyncEndpointOverrideEnabled(): Boolean =
+    `in`.kaushalpramaan.app.BuildConfig.P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED
+
+/** P6_TEST_ONLY, debug builds only: lets the manual-gate tester point sync at their laptop's
+ * real LAN IP at runtime, no rebuild -- see SyncEndpointConfig/DebugOverridableSyncEndpointConfig
+ * (app/src/debug). Genuinely absent from release (see
+ * app/build.gradle.kts's verifyP6SyncEndpointOverrideAbsentFromRelease). */
+@Composable
+private fun P6TestOnlySyncEndpointCard(viewModel: AppViewModel) {
+    var text by remember { mutableStateOf(viewModel.syncEndpointConfig.baseUrl()) }
+    Card(modifier = Modifier.fillMaxWidth().padding(top = 12.dp).testTag("p6_test_only_sync_endpoint_card")) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(stringResource(R.string.p6_test_only_sync_url_label), style = MaterialTheme.typography.bodySmall)
+            androidx.compose.material3.OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text(stringResource(R.string.p6_test_only_sync_url_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("p6_test_only_sync_url_field"),
+            )
+            Button(
+                onClick = { viewModel.syncEndpointConfig.setOverrideBaseUrl(text) },
+                modifier = Modifier.padding(top = 8.dp).testTag("btn_p6_test_only_save_sync_url"),
+            ) { Text(stringResource(R.string.p6_test_only_sync_url_save)) }
         }
     }
 }

@@ -97,6 +97,57 @@ class VaultStreamCipherTest {
     }
 
     @Test
+    fun decrypting_stream_reconstructs_the_exact_original_bytes_reading_in_small_chunks() {
+        // P6: proves the bounded chunk-at-a-time read API (VaultStreamCipher.decryptingStream /
+        // VaultCipher.openDecryptingStream) is byte-identical to the whole-file decryptFile path
+        // -- the only difference is HOW the caller consumes it (small fixed-size reads, as the
+        // real sync worker does, 1 MiB at a time), never materialising the full plaintext.
+        val aead = freshAead()
+        val original = Random(5).nextBytes(300_000)
+        val source = File(tempDir, "source.bin").apply { writeBytes(original) }
+        val encrypted = File(tempDir, "encrypted.bin")
+        val aad = VaultStreamCipher.associatedData("a1", "r1", "e1", "evidence")
+        VaultStreamCipher.encryptFile(aead, source, encrypted, aad)
+
+        val reconstructed = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(4096) // deliberately small/odd relative to the 300 KB payload
+        VaultStreamCipher.decryptingStream(aead, encrypted, aad).use { stream ->
+            var totalRead = 0
+            while (true) {
+                val n = stream.read(buffer)
+                if (n < 0) break
+                reconstructed.write(buffer, 0, n)
+                totalRead += n
+            }
+            check(totalRead == original.size) { "expected $totalRead to equal ${original.size}" }
+        }
+
+        assertArrayEquals(original, reconstructed.toByteArray())
+    }
+
+    @Test
+    fun decrypting_stream_fails_mid_read_on_a_tampered_ciphertext_not_just_on_open() {
+        val aead = freshAead()
+        val original = Random(6).nextBytes(500_000)
+        val source = File(tempDir, "source.bin").apply { writeBytes(original) }
+        val encrypted = File(tempDir, "encrypted.bin")
+        val aad = VaultStreamCipher.associatedData("a1", "r1", "e1", "evidence")
+        VaultStreamCipher.encryptFile(aead, source, encrypted, aad)
+        val bytes = encrypted.readBytes()
+        bytes[bytes.size - 1] = (bytes[bytes.size - 1] + 1).toByte() // tamper the last (authenticated) segment
+        encrypted.writeBytes(bytes)
+
+        assertThrows(Exception::class.java) {
+            VaultStreamCipher.decryptingStream(aead, encrypted, aad).use { stream ->
+                val buffer = ByteArray(4096)
+                while (stream.read(buffer) >= 0) {
+                    // keep reading until the tampered segment's auth tag fails
+                }
+            }
+        }
+    }
+
+    @Test
     fun decryption_fails_after_a_one_byte_ciphertext_modification() {
         val aead = freshAead()
         val source = File(tempDir, "source.bin").apply { writeBytes(Random(4).nextBytes(50_000)) }

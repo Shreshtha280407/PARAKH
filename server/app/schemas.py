@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -47,6 +47,33 @@ class MeOut(BaseModel):
     email: str | None
 
 
+# ---- worker self-registration (P6 sync bootstrap) ----
+#
+# The worker app has no login (see docs/worker_capability_tokens.md) -- but it also, until P6,
+# never needed a server-side identity at all (P3-P5 are fully offline). POST /workers/register
+# is the one place a phone establishes that identity: idempotent on device_worker_id (the
+# phone's own locally-generated "KP-XXXXXXXX" string from on-device registration), never a
+# password/OTP. Deliberately public/unauthenticated, same trust model as POST /assessments
+# (there is no account to authenticate against yet).
+
+class WorkerRegisterRequest(BaseModel):
+    device_worker_id: str = Field(min_length=1, max_length=60)
+    display_name: str = Field(min_length=1, max_length=120)
+
+
+class WorkerRegisterOut(BaseModel):
+    worker_id: int
+
+
+# ---- pack lookup (P6 sync bootstrap: resolve the pinned QP code/version to a pack_id) ----
+
+class PackLookupOut(BaseModel):
+    pack_id: int
+    qp_code: str
+    qp_version: str
+    pack_version: str
+
+
 # ---- assessments ----
 
 class AssessmentCreate(BaseModel):
@@ -73,6 +100,11 @@ class EvidenceReceiptOut(BaseModel):
     declared_size_bytes: int
     sha256: str
     created_at: datetime.datetime
+    thumbnail_status: str = "not_applicable"
+    metadata_status: str = "not_run"
+    duration_ms: int | None = None
+    width_px: int | None = None
+    height_px: int | None = None
 
 
 class AssessmentTaskOut(BaseModel):
@@ -99,36 +131,74 @@ class AssessmentOut(BaseModel):
     decision: str | None = None
     decision_notes: str | None = None
     reassessment_of_id: int | None = None
+    # P6: honest, bounded declaration/match snapshot -- see
+    # Assessment.declared_match_result's docstring in models.py for exactly
+    # why this is a summary, not the full declaration Q&A.
+    declared_match_result: str | None = None
+    declared_coverage_fraction: Decimal | None = None
+    declared_gap_task_codes: list[str] | None = None
+    current_revision_id: str | None = None
     tasks: list[AssessmentTaskOut]
 
 
 # ---- resumable uploads ----
+#
+# P6 extends the P2.1 single-evidence-item protocol to also carry a P5
+# SignedManifestPackage envelope through the exact same open/chunk/complete
+# machinery (target="manifest"), and binds every evidence-item session to
+# the P5 outbox row it came from (revision_id/client_evidence_id) so a lost
+# acknowledgement can be resolved via server status instead of re-uploaded
+# blindly. See server/app/manifest_verify.py and routers/uploads.py.
+
+SyncTarget = Literal["evidence", "manifest"]
+
 
 class UploadSessionCreate(BaseModel):
     assessment_id: int
-    task_code: str
-    kind: EvidenceKind
-    mime: str
+    target: SyncTarget = "evidence"
+    task_code: str | None = None  # required for target="evidence"
+    kind: EvidenceKind | None = None  # required for target="evidence"
+    mime: str | None = None  # required for target="evidence"
     claimed_size_bytes: int = Field(gt=0)
+    # P6 sync binding -- omit both for the pre-P6 direct-upload path (tests,
+    # the docker e2e smoke script), which behaves exactly as before.
+    revision_id: str | None = None
+    client_evidence_id: str | None = None  # required for target="evidence" when revision_id is set
 
     @model_validator(mode="after")
-    def _kind_mime_match(self) -> "UploadSessionCreate":
-        _check_kind_mime(self.kind, self.mime)
+    def _validate(self) -> "UploadSessionCreate":
+        if self.target == "evidence":
+            if not self.task_code:
+                raise ValueError("task_code is required when target is 'evidence'")
+            if not self.kind or not self.mime:
+                raise ValueError("kind and mime are required when target is 'evidence'")
+            _check_kind_mime(self.kind, self.mime)
+            if self.revision_id and not self.client_evidence_id:
+                raise ValueError("client_evidence_id is required when revision_id is set")
+        else:  # manifest
+            if not self.revision_id:
+                raise ValueError("revision_id is required when target is 'manifest'")
+            if self.task_code or self.kind or self.mime:
+                raise ValueError("task_code/kind/mime must not be set when target is 'manifest'")
         return self
 
 
 class UploadSessionOut(BaseModel):
     id: int
-    assessment_task_id: int
-    kind: str
-    mime: str
+    assessment_id: int
+    assessment_task_id: int | None = None
+    target: SyncTarget = "evidence"
+    kind: str | None = None
+    mime: str | None = None
     claimed_size_bytes: int
     received_bytes: int
     next_chunk_index: int
     status: str
     opened_at: datetime.datetime
     expires_at: datetime.datetime
-    task_bytes_remaining: int
+    revision_id: str | None = None
+    client_evidence_id: str | None = None
+    task_bytes_remaining: int | None = None  # None for target="manifest" (not task-scoped)
     total_bytes_remaining: int
 
 
@@ -152,6 +222,49 @@ class UploadReceipt(BaseModel):
     kind: str
     storage_status: Literal["stored"]
     completed_at: datetime.datetime
+
+
+class ManifestReceipt(BaseModel):
+    session_id: int
+    manifest_id: int
+    assessment_id: int
+    revision_id: str
+    sha256: str
+    item_count: int
+    declared_total_bytes: int
+    status: Literal["received", "rejected"]
+    rejection_reason: str | None = None
+    received_at: datetime.datetime
+
+
+# ---- P6 sync status (worker resume + assessor-visible progress) ----
+
+SyncItemState = Literal["pending", "uploading", "verified", "rejected"]
+
+
+class SyncItemStatusOut(BaseModel):
+    client_evidence_id: str
+    task_code: str
+    kind: str
+    declared_bytes: int
+    state: SyncItemState
+    received_bytes: int | None = None
+    upload_session_id: int | None = None
+    evidence_id: int | None = None
+    rejection_reason: str | None = None
+
+
+ManifestSyncState = Literal["none", "received", "complete", "rejected"]
+
+
+class SyncStatusOut(BaseModel):
+    assessment_id: int
+    assessment_status: str
+    revision_id: str | None = None
+    manifest_state: ManifestSyncState = "none"
+    manifest_rejection_reason: str | None = None
+    items: list[SyncItemStatusOut] = []
+    all_items_verified: bool = False
 
 
 # ---- queue ----
@@ -267,6 +380,18 @@ class ReportVerifyOut(BaseModel):
     valid: bool
     key_id: str
     signed_at: datetime.datetime
+
+
+# ---- audit log (P6 review workspace) ----
+
+class AuditLogEntryOut(BaseModel):
+    id: int
+    actor_user_id: int | None
+    actor_name: str | None  # resolved display_name, or None for actor_role="worker"/"system"
+    actor_role: str
+    action: str
+    details: dict
+    created_at: datetime.datetime
 
 
 # ---- worker token rotation/revocation ----

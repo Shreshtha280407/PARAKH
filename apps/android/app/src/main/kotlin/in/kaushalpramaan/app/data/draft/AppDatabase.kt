@@ -73,9 +73,27 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+/** P6: adds the sync-progress columns to `outbox_items` (see [SyncState] and
+ * [OutboxItemEntity]'s doc comment) -- real, additive migration, never
+ * fallbackToDestructiveMigration, same reasoning as MIGRATION_1_2/2_3. A sealed,
+ * not-yet-synced outbox row surviving an app update must never be silently wiped. */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE outbox_items ADD COLUMN sync_state TEXT NOT NULL DEFAULT 'QUEUED'")
+        db.execSQL("ALTER TABLE outbox_items ADD COLUMN server_session_id INTEGER")
+        db.execSQL("ALTER TABLE outbox_items ADD COLUMN server_object_id INTEGER")
+        db.execSQL("ALTER TABLE outbox_items ADD COLUMN bytes_uploaded INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE outbox_items ADD COLUMN last_error_category TEXT")
+        db.execSQL("ALTER TABLE outbox_items ADD COLUMN receipt_verified_at_millis INTEGER")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN synced_at_millis INTEGER")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN server_assessment_id INTEGER")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN server_worker_token TEXT")
+    }
+}
+
 @androidx.room.Database(
     entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class, OutboxItemEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -117,7 +135,7 @@ abstract class AppDatabase : RoomDatabase() {
             val factory = SupportFactory(passphrase)
             return Room.databaseBuilder(appContext, AppDatabase::class.java, dbFileName)
                 .openHelperFactory(factory)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
         }
     }

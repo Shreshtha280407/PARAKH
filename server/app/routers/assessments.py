@@ -165,6 +165,10 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
         decision=assessment.decision,
         decision_notes=assessment.decision_notes,
         reassessment_of_id=assessment.reassessment_of_id,
+        declared_match_result=assessment.declared_match_result,
+        declared_coverage_fraction=assessment.declared_coverage_fraction,
+        declared_gap_task_codes=assessment.declared_gap_task_codes,
+        current_revision_id=assessment.current_revision_id,
         tasks=[
             schemas.AssessmentTaskOut(
                 task_code=t.task_code,
@@ -211,6 +215,24 @@ def submit_assessment(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing or invalid X-Worker-Token for this assessment")
     if assessment.status != models.AssessmentStatus.draft.value:
         raise HTTPException(status.HTTP_409_CONFLICT, f"cannot submit: assessment is '{assessment.status}', not 'draft'")
+
+    # P6: an assessment that has a sync revision in progress may only be
+    # submitted once every item that revision's manifest declares has been
+    # uploaded AND verified against it (see uploads._maybe_complete_manifest).
+    # An assessment that never used the P6 sync path (current_revision_id is
+    # never set) is unaffected -- submit behaves exactly as it did in P2.1/
+    # P2.2, so the pre-P6 direct-upload tests/scripts keep working unchanged.
+    if assessment.current_revision_id:
+        manifest = (
+            db.query(models.DeviceManifest)
+            .filter_by(assessment_id=assessment.id, revision_id=assessment.current_revision_id)
+            .one_or_none()
+        )
+        if manifest is None or manifest.status != "complete":
+            raise HTTPException(
+                status.HTTP_409_CONFLICT,
+                "sealed package is not fully synced and verified yet -- cannot submit",
+            )
 
     assessment.status = models.AssessmentStatus.submitted.value
     assessment.submitted_at = datetime.datetime.now(datetime.timezone.utc)
@@ -269,4 +291,129 @@ def get_assessment_rubric(
             evidence_hint=item.evidence_hint,
         )
         for item, pc in rows
+    ]
+
+
+@router.get("/{assessment_id}/sync-status", response_model=schemas.SyncStatusOut)
+def get_sync_status(
+    assessment_id: int,
+    revision_id: str | None = None,
+    db: Session = Depends(get_db),
+    _auth: models.Assessment = Depends(_assessor_or_worker_token),
+) -> schemas.SyncStatusOut:
+    """P6: consolidated begin/recover + per-item status, so the phone's
+    WorkManager worker (and the dashboard) can learn, in one call, exactly
+    which declared items are missing/uploading/verified/rejected for a
+    revision -- used to resolve a possibly-lost acknowledgement via server
+    status rather than blindly re-uploading, and to decide which chunks (if
+    any) are actually missing before resuming.
+
+    `revision_id` is optional and defaults to the assessment's current
+    (most recently ACCEPTED) revision -- but the phone always knows its own
+    revision_id locally (from Room) and should pass it explicitly to check
+    on a revision that was outright REJECTED (which never becomes
+    "current"), e.g. right after a failed sync attempt."""
+    assessment = db.get(models.Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
+
+    target_revision = revision_id or assessment.current_revision_id
+    if not target_revision:
+        return schemas.SyncStatusOut(
+            assessment_id=assessment.id, assessment_status=assessment.status,
+            revision_id=None, manifest_state="none", items=[], all_items_verified=False,
+        )
+
+    manifest = (
+        db.query(models.DeviceManifest)
+        .filter_by(assessment_id=assessment.id, revision_id=target_revision)
+        .one_or_none()
+    )
+    if manifest is None:
+        return schemas.SyncStatusOut(
+            assessment_id=assessment.id, assessment_status=assessment.status,
+            revision_id=target_revision, manifest_state="none", items=[], all_items_verified=False,
+        )
+
+    manifest_state = manifest.status if manifest.status in ("received", "complete", "rejected") else "none"
+
+    items: list[schemas.SyncItemStatusOut] = []
+    all_verified = manifest.status == "complete"
+    for declared in manifest.declared_items:
+        task = db.query(models.AssessmentTask).filter_by(
+            assessment_id=assessment.id, task_code=declared["task_code"],
+        ).one_or_none()
+        evidence = None
+        if task is not None:
+            evidence = db.query(models.EvidenceItem).filter_by(
+                assessment_task_id=task.id, client_evidence_id=declared["evidence_id"],
+            ).one_or_none()
+        session = (
+            db.query(models.UploadSession)
+            .filter_by(
+                assessment_id=assessment.id, target="evidence",
+                client_evidence_id=declared["evidence_id"], revision_id=target_revision,
+            )
+            .order_by(models.UploadSession.id.desc())
+            .first()
+        )
+
+        if evidence is not None:
+            state = "verified"
+        elif session is not None and session.received_bytes > 0:
+            state = "uploading"
+        else:
+            state = "pending"
+        if state != "verified":
+            all_verified = False
+
+        items.append(schemas.SyncItemStatusOut(
+            client_evidence_id=declared["evidence_id"], task_code=declared["task_code"],
+            kind=declared["kind"], declared_bytes=declared["bytes"], state=state,
+            received_bytes=session.received_bytes if session else None,
+            upload_session_id=session.id if session else None,
+            evidence_id=evidence.id if evidence else None,
+            rejection_reason=session.last_rejection_reason if session else None,
+        ))
+
+    return schemas.SyncStatusOut(
+        assessment_id=assessment.id, assessment_status=assessment.status,
+        revision_id=target_revision, manifest_state=manifest_state,
+        manifest_rejection_reason=manifest.rejection_reason, items=items,
+        all_items_verified=all_verified,
+    )
+
+
+@router.get("/{assessment_id}/audit-log", response_model=list[schemas.AuditLogEntryOut])
+def get_audit_log(
+    assessment_id: int,
+    db: Session = Depends(get_db),
+    _user: models.User = Depends(require_assessor),
+) -> list[schemas.AuditLogEntryOut]:
+    """Assessor/admin only -- the full, append-only accountability trail for
+    one assessment (who did what, when), including P6's sync-specific
+    actions (manifest received/rejected, cross-check mismatches, package
+    completion) alongside the P2.2 lifecycle/scoring/decision/report/token
+    actions. Oldest first, matching the order things actually happened."""
+    assessment = db.get(models.Assessment, assessment_id)
+    if assessment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
+
+    rows = (
+        db.query(models.AuditLog)
+        .filter_by(assessment_id=assessment_id)
+        .order_by(models.AuditLog.id)
+        .all()
+    )
+    actor_ids = {r.actor_user_id for r in rows if r.actor_user_id is not None}
+    names = {
+        u.id: u.display_name
+        for u in db.query(models.User).filter(models.User.id.in_(actor_ids)).all()
+    } if actor_ids else {}
+    return [
+        schemas.AuditLogEntryOut(
+            id=r.id, actor_user_id=r.actor_user_id, actor_name=names.get(r.actor_user_id),
+            actor_role=r.actor_role, action=r.action, details=r.details, created_at=r.created_at,
+        )
+        for r in rows
     ]

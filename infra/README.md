@@ -86,6 +86,24 @@ laptop at a demo/training site, or a real deployed instance later. The
 server itself is always a normal networked service; it is the *worker's
 capture step* that is offline-first, not the backend's deployment.
 
+## Reaching this stack from a physical Android device (P6)
+
+The `api` service binds `0.0.0.0:8000` (see `docker-compose.yml`'s `ports:`),
+so it is reachable from another device on the same LAN/Wi-Fi/hotspot at
+`http://<this-laptop's-LAN-IP>:8000` — not just `localhost`. Find the
+laptop's real LAN IP (`ip addr` / `ifconfig` on Linux/macOS,
+`ipconfig` on Windows) and confirm it from the phone first
+(`adb shell curl -s http://<laptop-ip>:8000/health` once ADB is connected,
+or just open that URL in the phone's browser). A **debug** Android build
+only (see `docs/gates/P6.md`) can then be pointed at that address via the
+in-app `P6_TEST_ONLY sync server URL` field on the sealed-assessment
+screen — this works over plain HTTP because the debug build's network
+security config permits cleartext specifically for this purpose; a release
+build cannot be pointed at a non-HTTPS address at all. If the laptop's
+firewall blocks inbound connections on port 8000, allow it for the
+duration of the test (e.g. `sudo ufw allow 8000` on Ubuntu), or use a
+firewall-less hotspot/router instead.
+
 ## Full command reference
 
 ```

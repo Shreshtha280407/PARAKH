@@ -341,15 +341,18 @@ class SealOrchestrator(
         val idempotencyKey = "$assessmentId:$revisionId"
         val now = System.currentTimeMillis()
 
+        val sha256ByEvidenceId = mutableMapOf<String, String>()
         val manifestItems = items.map { item ->
             val finalFile = fileManager.resolveRelativePath(requireNotNull(item.finalRelativePath))
+            val sha256 = StreamingHasher.sha256Hex(finalFile)
+            sha256ByEvidenceId[item.id] = sha256
             ManifestEvidenceItem(
                 evidenceId = item.id,
                 taskId = item.taskId,
                 kind = item.kind.name,
                 fileName = finalFile.name,
                 bytes = requireNotNull(item.finalBytes),
-                sha256 = StreamingHasher.sha256Hex(finalFile),
+                sha256 = sha256,
                 mimeType = item.finalMimeType ?: "application/octet-stream",
                 durationMillis = item.finalDurationMillis,
                 widthPx = item.finalWidthPx,
@@ -419,7 +422,12 @@ class SealOrchestrator(
                 VaultStreamCipher.associatedData(assessmentId, revisionId, item.id, "evidence"),
             )
             vaultFilesByEvidenceId[item.id] = vaultFile
-            evidenceDraftDao.update(item.copy(vaultRelativePath = fileManager.relativePathOf(vaultFile)))
+            evidenceDraftDao.update(
+                item.copy(
+                    vaultRelativePath = fileManager.relativePathOf(vaultFile),
+                    finalSha256 = sha256ByEvidenceId[item.id],
+                ),
+            )
         }
 
         assessmentDraftDao.getById(assessmentId)?.let {
@@ -501,6 +509,16 @@ class SealOrchestrator(
      * sealed package; this is the only path back to editing (spec part E.4). */
     suspend fun discardAndReopen(assessmentId: String) {
         val assessment = assessmentDraftDao.getById(assessmentId) ?: return
+        // P6: once the server has verified+accepted the full sealed package and the worker
+        // has submitted it (AssessmentDraftEntity.syncedAtMillis set -- see SyncRepository),
+        // the assessor-facing record already exists server-side. A local discard/reopen past
+        // that point would silently diverge from what the assessor is reviewing, with no
+        // server-side "unsubmit" to keep it honest -- so this is a hard, documented stop, not
+        // a state this function tries to handle.
+        if (assessment.syncedAtMillis != null) {
+            Log.w(LOG_TAG, "discard_and_reopen result=blocked reason=already_synced_and_submitted")
+            return
+        }
         val items = evidenceDraftDao.getAllForAssessmentOnce(assessmentId).filter { it.state == EvidenceDraftState.READY }
 
         // A READY_TO_SYNC package already had its raw plaintext deleted (spec G.5) -- the
