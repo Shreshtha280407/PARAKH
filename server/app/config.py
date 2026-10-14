@@ -18,24 +18,53 @@ class Settings(BaseSettings):
     evidence_dir: Path = REPO_ROOT / "server" / "data" / "evidence"
 
     # Ed25519 tamper-evident report signing (server/app/report_signing.py).
-    # Hex-encoded 32-byte seed. Auto-generated in development if unset (a
-    # fresh key each process restart is fine for a local demo -- reports
-    # signed by a previous run simply won't verify, which is acceptable
-    # outside a real deployment). staging/production MUST set it
-    # explicitly, enforced below.
+    # Hex-encoded 32-byte seed. P7: REQUIRED in every environment, including
+    # development -- a signing key that regenerates itself every process
+    # restart would silently invalidate every previously-signed report
+    # (and, worse, would mean the "same" dev key_id resolves to a different
+    # actual key across runs). Generate one once with:
+    #   python -c "import secrets; print(secrets.token_bytes(32).hex())"
+    # and set it in .env -- never commit the real value to git.
     report_signing_private_key: str | None = None
     report_signing_key_id: str = "dev-key-1"
+    # Base URL the signed PDF's QR code points at (the dashboard's own
+    # public, unauthenticated #/verify/:reportId page -- see
+    # apps/dashboard/src/pages/VerifyReportPage.tsx), e.g.
+    # "http://localhost:5173" locally or the real deployed dashboard origin.
+    # Deliberately separate from cors_allow_origins: that gates which
+    # origins may call the API with credentials; this is just where a QR
+    # scan should navigate a browser, which may legitimately differ (e.g. a
+    # LAN IP a phone's camera app can actually reach, vs the dashboard's own
+    # browser origin).
+    report_verify_base_url: str = "http://localhost:5173"
+    # Retired keys, so a report signed before a key rotation stays
+    # verifiable: "key_id1:hex_public_key1,key_id2:hex_public_key2". Only
+    # public keys ever live here -- a retired private key is not needed to
+    # verify, only to sign, and is never kept once retired.
+    report_signing_key_history: str = ""
 
     @model_validator(mode="after")
     def _report_signing_key_fail_fast(self) -> "Settings":
         if self.report_signing_private_key is None:
-            if self.app_env != "development":
-                raise ValueError(
-                    "REPORT_SIGNING_PRIVATE_KEY must be set outside development "
-                    f"(APP_ENV='{self.app_env}') -- refusing to start with no report signing key."
-                )
-            self.report_signing_private_key = secrets.token_bytes(32).hex()
+            raise ValueError(
+                "REPORT_SIGNING_PRIVATE_KEY must be set (including in development) -- a "
+                "regenerate-on-every-restart fallback would silently invalidate every "
+                "previously-signed report. Generate one once with: "
+                "python -c \"import secrets; print(secrets.token_bytes(32).hex())\" "
+                "and set it in .env."
+            )
         return self
+
+    def report_signing_key_history_map(self) -> dict[str, str]:
+        result: dict[str, str] = {}
+        for pair in self.report_signing_key_history.split(","):
+            pair = pair.strip()
+            if not pair:
+                continue
+            key_id, _, pubkey = pair.partition(":")
+            if key_id and pubkey:
+                result[key_id] = pubkey
+        return result
 
     # JWT (assessor/admin auth only -- workers never log in, see server/app/auth.py)
     jwt_secret: str | None = None  # dev-only random fallback generated below; MUST be set outside development

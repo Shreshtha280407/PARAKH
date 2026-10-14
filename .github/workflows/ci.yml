@@ -76,6 +76,11 @@ jobs:
           --health-retries 10
     env:
       TEST_DATABASE_URL: postgresql+psycopg://parakh:parakh_test_pw@localhost:5432/parakh_test
+      # P7: REPORT_SIGNING_PRIVATE_KEY is now required in every environment
+      # (config.py no longer auto-generates a fresh key per process restart,
+      # even in development -- see docs/gates/P7.md section 4). A fixed
+      # CI-only test key, never used anywhere real.
+      REPORT_SIGNING_PRIVATE_KEY: c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -137,6 +137,20 @@
             ],
             "title": "Declared Gap Task Codes"
           },
+          "declared_match_reasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declared Match Reasons"
+          },
           "declared_match_result": {
             "anyOf": [
               {
@@ -174,6 +188,11 @@
               }
             ],
             "title": "Reassessment Of Id"
+          },
+          "revision_number": {
+            "default": 1,
+            "title": "Revision Number",
+            "type": "integer"
           },
           "status": {
             "title": "Status",
@@ -229,6 +248,67 @@
           "tasks"
         ],
         "title": "AssessmentOut",
+        "type": "object"
+      },
+      "AssessmentRevisionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "reopened_task_codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reopened Task Codes"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          }
+        },
+        "required": [
+          "revision_number",
+          "status",
+          "created_at"
+        ],
+        "title": "AssessmentRevisionOut",
         "type": "object"
       },
       "AssessmentTaskOut": {
@@ -356,14 +436,56 @@
       },
       "CompetencyProfileOut": {
         "properties": {
+          "achieved_nos_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Achieved Nos Codes",
+            "type": "array"
+          },
           "assessment_id": {
             "title": "Assessment Id",
             "type": "integer"
+          },
+          "computed_outcome": {
+            "enum": [
+              "RECOMMEND_CERTIFICATION",
+              "PARTIALLY_COMPETENT",
+              "NOT_YET_COMPETENT",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Computed Outcome",
+            "type": "string"
+          },
+          "critical_violation_pc_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Critical Violation Pc Ids",
+            "type": "array"
           },
           "disclaimer": {
             "default": "Decision support only — final certification/recommendation remains with the human assessor.",
             "title": "Disclaimer",
             "type": "string"
+          },
+          "gap_nos_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Gap Nos Codes",
+            "type": "array"
+          },
+          "insufficient_evidence_nos_codes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Insufficient Evidence Nos Codes",
+            "type": "array"
           },
           "meets_minimum_threshold": {
             "title": "Meets Minimum Threshold",
@@ -410,7 +532,8 @@
           "meets_minimum_threshold",
           "pcs_scored",
           "pcs_total",
-          "nos_breakdown"
+          "nos_breakdown",
+          "computed_outcome"
         ],
         "title": "CompetencyProfileOut",
         "type": "object"
@@ -549,9 +672,19 @@
             "title": "Marks Awarded",
             "type": "string"
           },
+          "needs_review": {
+            "default": false,
+            "title": "Needs Review",
+            "type": "boolean"
+          },
           "pc_full_id": {
             "title": "Pc Full Id",
             "type": "string"
+          },
+          "revision_number": {
+            "default": 1,
+            "title": "Revision Number",
+            "type": "integer"
           },
           "rubric_version": {
             "title": "Rubric Version",
@@ -631,6 +764,18 @@
             "title": "Declared Size Bytes",
             "type": "integer"
           },
+          "device_captured_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Captured At"
+          },
           "duration_ms": {
             "anyOf": [
               {
@@ -657,6 +802,11 @@
             "title": "Id",
             "type": "integer"
           },
+          "is_current_revision": {
+            "default": true,
+            "title": "Is Current Revision",
+            "type": "boolean"
+          },
           "kind": {
             "title": "Kind",
             "type": "string"
@@ -669,6 +819,11 @@
           "mime": {
             "title": "Mime",
             "type": "string"
+          },
+          "revision_number": {
+            "default": 1,
+            "title": "Revision Number",
+            "type": "integer"
           },
           "sha256": {
             "title": "Sha256",
@@ -862,6 +1017,21 @@
       },
       "NosProfileOut": {
         "properties": {
+          "competent": {
+            "default": false,
+            "title": "Competent",
+            "type": "boolean"
+          },
+          "critical_violation": {
+            "default": false,
+            "title": "Critical Violation",
+            "type": "boolean"
+          },
+          "has_insufficient_evidence": {
+            "default": false,
+            "title": "Has Insufficient Evidence",
+            "type": "boolean"
+          },
           "marks_awarded": {
             "title": "Marks Awarded",
             "type": "string"
@@ -869,6 +1039,11 @@
           "marks_possible": {
             "title": "Marks Possible",
             "type": "string"
+          },
+          "meets_threshold": {
+            "default": false,
+            "title": "Meets Threshold",
+            "type": "boolean"
           },
           "nos_code": {
             "title": "Nos Code",
@@ -975,6 +1150,68 @@
         "title": "PackLookupOut",
         "type": "object"
       },
+      "PublicVerifyOut": {
+        "description": "GET /verify/{report_id} -- public, unauthenticated. Minimal safe\nfields only: never the worker's name/contact, never evidence, never the\nfull score breakdown. `valid` distinguishes \"signature verifies against\na trusted key\" from `status`, which is always SIGNED here (a report row\nonly ever exists once signed) -- the two are deliberately separate\nfields so a caller can't misread \"status: SIGNED\" as itself a validity\nguarantee.",
+        "properties": {
+          "key_id": {
+            "title": "Key Id",
+            "type": "string"
+          },
+          "qp": {
+            "title": "Qp",
+            "type": "string"
+          },
+          "recommendation": {
+            "enum": [
+              "RECOMMEND_CERTIFICATION",
+              "PARTIALLY_COMPETENT",
+              "NOT_YET_COMPETENT",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Recommendation",
+            "type": "string"
+          },
+          "report_id": {
+            "title": "Report Id",
+            "type": "string"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "signed_at": {
+            "format": "date-time",
+            "title": "Signed At",
+            "type": "string"
+          },
+          "status": {
+            "const": "SIGNED",
+            "default": "SIGNED",
+            "title": "Status",
+            "type": "string"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "report_id",
+          "valid",
+          "qp",
+          "recommendation",
+          "revision_number",
+          "sha256",
+          "key_id",
+          "signed_at"
+        ],
+        "title": "PublicVerifyOut",
+        "type": "object"
+      },
       "QueueItemOut": {
         "properties": {
           "created_at": {
@@ -1012,6 +1249,102 @@
           "created_at"
         ],
         "title": "QueueItemOut",
+        "type": "object"
+      },
+      "ReassessmentRequestIn": {
+        "properties": {
+          "capture_instructions": {
+            "title": "Capture Instructions",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "task_codes": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Task Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "task_codes",
+          "reason",
+          "capture_instructions"
+        ],
+        "title": "ReassessmentRequestIn",
+        "type": "object"
+      },
+      "ReassessmentRequestOut": {
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "capture_instructions": {
+            "title": "Capture Instructions",
+            "type": "string"
+          },
+          "fulfilled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fulfilled At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "requested_by_id": {
+            "title": "Requested By Id",
+            "type": "integer"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Task Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "assessment_id",
+          "revision_number",
+          "task_codes",
+          "reason",
+          "capture_instructions",
+          "requested_by_id",
+          "requested_at",
+          "status"
+        ],
+        "title": "ReassessmentRequestOut",
         "type": "object"
       },
       "ReportVerifyOut": {
@@ -1087,19 +1420,93 @@
         "title": "RubricItemOut",
         "type": "object"
       },
+      "SignOffIn": {
+        "properties": {
+          "final_recommendation": {
+            "enum": [
+              "RECOMMEND_CERTIFICATION",
+              "PARTIALLY_COMPETENT",
+              "NOT_YET_COMPETENT",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Final Recommendation",
+            "type": "string"
+          },
+          "override_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Reason"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "final_recommendation"
+        ],
+        "title": "SignOffIn",
+        "type": "object"
+      },
       "SignedReportOut": {
         "properties": {
           "assessment_id": {
             "title": "Assessment Id",
             "type": "integer"
           },
+          "computed_recommendation": {
+            "enum": [
+              "RECOMMEND_CERTIFICATION",
+              "PARTIALLY_COMPETENT",
+              "NOT_YET_COMPETENT",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Computed Recommendation",
+            "type": "string"
+          },
+          "final_recommendation": {
+            "enum": [
+              "RECOMMEND_CERTIFICATION",
+              "PARTIALLY_COMPETENT",
+              "NOT_YET_COMPETENT",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Final Recommendation",
+            "type": "string"
+          },
           "key_id": {
             "title": "Key Id",
             "type": "string"
           },
-          "sha256": {
-            "title": "Sha256",
+          "override_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Reason"
+          },
+          "pdf_sha256": {
+            "title": "Pdf Sha256",
             "type": "string"
+          },
+          "report_uid": {
+            "title": "Report Uid",
+            "type": "string"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
           },
           "signature": {
             "title": "Signature",
@@ -1113,9 +1520,14 @@
         },
         "required": [
           "assessment_id",
-          "sha256",
+          "report_uid",
+          "revision_number",
+          "pdf_sha256",
           "signature",
           "key_id",
+          "computed_recommendation",
+          "final_recommendation",
+          "override_reason",
           "signed_at"
         ],
         "title": "SignedReportOut",
@@ -1676,6 +2088,54 @@
           "status"
         ],
         "title": "WorkerTokenOut",
+        "type": "object"
+      },
+      "WorkerUpdatesOut": {
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "assessment_status": {
+            "title": "Assessment Status",
+            "type": "string"
+          },
+          "latest_event_id": {
+            "title": "Latest Event Id",
+            "type": "integer"
+          },
+          "pending_reassessment_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReassessmentRequestOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "report_status": {
+            "enum": [
+              "none",
+              "pending",
+              "available"
+            ],
+            "title": "Report Status",
+            "type": "string"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "assessment_status",
+          "revision_number",
+          "report_status",
+          "latest_event_id"
+        ],
+        "title": "WorkerUpdatesOut",
         "type": "object"
       }
     },
@@ -2576,9 +3036,212 @@
         ]
       }
     },
+    "/assessments/{assessment_id}/reassessment-requests": {
+      "get": {
+        "operationId": "list_reassessment_requests_assessments__assessment_id__reassessment_requests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReassessmentRequestOut"
+                  },
+                  "title": "Response List Reassessment Requests Assessments  Assessment Id  Reassessment Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Reassessment Requests",
+        "tags": [
+          "reassessment"
+        ]
+      },
+      "post": {
+        "description": "Assessor/admin only. Reopens exactly the requested tasks under a new\nrevision; every other task's v1 evidence/scores are untouched. Only one\nreassessment request may be pending at a time (the server-side source\nof truth for 'which tasks are reopened' would otherwise be ambiguous\nwhile a prior request's revision is still unresolved).",
+        "operationId": "create_reassessment_request_assessments__assessment_id__reassessment_requests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReassessmentRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReassessmentRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Reassessment Request",
+        "tags": [
+          "reassessment"
+        ]
+      }
+    },
     "/assessments/{assessment_id}/report": {
       "get": {
-        "description": "Protected -- same dual auth as GET /assessments/{id} (assessor/admin\nJWT, or this assessment's own worker token).",
+        "description": "Protected -- same dual auth as GET /assessments/{id}. Serves the\nSTORED immutable artifact, never a re-render. format=receipt is the\ndetached signature bundle tools/verify_report.py needs alongside the\nPDF -- fetched through this same authenticated channel (never the\npublic /verify/{report_id} endpoint, which deliberately omits the raw\nsignature) so an operator always gets it from a source they already\ntrust, never an arbitrary untrusted bundle.",
         "operationId": "download_report_assessments__assessment_id__report_get",
         "parameters": [
           {
@@ -2598,7 +3261,8 @@
               "default": "json",
               "enum": [
                 "json",
-                "pdf"
+                "pdf",
+                "receipt"
               ],
               "title": "Format",
               "type": "string"
@@ -2695,99 +3359,6 @@
           }
         ],
         "summary": "Download Report",
-        "tags": [
-          "reports"
-        ]
-      },
-      "post": {
-        "operationId": "generate_report_assessments__assessment_id__report_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "assessment_id",
-            "required": true,
-            "schema": {
-              "title": "Assessment Id",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-CSRF-Token",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          },
-          {
-            "in": "cookie",
-            "name": "access_token",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Access Token"
-            }
-          },
-          {
-            "in": "cookie",
-            "name": "csrf_token",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Csrf Token"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SignedReportOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Generate Report",
         "tags": [
           "reports"
         ]
@@ -2995,6 +3566,122 @@
         ]
       }
     },
+    "/assessments/{assessment_id}/revisions": {
+      "get": {
+        "description": "v1/v2/... revision history -- both the assessor dashboard and the\nworker app need this (same dual auth as GET /assessments/{id}).",
+        "operationId": "list_revisions_assessments__assessment_id__revisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssessmentRevisionOut"
+                  },
+                  "title": "Response List Revisions Assessments  Assessment Id  Revisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Revisions",
+        "tags": [
+          "reassessment"
+        ]
+      }
+    },
     "/assessments/{assessment_id}/rubric": {
       "get": {
         "description": "Assessor/admin only -- the 0-3 anchors for this assessment's pack,\nfor the dashboard's assessment-review page.",
@@ -3092,6 +3779,112 @@
         "summary": "Get Assessment Rubric",
         "tags": [
           "assessments"
+        ]
+      }
+    },
+    "/assessments/{assessment_id}/sign-off": {
+      "post": {
+        "description": "Password-confirmed final sign-off: records the assessor's final\nrecommendation (optionally overriding the computed one, with a mandatory\nreason) and produces the one, immutable, Ed25519-signed PDF for this\nassessment. Idempotent -- a retry after the first success returns the\nexact same signed artifact, never resigns. Never logs/stores the\npassword itself.",
+        "operationId": "sign_off_assessments__assessment_id__sign_off_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignOffIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Sign Off",
+        "tags": [
+          "reports"
         ]
       }
     },
@@ -3570,6 +4363,128 @@
         ]
       }
     },
+    "/assessments/{assessment_id}/worker-updates": {
+      "get": {
+        "description": "Durable, idempotent snapshot for the worker app to poll: the latest\nPENDING reassessment request (if any), current status, and report\navailability. A deliberate, documented departure from the master\nplan's literal 'GET /workers/me/updates?since=' shape -- see\ndocs/gates/P7.md section 3 for why (no worker login/session concept\nexists to make 'me' meaningful; this is scoped by the same\nper-assessment capability token every other worker-facing endpoint\nalready uses). `since` is advisory only (lets a caller skip re-fetching\nunchanged `pending_reassessment_request` details); the response always\nreflects current DB state, so a replayed/duplicate poll is always safe.",
+        "operationId": "get_worker_updates_assessments__assessment_id__worker_updates_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Since",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "access_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "csrf_token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Csrf Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerUpdatesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Worker Updates",
+        "tags": [
+          "reassessment"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "login_auth_login_post",
@@ -3885,7 +4800,7 @@
     },
     "/reports/{assessment_id}/verify": {
       "get": {
-        "description": "Public, unauthenticated -- the whole point of signing is that anyone\ncan check a report's authenticity without needing credentials. Returns\nonly a valid/invalid verdict and signing metadata; never the report\ncontent, scores, or any evidence.",
+        "description": "Public, unauthenticated -- kept for backward compatibility (looks up\nby the internal assessment_id). See GET /verify/{report_id} for the\nnew, stable-public-id version the signed PDF's QR code actually points\nat.",
         "operationId": "verify_report_reports__assessment_id__verify_get",
         "parameters": [
           {
@@ -4183,6 +5098,48 @@
         "summary": "Complete Upload",
         "tags": [
           "uploads"
+        ]
+      }
+    },
+    "/verify/{report_id}": {
+      "get": {
+        "operationId": "public_verify_verify__report_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicVerifyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Public Verify",
+        "tags": [
+          "verify"
         ]
       }
     },

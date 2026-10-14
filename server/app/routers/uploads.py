@@ -127,7 +127,14 @@ def _require_worker_token_for_session(
         or hash_worker_token(x_worker_token) != assessment.worker_token_hash
     ):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing or invalid X-Worker-Token for this assessment")
-    if require_draft and assessment.status != "draft":
+    # P7: a reopened (needs_reassessment) assessment may still mutate a
+    # session that belongs to its CURRENT open revision -- see
+    # open_upload_session's matching check, which is what actually decides
+    # whether a *new* session may be opened in the first place. This only
+    # widens which already-open sessions may be chunked/completed; it never
+    # lets a session opened under a now-superseded revision proceed (the
+    # revision-superseded check right below still applies).
+    if require_draft and assessment.status not in ("draft", "needs_reassessment"):
         raise HTTPException(status.HTTP_409_CONFLICT, f"assessment is '{assessment.status}'; evidence can no longer be added")
     if (
         require_draft
@@ -191,8 +198,33 @@ def open_upload_session(
         or hash_worker_token(x_worker_token) != assessment.worker_token_hash
     ):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing or invalid X-Worker-Token for this assessment")
-    if assessment.status != "draft":
+    # P7: a targeted reassessment reopens specific tasks on the SAME
+    # assessment (status 'needs_reassessment') rather than requiring a new
+    # Assessment -- see models.AssessmentRevision/ReassessmentRequest. The
+    # active (status='open') AssessmentRevision row is the sole source of
+    # truth for which tasks may receive NEW evidence in that state; every
+    # other task stays locked even though the assessment itself accepts
+    # uploads again.
+    active_revision = None
+    if assessment.status == "needs_reassessment":
+        active_revision = (
+            db.query(models.AssessmentRevision)
+            .filter_by(assessment_id=assessment.id, revision_number=assessment.revision_number, status="open")
+            .one_or_none()
+        )
+        if active_revision is None:
+            raise HTTPException(status.HTTP_409_CONFLICT, "no open reassessment revision for this assessment")
+    elif assessment.status != "draft":
         raise HTTPException(status.HTTP_409_CONFLICT, f"assessment is '{assessment.status}'; evidence can no longer be added")
+
+    if active_revision is not None and body.target == "evidence":
+        reopened = active_revision.reopened_task_codes or []
+        if body.task_code not in reopened:
+            raise HTTPException(
+                status.HTTP_409_CONFLICT,
+                f"task {body.task_code} was not reopened for reassessment (reopened: {reopened}); it is locked",
+            )
+
     # Serialize all quota reservations / recovery lookups for this
     # assessment: without this lock, two concurrent POSTs can each read
     # "fits"/"no existing session" before either commits, so both succeed
@@ -389,10 +421,29 @@ def complete_upload(
 def _maybe_complete_manifest(db: Session, manifest: models.DeviceManifest, assessment: models.Assessment) -> None:
     """Flip a DeviceManifest to 'complete' once every item it declares has a
     matching, verified EvidenceItem. This is the ONLY gate that lets
-    submit_assessment move a P6-synced assessment out of 'draft' -- see
-    routers/assessments.py::submit_assessment."""
+    submit_assessment move a P6-synced assessment out of 'draft' (or, P7,
+    resubmit a targeted-reassessment revision out of 'needs_reassessment')
+    -- see routers/assessments.py::submit_assessment.
+
+    P7: an item whose client_evidence_id already has a verified EvidenceItem
+    from an EARLIER revision is "inherited" (the phone re-declared an
+    unchanged task's evidence by reference instead of re-uploading already-
+    vault-deleted bytes -- see docs/gates/P7.md section 3). Two things are
+    enforced here that were not needed before versioned resubmission
+    existed: the inherited declaration must exactly match what was actually
+    verified (sha256 + byte count), and it must not smuggle NEW evidence
+    into a task the active revision never reopened.
+    """
     if manifest.status == "complete":
         return
+
+    active_revision = (
+        db.query(models.AssessmentRevision)
+        .filter_by(assessment_id=assessment.id, revision_id=manifest.revision_id)
+        .one_or_none()
+    )
+    reopened = set(active_revision.reopened_task_codes) if active_revision and active_revision.reopened_task_codes else None
+
     for item in manifest.declared_items:
         task = db.query(models.AssessmentTask).filter_by(
             assessment_id=assessment.id, task_code=item["task_code"]
@@ -403,7 +454,45 @@ def _maybe_complete_manifest(db: Session, manifest: models.DeviceManifest, asses
             assessment_task_id=task.id, client_evidence_id=item["evidence_id"],
         ).one_or_none()
         if found is None:
+            return  # not every declared item has arrived/verified yet -- try again later
+
+        is_inherited = found.revision_id is not None and found.revision_id != manifest.revision_id
+        if is_inherited:
+            mismatched = [
+                field for field, ok in (
+                    ("sha256", found.sha256 == item["sha256"]),
+                    ("byte count", found.declared_size_bytes == item["bytes"]),
+                ) if not ok
+            ]
+            if mismatched:
+                reason = (
+                    f"inherited item {item['evidence_id']} for task {item['task_code']} does not match the "
+                    f"previously verified evidence (mismatched: {', '.join(mismatched)})"
+                )
+                manifest.status = "rejected"
+                manifest.rejection_reason = reason
+                _audit(
+                    db, assessment.id, actor_user_id=None, actor_role="system",
+                    action="manifest_rejected_inherited_mismatch",
+                    details={"client_evidence_id": item["evidence_id"], "task_code": item["task_code"], "mismatched": mismatched},
+                )
+                db.commit()
+                return
+        elif reopened is not None and item["task_code"] not in reopened:
+            # A genuinely new upload (same revision as this manifest, not
+            # inherited) for a task the active revision never reopened --
+            # the server-side lock, independent of the UI affordance.
+            reason = f"task {item['task_code']} was not reopened for reassessment; new evidence is not allowed"
+            manifest.status = "rejected"
+            manifest.rejection_reason = reason
+            _audit(
+                db, assessment.id, actor_user_id=None, actor_role="system",
+                action="manifest_rejected_locked_task",
+                details={"client_evidence_id": item["evidence_id"], "task_code": item["task_code"]},
+            )
+            db.commit()
             return
+
     manifest.status = "complete"
     manifest.verified_at = _utcnow()
     _audit(
@@ -478,6 +567,12 @@ def _complete_evidence_upload(db: Session, session: models.UploadSession, body: 
             db.commit()
             raise HTTPException(409, session.last_rejection_reason)
 
+    device_captured_at = None
+    if manifest is not None and declared.get("captured_at_millis") is not None:
+        device_captured_at = datetime.datetime.fromtimestamp(
+            declared["captured_at_millis"] / 1000, tz=datetime.timezone.utc
+        )
+
     evidence = models.EvidenceItem(
         assessment_task_id=task.id,
         kind=session.kind,
@@ -487,6 +582,7 @@ def _complete_evidence_upload(db: Session, session: models.UploadSession, body: 
         sha256=server_sha256,
         revision_id=session.revision_id,
         client_evidence_id=session.client_evidence_id,
+        device_captured_at=device_captured_at,
     )
     if evidence.kind == "video":
         # Distinguishes "a thumbnail job is queued" from the model default
@@ -661,6 +757,66 @@ def _complete_manifest_upload(db: Session, session: models.UploadSession, body: 
         db.commit()
         raise HTTPException(409, f"manifest rejected: {reason}")
 
+    # P7: the active revision's FULL evidence snapshot -- inherited items
+    # included -- must fit the pinned budgets, independent of
+    # quota.check_quota (which only ever sees genuinely NEW bytes actively
+    # being uploaded; an inherited item is never re-uploaded, so it would
+    # otherwise escape budget enforcement entirely). Checked against the
+    # same pinned numbers every per-item upload already uses.
+    pack = db.get(models.QualificationPack, assessment.pack_id)
+    if parsed.assessment_total_bytes > pack.final_evidence_budget_bytes:
+        reason = (
+            f"declared total {parsed.assessment_total_bytes} bytes exceeds the assessment's "
+            f"{pack.final_evidence_budget_bytes}-byte budget"
+        )
+        manifest_row = models.DeviceManifest(
+            assessment_id=assessment.id, revision_id=session.revision_id,
+            idempotency_key=parsed.idempotency_key, canonical_json=parsed.canonical_bytes.decode("utf-8"),
+            sha256=parsed.sha256_hex, signature_b64=parsed.signature_b64, algorithm=parsed.algorithm,
+            signer_key_id=parsed.signer_key_id, signer_public_key_b64=parsed.signer_public_key_b64,
+            status="rejected", rejection_reason=reason, item_count=len(parsed.items),
+            declared_total_bytes=parsed.assessment_total_bytes, declared_items=parsed.items,
+        )
+        db.add(manifest_row)
+        db.flush()
+        session.status = "completed"
+        session.manifest_id = manifest_row.id
+        session.completed_at = _utcnow()
+        session.last_rejection_reason = reason
+        _audit(
+            db, assessment.id, actor_user_id=None, actor_role="system", action="manifest_rejected_budget_exceeded",
+            details={"revision_id": session.revision_id, "declared_total_bytes": parsed.assessment_total_bytes},
+        )
+        db.commit()
+        raise HTTPException(409, f"manifest rejected: {reason}")
+    task_templates_by_code = {
+        t.task_code: t for t in db.query(models.TaskTemplate).filter_by(pack_id=assessment.pack_id).all()
+    }
+    for task_code, total_bytes in parsed.task_totals.items():
+        template = task_templates_by_code.get(task_code)
+        if template is not None and total_bytes > template.budget_bytes:
+            reason = f"task {task_code} declared total {total_bytes} bytes exceeds its {template.budget_bytes}-byte budget"
+            manifest_row = models.DeviceManifest(
+                assessment_id=assessment.id, revision_id=session.revision_id,
+                idempotency_key=parsed.idempotency_key, canonical_json=parsed.canonical_bytes.decode("utf-8"),
+                sha256=parsed.sha256_hex, signature_b64=parsed.signature_b64, algorithm=parsed.algorithm,
+                signer_key_id=parsed.signer_key_id, signer_public_key_b64=parsed.signer_public_key_b64,
+                status="rejected", rejection_reason=reason, item_count=len(parsed.items),
+                declared_total_bytes=parsed.assessment_total_bytes, declared_items=parsed.items,
+            )
+            db.add(manifest_row)
+            db.flush()
+            session.status = "completed"
+            session.manifest_id = manifest_row.id
+            session.completed_at = _utcnow()
+            session.last_rejection_reason = reason
+            _audit(
+                db, assessment.id, actor_user_id=None, actor_role="system", action="manifest_rejected_budget_exceeded",
+                details={"revision_id": session.revision_id, "task_code": task_code, "declared_total_bytes": total_bytes},
+            )
+            db.commit()
+            raise HTTPException(409, f"manifest rejected: {reason}")
+
     manifest_row = models.DeviceManifest(
         assessment_id=assessment.id, revision_id=parsed.revision_id,
         idempotency_key=parsed.idempotency_key, canonical_json=parsed.canonical_bytes.decode("utf-8"),
@@ -671,6 +827,18 @@ def _complete_manifest_upload(db: Session, session: models.UploadSession, body: 
     )
     db.add(manifest_row)
     db.flush()
+
+    active_revision = (
+        db.query(models.AssessmentRevision)
+        .filter_by(assessment_id=assessment.id, revision_number=assessment.revision_number, status="open")
+        .one_or_none()
+    )
+    if active_revision is not None:
+        # Always the LATEST attempt's revision_id for this revision_number
+        # -- a pre-submit discard/reseal (still draft) can legitimately
+        # produce more than one revision_id for the same revision_number
+        # before anything is ever submitted; only the newest one matters.
+        active_revision.revision_id = parsed.revision_id
 
     if not assessment.device_public_key_b64:
         assessment.device_public_key_b64 = parsed.signer_public_key_b64
@@ -692,6 +860,8 @@ def _complete_manifest_upload(db: Session, session: models.UploadSession, body: 
         assessment.declared_coverage_fraction = Decimal(str(parsed.declared_coverage_fraction))
     if parsed.declared_gap_task_codes is not None:
         assessment.declared_gap_task_codes = parsed.declared_gap_task_codes
+    if parsed.declared_match_reasons is not None:
+        assessment.declared_match_reasons = parsed.declared_match_reasons
 
     session.status = "completed"
     session.manifest_id = manifest_row.id

@@ -20,6 +20,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,11 +31,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @Composable
 fun TaskListScreen(
@@ -49,6 +52,7 @@ fun TaskListScreen(
     val totalUsed = uiState.totalEvidenceBytes()
     val totalBudget = viewModel.totalBudgetBytes()
     var showDeleteDraftConfirm by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) { viewModel.startOrResumeAssessmentDraft() }
 
@@ -59,35 +63,70 @@ fun TaskListScreen(
         onBack = onBack,
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                SafetyNoticeCard()
-                if (uiState.assessmentIsTestOnly) {
-                    Text(
-                        stringResource(R.string.p4_test_only_badge),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 8.dp).testTag("p4_test_only_badge"),
-                    )
-                }
-                Text(
-                    stringResource(R.string.tasks_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 12.dp),
-                )
-                Text(
-                    stringResource(R.string.tasks_budget_total, formatMb(totalUsed), formatMb(totalBudget)),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                LinearProgressIndicator(
-                    progress = { if (totalBudget > 0) (totalUsed.toFloat() / totalBudget).coerceIn(0f, 1f) else 0f },
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                )
-            }
-
             LazyColumn(
                 modifier = Modifier.weight(1f).padding(horizontal = 16.dp).testTag("task_list_lazy_column"),
             ) {
+                item(key = "assessment_summary") {
+                    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+                        SafetyNoticeCard()
+                        if (uiState.pendingReassessmentTaskCodes.isNotEmpty()) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("reassessment_pending_summary"),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                            ) {
+                                Text(
+                                    stringResource(
+                                        R.string.reassessment_pending_summary,
+                                        uiState.pendingReassessmentTaskCodes.joinToString(", "),
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(12.dp),
+                                )
+                            }
+                        }
+                        if (uiState.reportStatus == "available") {
+                            Text(
+                                stringResource(R.string.report_status_available),
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(top = 8.dp).testTag("report_status_available"),
+                            )
+                        } else if (uiState.reportStatus == "pending") {
+                            Text(
+                                stringResource(R.string.report_status_pending),
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(top = 8.dp).testTag("report_status_pending"),
+                            )
+                        }
+                        TextButton(
+                            onClick = { scope.launch { viewModel.checkForWorkerUpdates() } },
+                            modifier = Modifier.testTag("btn_check_for_updates"),
+                        ) {
+                            Text(stringResource(R.string.action_check_for_updates))
+                        }
+                        if (uiState.assessmentIsTestOnly) {
+                            Text(
+                                stringResource(R.string.p4_test_only_badge),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(top = 8.dp).testTag("p4_test_only_badge"),
+                            )
+                        }
+                        Text(
+                            stringResource(R.string.tasks_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 12.dp),
+                        )
+                        Text(
+                            stringResource(R.string.tasks_budget_total, formatMb(totalUsed), formatMb(totalBudget)),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                        LinearProgressIndicator(
+                            progress = { if (totalBudget > 0) (totalUsed.toFloat() / totalBudget).coerceIn(0f, 1f) else 0f },
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        )
+                    }
+                }
                 items(tasks, key = { it.id }) { task ->
                     val used = uiState.taskEvidenceBytes(task.id)
                     val draft = uiState.taskDrafts[task.id]
@@ -100,18 +139,33 @@ fun TaskListScreen(
                             .testTag("task_card_${task.id}"),
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
                                     "${task.id} — " + stringResource(taskTitleRes(task.id)),
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
-                                if (task.id in uiState.gapTaskIds) {
-                                    AssistChip(
-                                        onClick = { onOpenTask(task.id) },
-                                        label = { Text(stringResource(R.string.task_gap_badge)) },
-                                        modifier = Modifier.testTag("task_gap_badge_${task.id}"),
-                                    )
+                                Row {
+                                    if (task.id in uiState.gapTaskIds) {
+                                        AssistChip(
+                                            onClick = { onOpenTask(task.id) },
+                                            label = { Text(stringResource(R.string.task_gap_badge)) },
+                                            modifier = Modifier.testTag("task_gap_badge_${task.id}"),
+                                        )
+                                    }
+                                    if (task.id in uiState.pendingReassessmentTaskCodes) {
+                                        AssistChip(
+                                            onClick = { onOpenTask(task.id) },
+                                            label = { Text(stringResource(R.string.task_reassessment_badge)) },
+                                            modifier = Modifier.testTag("task_reassessment_badge_${task.id}"),
+                                        )
+                                    } else if (draft?.locked == true) {
+                                        AssistChip(
+                                            onClick = { onOpenTask(task.id) },
+                                            label = { Text(stringResource(R.string.task_locked_badge)) },
+                                            modifier = Modifier.testTag("task_locked_badge_${task.id}"),
+                                        )
+                                    }
                                 }
                             }
                             draft?.let {

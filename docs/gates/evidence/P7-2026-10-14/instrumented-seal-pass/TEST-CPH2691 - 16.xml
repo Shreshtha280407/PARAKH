@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="7" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-10-14T11:34:23" hostname="localhost">
+  <testsuite name="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" tests="7" failures="0" errors="0" skipped="0" time="5.760" timestamp="2026-10-14T11:34:23" hostname="localhost">
+    <properties>
+      <property name="device" value="d34cebae" />
+    </properties>
+    <testcase name="tampering_with_a_copied_vault_file_breaks_decryption_associated_data_binding_holds" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="0.608" />
+    <testcase name="discard_and_reopen_after_a_seal_that_actually_optimised_restores_matching_metadata" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="0.635" />
+    <testcase name="full_real_seal_produces_a_real_keystore_signature_and_a_real_encrypted_vault_with_committed_outbox" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="0.684" />
+    <testcase name="discard_and_reopen_after_a_real_seal_restores_evidence_by_decrypting_the_real_vault" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="0.787" />
+    <testcase name="seal_without_attestation_is_rejected_and_nothing_is_written_to_the_vault" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="0.500" />
+    <testcase name="targeted_revision_fails_closed_when_the_reopened_task_has_no_new_evidence" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="0.857" />
+    <testcase name="targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task" classname="in.kaushalpramaan.app.SealOrchestratorInstrumentedTest" time="1.689" />
+  </testsuite>
+</testsuites>

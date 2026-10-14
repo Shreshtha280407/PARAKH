@@ -12,3 +12,4 @@ pyjwt==2.15.1
 python-multipart==0.0.32
 cryptography==50.0.2
 reportlab==5.0.1
+qrcode==8.2

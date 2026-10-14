@@ -1,4 +1,4 @@
-# server/ — backend (P2 / P2.1 / P2.2 / P6)
+# server/ — backend (P2 / P2.1 / P2.2 / P6 / P7)
 
 FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL. Covers: pack import,
 assessor/admin auth (argon2 + JWT + cookie/CSRF), worker capability tokens
@@ -9,13 +9,20 @@ also carries and cryptographically verifies a P5 Android-sealed manifest
 see `server/app/manifest_verify.py`), a durable PostgreSQL-backed job queue
 + worker (evidence hash re-verification, video thumbnail extraction, real
 ffprobe-based width/height/duration metadata), human PC scoring with
-optimistic locking, decisions/reassessment, Ed25519-signed tamper-evident
-reports, protected evidence content/thumbnail serving, and a seeded
-assessor queue.
+optimistic locking, a pinned-pack-data computed competency outcome
+(`server/app/outcome.py` — NOS-wise thresholds + critical-PC rule, never an
+invented constant), task-specific reassessment with versioned/resumable
+recapture (unchanged tasks inherited by reference, never re-uploaded —
+`server/app/routers/reassessment.py`), a worker-updates polling endpoint,
+password-confirmed sign-off, PDF-first detached Ed25519 signing (immutable
+stored PDF bytes, key-history-aware verification), a public
+`GET /verify/{report_id}` endpoint, protected evidence content/thumbnail
+serving, and a seeded assessor queue.
 
-See `docs/gates/P2_1.md`, `docs/gates/P2_2.md`, `docs/gates/P6.md` for the
-full acceptance checklists and `docs/worker_capability_tokens.md` /
-`docs/evidence_status_model.md` for the two design docs P2.1 leans on most.
+See `docs/gates/P2_1.md`, `docs/gates/P2_2.md`, `docs/gates/P6.md`,
+`docs/gates/P7.md` for the full acceptance checklists and
+`docs/worker_capability_tokens.md` / `docs/evidence_status_model.md` for
+the two design docs P2.1 leans on most.
 
 ## Setup
 
@@ -50,6 +57,23 @@ All other settings (`JWT_SECRET`, `EVIDENCE_DIR`, etc.) have dev-friendly
 defaults in `server/app/config.py` — see `.env.example` at the repo root
 for the full list and what each one does.
 
+**`REPORT_SIGNING_PRIVATE_KEY` is required in every environment,
+including development** — there is deliberately no auto-generate-on-
+restart fallback, because that would silently invalidate every
+previously-signed report the moment the process restarts. Generate one
+once and keep it:
+
+```
+python -c "import secrets; print(secrets.token_bytes(32).hex())"
+# put the printed hex string in .env as REPORT_SIGNING_PRIVATE_KEY=...
+```
+
+If you ever rotate it, move the old hex *public* key into
+`REPORT_SIGNING_KEY_HISTORY` (comma-separated `key_id:hex_pubkey` pairs)
+first — reports signed by a retired key must stay verifiable.
+`tools/print_report_public_key.py` prints the current key's public half
+(hex or `--pem`) for sharing with verifiers.
+
 **Don't reuse a database across both automated tests and manual/demo
 use.** `server/tests/conftest.py`'s Postgres branch (`TEST_DATABASE_URL`)
 drops and recreates every table on each test run — pointed at the same
@@ -82,6 +106,28 @@ docker compose -f infra/docker-compose.yml up -d db   # just the db service
 export TEST_DATABASE_URL="postgresql+psycopg://parakh:parakh_dev_pw@localhost:5432/parakh"
 python -m pytest server/tests
 ```
+
+## Offline report verification
+
+Every signed report is served as immutable PDF bytes plus a detached
+JSON receipt (`{report_id, assessment_id, revision_number, pdf_sha256,
+signature, key_id, signed_at}` — `GET /assessments/{id}/report?format=receipt`,
+no password needed). `tools/verify_report.py` independently re-hashes a
+downloaded PDF and checks the Ed25519 signature against a trusted public
+key, entirely offline (no network call, no server trust):
+
+```
+python tools/verify_report.py report.pdf --pubkey <hex-or-.pem> [--receipt report.pdf.receipt.json]
+```
+
+A single modified byte in the PDF changes its SHA-256 and the tool exits
+non-zero with `TAMPERED`; an unknown/wrong `key_id` exits non-zero with
+`INVALID SIGNATURE`; a missing receipt fails closed rather than passing.
+The browser-facing equivalent is the public, unauthenticated
+`GET /verify/{report_id}` endpoint (and the dashboard's `#/verify/:id`
+page the signed PDF's own QR code points at) — it only confirms the
+*signature on record*, not that a particular PDF file you're holding
+matches it; use `verify_report.py` for that.
 
 ## OpenAPI contract
 

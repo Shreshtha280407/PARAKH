@@ -1,32 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  createReassessmentRequest,
   decideAssessment,
   evidenceContentUrl,
   evidenceThumbnailUrl,
-  generateReport,
   getAssessment,
   getAssessmentRubric,
   getAuditLog,
   getCompetencyProfile,
+  getReportReceipt,
+  getReportSnapshot,
   getReview,
   getSyncStatus,
+  listReassessmentRequests,
+  listRevisions,
   putScore,
   reassess,
+  reportDownloadUrl,
   revokeWorkerToken,
   rotateWorkerToken,
+  signOff,
   startReview,
   verifyReport,
-  BASE_URL,
 } from "../api";
 import { navigate } from "../useHashRoute";
 import {
   ApiError,
   type AssessmentOut,
+  type AssessmentRevisionOut,
   type AuditLogEntryOut,
   type CompetencyProfileOut,
+  type ComputedOutcomeValue,
   type CriterionReviewItemOut,
   type EvidenceReceiptOut,
   type EvidenceStatus,
+  type ReassessmentRequestOut,
   type ReportVerifyOut,
   type RubricItemOut,
   type SignedReportOut,
@@ -92,6 +100,15 @@ function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evi
           <span className="hint"> · metadata unavailable (media itself is unaffected)</span>
         )}
         <br />
+        {evidence.is_current_revision ? (
+          <span className="status status-submitted">v{evidence.revision_number} · current</span>
+        ) : (
+          <span className="status status-needs_reassessment">v{evidence.revision_number} · historical</span>
+        )}{" "}
+        <span className="hint" title="Device-reported, not independently verified">
+          captured {evidence.device_captured_at ? new Date(evidence.device_captured_at).toLocaleString() : "not recorded"}
+        </span>
+        <br />
         <a href={contentUrl} target="_blank" rel="noreferrer">
           open in a new tab
         </a>
@@ -142,6 +159,11 @@ function ScoreRow({
     <tr>
       <td>
         <strong>{item.pc_full_id}</strong> ({item.marks} marks{item.critical && <span className="badge-critical">critical</span>})
+        {item.score?.needs_review && (
+          <span className="badge-critical" title="This task was reopened for reassessment -- re-score before signing off">
+            needs re-review
+          </span>
+        )}
         <div className="hint">{item.evidence_hint}</div>
       </td>
       <td>
@@ -205,20 +227,92 @@ export function AssessmentDetailPage({ id }: { id: number }) {
   const [auditLog, setAuditLog] = useState<AuditLogEntryOut[] | null>(null);
   const [auditLogError, setAuditLogError] = useState<string | null>(null);
 
+  // P7: revision history + task-specific reassessment requests.
+  const [revisions, setRevisions] = useState<AssessmentRevisionOut[] | null>(null);
+  const [reassessmentRequests, setReassessmentRequests] = useState<ReassessmentRequestOut[] | null>(null);
+  const [showReassessDialog, setShowReassessDialog] = useState(false);
+  const [reassessTaskCodes, setReassessTaskCodes] = useState<string[]>([]);
+  const [reassessReason, setReassessReason] = useState("");
+  const [reassessInstructions, setReassessInstructions] = useState("");
+  const [reassessError, setReassessError] = useState<string | null>(null);
+
+  // P7: password-confirmed sign-off.
+  const [signOffPassword, setSignOffPassword] = useState("");
+  const [signOffRecommendation, setSignOffRecommendation] = useState<ComputedOutcomeValue | "">("");
+  const [signOffOverrideReason, setSignOffOverrideReason] = useState("");
+  const [signOffError, setSignOffError] = useState<string | null>(null);
+  const [signOffBusy, setSignOffBusy] = useState(false);
+
+  // Bug found during live P7 verification, two parts:
+  //  1. This page's many lazily-loaded panels (rubric, review, profile,
+  //     report, audit log, revision history/reassessment requests) are
+  //     plain useState with no reset -- navigating straight from one
+  //     assessment to another left the PREVIOUS assessment's data on
+  //     screen. Fixed below by resetting everything derived from `id`
+  //     whenever `id` changes.
+  //  2. That reset alone isn't enough: an async call already in flight for
+  //     the OLD id (e.g. loadRevisionHistory() kicked off just before
+  //     navigating away) can resolve AFTER the reset and clobber the NEW
+  //     id's freshly-cleared state with the old assessment's data. Fixed
+  //     by stamping every async loader's response against this ref before
+  //     applying it -- a response is only applied while it's still for the
+  //     assessment currently on screen.
+  const currentIdRef = useRef(id);
+  useEffect(() => {
+    currentIdRef.current = id;
+  }, [id]);
+
+  useEffect(() => {
+    setRubric(null);
+    setRubricError(null);
+    setReview(null);
+    setReviewError(null);
+    setProfile(null);
+    setDecisionNotes("");
+    setActionError(null);
+    setNewWorkerToken(null);
+    setNewAssessmentId(null);
+    setReport(null);
+    setReportVerify(null);
+    setSyncStatus(null);
+    setSyncStatusError(null);
+    setActiveTaskTab(null);
+    setAuditLog(null);
+    setAuditLogError(null);
+    setRevisions(null);
+    setReassessmentRequests(null);
+    setShowReassessDialog(false);
+    setReassessTaskCodes([]);
+    setReassessReason("");
+    setReassessInstructions("");
+    setReassessError(null);
+    setSignOffPassword("");
+    setSignOffRecommendation("");
+    setSignOffOverrideReason("");
+    setSignOffError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   function reload() {
     setState("loading");
     getAssessment(id)
       .then((result) => {
+        if (currentIdRef.current !== id) return;
         setAssessment(result);
         setState("ready");
         setActiveTaskTab((prev) => prev ?? result.tasks[0]?.task_code ?? null);
         if (result.current_revision_id) {
           getSyncStatus(id, result.current_revision_id)
-            .then(setSyncStatus)
-            .catch((err) => setSyncStatusError(err instanceof ApiError ? err.message : "Could not load sync status."));
+            .then((status) => {
+              if (currentIdRef.current === id) setSyncStatus(status);
+            })
+            .catch((err) => {
+              if (currentIdRef.current === id) setSyncStatusError(err instanceof ApiError ? err.message : "Could not load sync status.");
+            });
         }
       })
       .catch((err) => {
+        if (currentIdRef.current !== id) return;
         setError(err instanceof ApiError ? `${err.status}: ${err.message}` : "Could not reach the server.");
         setState("error");
       });
@@ -229,39 +323,96 @@ export function AssessmentDetailPage({ id }: { id: number }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // P7: a signed report may already exist from an earlier session (e.g. a page
+  // reload) -- fetch its receipt passively (no password needed) so the panel
+  // shows the right state without the assessor re-entering their password just
+  // to SEE it again.
+  useEffect(() => {
+    if (assessment?.status !== "recommended") return;
+    Promise.all([getReportReceipt(id), getReportSnapshot(id)])
+      .then(([receipt, snapshot]) => {
+        if (currentIdRef.current !== id) return;
+        setReport({
+          assessment_id: receipt.assessment_id,
+          report_uid: receipt.report_id,
+          revision_number: receipt.revision_number,
+          pdf_sha256: receipt.pdf_sha256,
+          signature: receipt.signature,
+          key_id: receipt.key_id,
+          computed_recommendation: snapshot.computed_recommendation as ComputedOutcomeValue,
+          final_recommendation: snapshot.final_recommendation as ComputedOutcomeValue,
+          override_reason: snapshot.override_reason,
+          signed_at: receipt.signed_at,
+        });
+      })
+      .catch(() => {
+        // Not signed yet -- the sign-off panel below handles that state.
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, assessment?.status]);
+
+  function loadRevisionHistory() {
+    const forId = id;
+    listRevisions(forId)
+      .then((result) => {
+        if (currentIdRef.current === forId) setRevisions(result);
+      })
+      .catch(() => undefined);
+    listReassessmentRequests(forId)
+      .then((result) => {
+        if (currentIdRef.current === forId) setReassessmentRequests(result);
+      })
+      .catch(() => undefined);
+  }
+
   async function loadRubric() {
+    const forId = id;
     setRubricError(null);
     try {
-      setRubric(await getAssessmentRubric(id));
+      const result = await getAssessmentRubric(forId);
+      if (currentIdRef.current === forId) setRubric(result);
     } catch (err) {
-      setRubricError(err instanceof ApiError ? err.message : "Could not load the rubric.");
+      if (currentIdRef.current === forId) setRubricError(err instanceof ApiError ? err.message : "Could not load the rubric.");
     }
   }
 
   async function loadReview() {
+    const forId = id;
     setReviewError(null);
     try {
-      setReview(await getReview(id));
+      const result = await getReview(forId);
+      if (currentIdRef.current === forId) setReview(result);
     } catch (err) {
-      setReviewError(err instanceof ApiError ? err.message : "Could not load the review.");
+      if (currentIdRef.current === forId) setReviewError(err instanceof ApiError ? err.message : "Could not load the review.");
     }
   }
 
   async function loadAuditLog() {
+    const forId = id;
     setAuditLogError(null);
     try {
-      setAuditLog(await getAuditLog(id));
+      const result = await getAuditLog(forId);
+      if (currentIdRef.current === forId) setAuditLog(result);
     } catch (err) {
-      setAuditLogError(err instanceof ApiError ? err.message : "Could not load the audit log.");
+      if (currentIdRef.current === forId) setAuditLogError(err instanceof ApiError ? err.message : "Could not load the audit log.");
     }
   }
 
   async function loadProfile() {
+    const forId = id;
     try {
-      setProfile(await getCompetencyProfile(id));
+      const result = await getCompetencyProfile(forId);
+      if (currentIdRef.current === forId) setProfile(result);
     } catch {
       // decision support only -- a failure here shouldn't block the rest of the page
     }
+  }
+
+  // Guards every "apply this freshly-returned AssessmentOut" call the same
+  // way the loaders above are guarded -- see the stale-navigation bug note
+  // near currentIdRef's declaration.
+  function applyAssessmentIfCurrent(forId: number, updated: AssessmentOut) {
+    if (currentIdRef.current === forId) setAssessment(updated);
   }
 
   async function runAction(action: () => Promise<void>) {
@@ -337,15 +488,30 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                 <dd>{assessment.declared_gap_task_codes.join(", ")}</dd>
               </>
             )}
+            <dt>Match reasoning</dt>
+            <dd>
+              {assessment.declared_match_reasons && assessment.declared_match_reasons.length > 0 ? (
+                <ul>
+                  {assessment.declared_match_reasons.map((reason, i) => (
+                    <li key={i}>{reason}</li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="hint">
+                  Not recorded (synced before this field existed on the device, or no reasons returned by the
+                  matcher).
+                </span>
+              )}
+            </dd>
           </dl>
         ) : (
           <p className="hint">No match summary has synced from the phone yet.</p>
         )}
         <p className="disclaimer">
-          This is a summary snapshot synced from the device at seal time, not the worker's full declaration
-          answers or the on-device "because" explanation text -- those are not transmitted to the server (an
-          inherited P3/P4 scope boundary, not a P6 regression). The match itself was computed entirely on-device
-          by the deterministic Kotlin/Python matcher, never by this server.
+          This is a summary snapshot synced from the device at seal time (match result, coverage, gap tasks, and
+          the matcher's own overall reasoning) -- not the worker's full declaration question-by-question answers,
+          which this server never receives. The match itself was computed entirely on-device by the deterministic
+          Kotlin/Python matcher, never by this server.
         </p>
       </section>
 
@@ -437,7 +603,7 @@ export function AssessmentDetailPage({ id }: { id: number }) {
             disabled={actionBusy}
             onClick={() =>
               runAction(async () => {
-                setAssessment(await startReview(assessment.id));
+                applyAssessmentIfCurrent(assessment.id, await startReview(assessment.id));
               })
             }
           >
@@ -500,6 +666,10 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                   </dd>
                   <dt>Meets minimum threshold</dt>
                   <dd>{profile.meets_minimum_threshold ? "Yes" : "Not yet"}</dd>
+                  <dt>Computed outcome (§4.4)</dt>
+                  <dd>
+                    <span className={`status status-${profile.computed_outcome.toLowerCase()}`}>{profile.computed_outcome}</span>
+                  </dd>
                 </dl>
                 <table>
                   <thead>
@@ -507,6 +677,8 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                       <th>NOS</th>
                       <th>Marks</th>
                       <th>%</th>
+                      <th>Competent</th>
+                      <th>Flags</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -519,6 +691,11 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                           {n.marks_awarded} / {n.marks_possible}
                         </td>
                         <td>{n.percent}%</td>
+                        <td>{n.competent ? <span className="badge-ok">yes</span> : "no"}</td>
+                        <td>
+                          {n.critical_violation && <span className="badge-critical">critical PC below level 2</span>}
+                          {n.has_insufficient_evidence && <span className="badge-critical">insufficient evidence</span>}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -529,31 +706,31 @@ export function AssessmentDetailPage({ id }: { id: number }) {
           </section>
 
           <section className="card">
-            <h2>Recommendation</h2>
+            <h2>Targeted reassessment</h2>
             <p className="hint">
-              This is the human assessor's call -- never auto-derived from the competency profile above.
+              Reopen specific task(s) for the worker to recapture -- the worker's app unlocks ONLY those tasks;
+              every other task's evidence and scores stay exactly as they are. Preferred over "Needs reassessment"
+              below when only part of the evidence is insufficient.
+            </p>
+            <button disabled={actionBusy} onClick={() => setShowReassessDialog(true)}>
+              Request targeted reassessment…
+            </button>
+            <h3>Broad reassessment (whole-assessment restart)</h3>
+            <p className="hint">
+              This is the human assessor's call -- never auto-derived from the competency profile above. Starts an
+              entirely new assessment for the same worker; this one's data stays untouched.
             </p>
             <label>
-              Notes (optional, required reading on reassessment)
+              Notes
               <textarea value={decisionNotes} onChange={(e) => setDecisionNotes(e.target.value)} rows={2} />
             </label>
             <div className="panel-actions">
-              <button
-                disabled={actionBusy}
-                onClick={() =>
-                  runAction(async () => {
-                    setAssessment(await decideAssessment(assessment.id, "recommended", decisionNotes));
-                  })
-                }
-              >
-                Recommend
-              </button>
               <button
                 className="danger-button"
                 disabled={actionBusy}
                 onClick={() =>
                   runAction(async () => {
-                    setAssessment(await decideAssessment(assessment.id, "needs_reassessment", decisionNotes));
+                    applyAssessmentIfCurrent(assessment.id, await decideAssessment(assessment.id, "needs_reassessment", decisionNotes));
                   })
                 }
               >
@@ -562,7 +739,143 @@ export function AssessmentDetailPage({ id }: { id: number }) {
             </div>
             {actionError && <p className="error">{actionError}</p>}
           </section>
+
+          <section className="card">
+            <h2>Sign off</h2>
+            <p className="hint">
+              Password-confirmed: validated on the backend against your own authenticated account, never a
+              frontend-only check. Produces the one, immutable, Ed25519-signed PDF for this assessment.
+            </p>
+            <label>
+              Final recommendation
+              <select
+                value={signOffRecommendation || profile?.computed_outcome || ""}
+                onChange={(e) => setSignOffRecommendation(e.target.value as ComputedOutcomeValue)}
+              >
+                <option value="" disabled>
+                  Load the competency profile above first
+                </option>
+                <option value="RECOMMEND_CERTIFICATION">RECOMMEND_CERTIFICATION</option>
+                <option value="PARTIALLY_COMPETENT">PARTIALLY_COMPETENT</option>
+                <option value="NOT_YET_COMPETENT">NOT_YET_COMPETENT</option>
+                <option value="INSUFFICIENT_EVIDENCE">INSUFFICIENT_EVIDENCE</option>
+              </select>
+            </label>
+            {profile && (signOffRecommendation || profile.computed_outcome) !== profile.computed_outcome && (
+              <label>
+                Override reason (required -- differs from the computed outcome: {profile.computed_outcome})
+                <textarea
+                  value={signOffOverrideReason}
+                  onChange={(e) => setSignOffOverrideReason(e.target.value)}
+                  rows={2}
+                  placeholder="Why does your final recommendation differ from the computed outcome?"
+                />
+              </label>
+            )}
+            <label>
+              Confirm your password
+              <input
+                type="password"
+                value={signOffPassword}
+                onChange={(e) => setSignOffPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </label>
+            <div className="panel-actions">
+              <button
+                disabled={signOffBusy || !signOffPassword}
+                onClick={async () => {
+                  setSignOffError(null);
+                  setSignOffBusy(true);
+                  try {
+                    const finalRecommendation = (signOffRecommendation || profile?.computed_outcome) as ComputedOutcomeValue;
+                    const signOffForId = assessment.id;
+                    const signed = await signOff(signOffForId, {
+                      password: signOffPassword,
+                      final_recommendation: finalRecommendation,
+                      override_reason: signOffOverrideReason || null,
+                    });
+                    if (currentIdRef.current === signOffForId) {
+                      setReport(signed);
+                      setSignOffPassword("");
+                      reload();
+                    }
+                  } catch (err) {
+                    setSignOffError(err instanceof ApiError ? err.message : "Sign-off failed.");
+                  } finally {
+                    setSignOffBusy(false);
+                  }
+                }}
+              >
+                {signOffBusy ? "Signing…" : "Sign off and produce signed report"}
+              </button>
+            </div>
+            {signOffError && <p className="error">{signOffError}</p>}
+          </section>
         </>
+      )}
+
+      {showReassessDialog && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h2>Request targeted reassessment</h2>
+            <p className="hint">The worker's app will unlock ONLY the task(s) you select here.</p>
+            <fieldset>
+              <legend>Tasks to reopen</legend>
+              {assessment.tasks.map((task) => (
+                <label key={task.task_code} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={reassessTaskCodes.includes(task.task_code)}
+                    onChange={(e) =>
+                      setReassessTaskCodes((prev) =>
+                        e.target.checked ? [...prev, task.task_code] : prev.filter((c) => c !== task.task_code),
+                      )
+                    }
+                  />
+                  {task.task_code}
+                </label>
+              ))}
+            </fieldset>
+            <label>
+              Reason (required)
+              <textarea value={reassessReason} onChange={(e) => setReassessReason(e.target.value)} rows={2} />
+            </label>
+            <label>
+              What to capture (required)
+              <textarea value={reassessInstructions} onChange={(e) => setReassessInstructions(e.target.value)} rows={2} />
+            </label>
+            {reassessError && <p className="error">{reassessError}</p>}
+            <div className="panel-actions">
+              <button
+                disabled={actionBusy || reassessTaskCodes.length === 0 || !reassessReason.trim() || !reassessInstructions.trim()}
+                onClick={() =>
+                  runAction(async () => {
+                    setReassessError(null);
+                    try {
+                      await createReassessmentRequest(assessment.id, {
+                        task_codes: reassessTaskCodes,
+                        reason: reassessReason,
+                        capture_instructions: reassessInstructions,
+                      });
+                      setShowReassessDialog(false);
+                      setReassessTaskCodes([]);
+                      setReassessReason("");
+                      setReassessInstructions("");
+                      loadRevisionHistory();
+                      reload();
+                    } catch (err) {
+                      setReassessError(err instanceof ApiError ? err.message : "Could not create the reassessment request.");
+                    }
+                  })
+                }
+              >
+                Send request
+              </button>
+              <button onClick={() => setShowReassessDialog(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {assessment.status === "needs_reassessment" && (
@@ -599,40 +912,46 @@ export function AssessmentDetailPage({ id }: { id: number }) {
         </section>
       )}
 
-      {(assessment.status === "recommended" || assessment.status === "needs_reassessment") && (
+      {assessment.status === "recommended" && (
         <section className="card">
           <h2>Signed report</h2>
           <p className="hint">
-            A tamper-evident snapshot (Ed25519-signed) of the competency profile and decision -- decision support
-            and an assessor recommendation only, never an official NCVET/MSDE certificate.
+            A tamper-evident, immutable PDF (Ed25519-signed over its own rendered bytes) -- an assessor
+            recommendation, not an official certificate. Produced once via Sign off above; never regenerated or
+            re-signed by this panel.
           </p>
           {report === null ? (
-            <button
-              disabled={actionBusy}
-              onClick={() =>
-                runAction(async () => {
-                  setReport(await generateReport(assessment.id));
-                })
-              }
-            >
-              Generate / fetch report
-            </button>
+            <p className="hint">Not signed yet -- use the Sign off panel above.</p>
           ) : (
             <>
               <dl>
-                <dt>SHA-256</dt>
+                <dt>Report ID</dt>
                 <dd>
-                  <code>{report.sha256}</code>
+                  <code>{report.report_uid}</code>
+                </dd>
+                <dt>Revision</dt>
+                <dd>v{report.revision_number}</dd>
+                <dt>PDF SHA-256</dt>
+                <dd>
+                  <code>{report.pdf_sha256}</code>
+                </dd>
+                <dt>Computed vs final recommendation</dt>
+                <dd>
+                  {report.computed_recommendation} → {report.final_recommendation}
+                  {report.override_reason && <span className="hint"> ({report.override_reason})</span>}
                 </dd>
                 <dt>Signed</dt>
                 <dd>{new Date(report.signed_at).toLocaleString()}</dd>
               </dl>
               <div className="panel-actions">
-                <a href={`${BASE_URL}/assessments/${assessment.id}/report?format=json`} target="_blank" rel="noreferrer">
+                <a href={reportDownloadUrl(assessment.id, "json")} target="_blank" rel="noreferrer">
                   Download JSON
                 </a>
-                <a href={`${BASE_URL}/assessments/${assessment.id}/report?format=pdf`} target="_blank" rel="noreferrer">
+                <a href={reportDownloadUrl(assessment.id, "pdf")} target="_blank" rel="noreferrer">
                   Download PDF
+                </a>
+                <a href={reportDownloadUrl(assessment.id, "receipt")} target="_blank" rel="noreferrer">
+                  Download receipt (for offline verify_report.py)
                 </a>
                 <button
                   onClick={() =>
@@ -643,6 +962,7 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                 >
                   Verify
                 </button>
+                <button onClick={() => navigate(`#/verify/${report.report_uid}`)}>Open public verify page</button>
               </div>
               {reportVerify && (
                 <p className={reportVerify.valid ? "badge-ok" : "error"}>
@@ -652,6 +972,13 @@ export function AssessmentDetailPage({ id }: { id: number }) {
             </>
           )}
           {actionError && <p className="error">{actionError}</p>}
+        </section>
+      )}
+
+      {assessment.status === "needs_reassessment" && (
+        <section className="card">
+          <h2>Signed report</h2>
+          <p className="hint">Signing is blocked while a reassessment is pending or in progress for this assessment.</p>
         </section>
       )}
 
@@ -693,6 +1020,77 @@ export function AssessmentDetailPage({ id }: { id: number }) {
           </div>
         )}
         {actionError && <p className="error">{actionError}</p>}
+      </section>
+
+      <section className="card">
+        <h2>Revision history (v1/v2/…)</h2>
+        <p className="hint">
+          v1 is always the original submission (immutable, still viewable above). A later revision exists only for
+          the task(s) a targeted reassessment reopened -- every other task's evidence and scores stay exactly as
+          they were.
+        </p>
+        {revisions === null && <button onClick={loadRevisionHistory}>Load revision history</button>}
+        {revisions !== null && (
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Revision</th>
+                  <th>Reopened tasks</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {revisions.map((r) => (
+                  <tr key={r.revision_number}>
+                    <td>v{r.revision_number}</td>
+                    <td>{r.reopened_task_codes ? r.reopened_task_codes.join(", ") : "all (original)"}</td>
+                    <td>
+                      <span className={`status status-${r.status}`}>{r.status}</span>
+                    </td>
+                    <td>{new Date(r.created_at).toLocaleString()}</td>
+                    <td>{r.submitted_at ? new Date(r.submitted_at).toLocaleString() : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {reassessmentRequests !== null && reassessmentRequests.length > 0 && (
+          <>
+            <h3>Reassessment requests</h3>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Revision</th>
+                    <th>Tasks</th>
+                    <th>Reason</th>
+                    <th>Capture instructions</th>
+                    <th>Status</th>
+                    <th>Requested</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reassessmentRequests.map((r) => (
+                    <tr key={r.id}>
+                      <td>v{r.revision_number}</td>
+                      <td>{r.task_codes.join(", ")}</td>
+                      <td>{r.reason}</td>
+                      <td>{r.capture_instructions}</td>
+                      <td>
+                        <span className={`status status-${r.status}`}>{r.status}</span>
+                      </td>
+                      <td>{new Date(r.requested_at).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </section>
 
       <section className="card">

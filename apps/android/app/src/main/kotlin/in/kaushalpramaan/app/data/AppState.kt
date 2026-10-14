@@ -90,6 +90,15 @@ data class AppUiState(
      * CaptureScreen's equivalent P4_TEST_ONLY pattern. Null means "not active" (use real
      * budgets). */
     val debugForcedBudgetBytes: Long? = null,
+
+    // ---- P7: task-specific reassessment + report status, mirrored live from the active
+    // AssessmentDraft (see WorkerUpdatesRepository, the only writer) ----
+    val currentRevisionNumber: Int = 1,
+    val pendingReassessmentTaskCodes: List<String> = emptyList(),
+    val pendingReassessmentReason: String? = null,
+    val pendingReassessmentCaptureInstructions: String? = null,
+    /** "none" | "pending" | "available". */
+    val reportStatus: String = "none",
 ) {
     /** The real current byte footprint of one task's READY evidence: the FINAL
      * (post-optimisation) size once known, the raw captured size otherwise. Deliberately

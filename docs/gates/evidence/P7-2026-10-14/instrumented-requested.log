@@ -1,0 +1,16 @@
+Starting a Gradle Daemon, 1 incompatible Daemon could not be reused, use --status for details
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Problem configuring task :app:connectedDebugAndroidTest from command line.
+> Unknown command-line option '--tests'.
+
+* Try:
+> Run gradlew help --task :app:connectedDebugAndroidTest to get task usage details.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 14s

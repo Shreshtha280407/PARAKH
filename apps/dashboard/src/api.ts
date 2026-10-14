@@ -1,15 +1,20 @@
 import {
   ApiError,
   type AssessmentOut,
+  type AssessmentRevisionOut,
   type AuditLogEntryOut,
   type CompetencyProfileOut,
   type CriterionReviewItemOut,
   type CriterionScoreIn,
   type CriterionScoreOut,
   type MeOut,
+  type PublicVerifyOut,
   type QueueItemOut,
+  type ReassessmentRequestIn,
+  type ReassessmentRequestOut,
   type ReportVerifyOut,
   type RubricItemOut,
+  type SignOffIn,
   type SignedReportOut,
   type SyncStatusOut,
   type TokenOut,
@@ -115,12 +120,90 @@ export function reassess(id: number): Promise<{ id: number; worker_token: string
   return request(`/assessments/${id}/reassess`, { method: "POST" });
 }
 
-export function generateReport(id: number): Promise<SignedReportOut> {
-  return request<SignedReportOut>(`/assessments/${id}/report`, { method: "POST" });
+/** P7: password-confirmed sign-off -- the ONLY way to produce the one,
+ * immutable, Ed25519-signed PDF for an assessment (see
+ * routers/reports.py::sign_off). Idempotent: a retry after the first
+ * success returns the exact same signed artifact. */
+export function signOff(id: number, body: SignOffIn): Promise<SignedReportOut> {
+  return request<SignedReportOut>(`/assessments/${id}/sign-off`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function verifyReport(id: number): Promise<ReportVerifyOut> {
   return request<ReportVerifyOut>(`/reports/${id}/verify`);
+}
+
+/** Public, unauthenticated -- the exact URL the signed PDF's own QR code
+ * points at (see routers/verify.py). No credentials sent on purpose: this
+ * must work for an arbitrary third party, not just a logged-in assessor. */
+export function publicVerify(reportId: string): Promise<PublicVerifyOut> {
+  return fetch(`${BASE_URL}/verify/${encodeURIComponent(reportId)}`).then(async (res) => {
+    if (!res.ok) {
+      let detail = res.statusText;
+      try {
+        detail = (await res.json()).detail ?? detail;
+      } catch {
+        // not JSON -- keep statusText
+      }
+      throw new ApiError(res.status, detail);
+    }
+    return res.json() as Promise<PublicVerifyOut>;
+  });
+}
+
+export function reportDownloadUrl(id: number, format: "json" | "pdf" | "receipt"): string {
+  return `${BASE_URL}/assessments/${id}/report?format=${format}`;
+}
+
+interface ReportReceipt {
+  report_id: string;
+  assessment_id: number;
+  revision_number: number;
+  pdf_sha256: string;
+  signature: string;
+  key_id: string;
+  signed_at: string;
+}
+
+/** Lightweight "has this already been signed, and what's its id" check for a page
+ * load/reload -- no password needed (same dual auth as any other protected
+ * download), so this is safe to call passively, unlike signOff itself. */
+export function getReportReceipt(id: number): Promise<ReportReceipt> {
+  return request<ReportReceipt>(`/assessments/${id}/report?format=receipt`);
+}
+
+interface ReportSnapshotJson {
+  report_uid: string;
+  revision_number: number;
+  computed_recommendation: string;
+  final_recommendation: string;
+  override_reason: string | null;
+}
+
+/** The informational (unsigned) JSON snapshot -- carries the recommendation
+ * fields the receipt doesn't (format=receipt is crypto-only by design). Also
+ * no password needed. */
+export function getReportSnapshot(id: number): Promise<ReportSnapshotJson> {
+  return request<ReportSnapshotJson>(`/assessments/${id}/report?format=json`);
+}
+
+// ---- P7: task-specific reassessment requests + revision history ----
+
+export function createReassessmentRequest(id: number, body: ReassessmentRequestIn): Promise<ReassessmentRequestOut> {
+  return request<ReassessmentRequestOut>(`/assessments/${id}/reassessment-requests`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function listReassessmentRequests(id: number): Promise<ReassessmentRequestOut[]> {
+  return request<ReassessmentRequestOut[]>(`/assessments/${id}/reassessment-requests`);
+}
+
+export function listRevisions(id: number): Promise<AssessmentRevisionOut[]> {
+  return request<AssessmentRevisionOut[]>(`/assessments/${id}/revisions`);
 }
 
 export function rotateWorkerToken(id: number): Promise<WorkerTokenOut> {

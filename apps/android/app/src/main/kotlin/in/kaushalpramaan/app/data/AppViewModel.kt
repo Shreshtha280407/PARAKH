@@ -13,6 +13,9 @@ import `in`.kaushalpramaan.app.data.seal.ProcessOutcome
 import `in`.kaushalpramaan.app.data.seal.SealOrchestrator
 import `in`.kaushalpramaan.app.data.seal.SealOutcome
 import `in`.kaushalpramaan.app.data.sync.SyncWorker
+import `in`.kaushalpramaan.app.data.sync.WorkerUpdatesPollResult
+import `in`.kaushalpramaan.app.data.sync.WorkerUpdatesRepository
+import `in`.kaushalpramaan.app.data.sync.WorkerUpdatesWorker
 import `in`.kaushalpramaan.app.data.sync.provideSyncEndpointConfig
 import `in`.kaushalpramaan.core.mapping.Matcher
 import `in`.kaushalpramaan.core.mapping.Rules
@@ -68,6 +71,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         `in`.kaushalpramaan.app.debug.provideDebugExportHooks(database, fileManager, VaultKeysetProvider(application))
     }
     val syncEndpointConfig by lazy { provideSyncEndpointConfig(application) }
+    private val workerUpdatesRepository: WorkerUpdatesRepository by lazy {
+        WorkerUpdatesRepository(
+            assessmentDraftDao = database.assessmentDraftDao(),
+            taskDraftDao = database.taskDraftDao(),
+            endpointConfig = syncEndpointConfig,
+        )
+    }
 
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState
@@ -161,6 +171,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 workerId = state.registration?.workerId,
                 language = state.language.localeTag,
                 matchOutput = state.matchOutput,
+                declaration = state.declaration,
             )
             val gapIds = state.matchOutput?.applicableTasks
                 ?.filter { it.extraEvidenceNeeded }
@@ -199,6 +210,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             sealedAtMillis = assessment.sealedAtMillis,
                             revisionId = assessment.revisionId,
                             syncedAtMillis = assessment.syncedAtMillis,
+                            currentRevisionNumber = assessment.currentRevisionNumber,
+                            pendingReassessmentTaskCodes = assessment.pendingReassessmentTaskCodesCsv
+                                ?.split(",")?.map { c -> c.trim() }?.filter { c -> c.isNotEmpty() }.orEmpty(),
+                            pendingReassessmentReason = assessment.pendingReassessmentReason,
+                            pendingReassessmentCaptureInstructions = assessment.pendingReassessmentCaptureInstructions,
+                            reportStatus = assessment.reportStatus,
                         )
                     }
                     // P6: react to the package becoming ready (just sealed, or resumed already
@@ -210,6 +227,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         assessment.revisionId != null
                     ) {
                         SyncWorker.enqueue(getApplication(), assessment.id, assessment.revisionId)
+                    }
+                    // P7: once this device has a server identity, start polling for
+                    // reassessment requests/report status -- enqueueUniquePeriodicWork with
+                    // KEEP (see WorkerUpdatesWorker.enqueuePeriodic) makes this safe on every
+                    // emission too.
+                    if (assessment.serverAssessmentId != null) {
+                        WorkerUpdatesWorker.enqueuePeriodic(getApplication(), assessment.id)
                     }
                 }
             }
@@ -226,6 +250,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val revisionId = state.revisionId ?: return
         if (state.sealState != SealState.READY_TO_SYNC || state.syncedAtMillis != null) return
         SyncWorker.enqueue(getApplication(), assessmentId, revisionId)
+    }
+
+    /** P7: immediate, on-demand pull of GET /assessments/{id}/worker-updates -- the exact
+     * same logic the periodic [WorkerUpdatesWorker] runs, exposed for a manual "Check for
+     * updates" action so the worker doesn't have to wait up to 15 minutes (the WorkManager
+     * periodic-work floor) to see a freshly-requested reassessment. */
+    suspend fun checkForWorkerUpdates(): WorkerUpdatesPollResult {
+        val assessmentId = _uiState.value.assessmentDraftId ?: return WorkerUpdatesPollResult.NoActiveAssessment
+        return workerUpdatesRepository.pollAndApply(assessmentId)
     }
 
     private fun currentAssessmentId(): String =
@@ -290,11 +323,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Builds the canonical manifest, signs it with the device's non-exportable Keystore key,
      * encrypts every final item plus the manifest into the vault, commits the outbox, and
-     * transitions to READY_TO_SYNC (spec parts F/G). No network call anywhere in this path. */
+     * transitions to READY_TO_SYNC (spec parts F/G). No network call anywhere in this path.
+     *
+     * P7: once a targeted reassessment request is pending (see [checkForWorkerUpdates]),
+     * this seals ONLY the reopened tasks' new evidence, re-declaring every other task's
+     * already-verified evidence by reference (see
+     * SealOrchestrator.sealTargetedRevision) -- never the plain [SealOrchestrator.seal],
+     * which would otherwise try to re-seal (and so first re-hash/re-encrypt) evidence whose
+     * local vault copy P6 already deleted after its original receipt. */
     suspend fun seal(): SealOutcome {
         _uiState.update { it.copy(sealActionInFlight = true) }
+        val reopenedTasks = _uiState.value.pendingReassessmentTaskCodes.toSet()
         return try {
-            sealOrchestrator.seal(currentAssessmentId())
+            if (reopenedTasks.isNotEmpty()) {
+                sealOrchestrator.sealTargetedRevision(currentAssessmentId(), reopenedTasks)
+            } else {
+                sealOrchestrator.seal(currentAssessmentId())
+            }
         } finally {
             _uiState.update { it.copy(sealActionInFlight = false) }
         }

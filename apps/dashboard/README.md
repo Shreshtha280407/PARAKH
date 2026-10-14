@@ -46,15 +46,37 @@ too late to affect an already-built bundle.
     evidence-content endpoint, with a safe fallback if the media or its
     thumbnail job failed) and real extracted width/height/duration.
   - Rubric (read-only reference), PC scoring (0–3 + evidence status +
-    remarks, optimistic-locked), competency profile (decision-support
-    only, never a pass/fail), recommendation/decision, reassessment,
-    signed-report generate/download/verify, worker-token rotate/revoke —
-    all P2.2, extended in presentation by P6, not reimplemented.
+    remarks, optimistic-locked), worker-token rotate/revoke — P2.2,
+    extended in presentation by P6, not reimplemented.
+  - **Competency profile** (P7): the pinned-pack-data *computed* outcome
+    (`server/app/outcome.py`) per NOS — meets-threshold, critical-PC
+    violation, insufficient-evidence flags — always labelled
+    decision-support only, never a pass/fail the system itself declares.
+  - **Targeted reassessment** (P7): a dialog to reopen specific task(s)
+    with a mandatory reason + capture instructions; the existing
+    whole-assessment "Needs reassessment" restart (P2.2) stays available
+    alongside it for when a full restart is the right call.
+  - **Sign off** (P7): password re-entered and verified server-side
+    against the authenticated assessor (never a frontend-only check);
+    `override_reason` becomes a required field the moment the chosen
+    final recommendation differs from the computed one (server-enforced
+    422, not just a UI nicety); produces the one immutable, Ed25519-signed
+    PDF for this assessment — never regenerated on re-download.
+  - **Revision history** (P7): v1/v2/… table plus the reassessment-request
+    log, so a resubmission's provenance (which tasks were reopened, by
+    whom, why) stays visible alongside the current evidence.
   - **Audit log** (P6): the full append-only action trail
     (`GET /assessments/{id}/audit-log`), including old/new values on a
     rescore.
+- **Public report verification** (P7, `#/verify/:reportId`,
+  `VerifyReportPage.tsx`): rendered *before* the login gate in `App.tsx` —
+  the exact page a signed PDF's own QR code points at, for an arbitrary
+  third party who scanned it, not a logged-in assessor. No cookie, no
+  credentials sent.
 
 No worker-facing functionality lives here, and no screen shows
 hard-coded/fake data — every page fetches from the real API. The dashboard
 never says the system "certified" or "passed" the worker — every
-recommendation is an explicit human assessor action.
+recommendation is an explicit human assessor action, and every signed
+report carries the words "Assessor recommendation — not an official
+certificate."

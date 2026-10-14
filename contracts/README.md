@@ -4,9 +4,10 @@
 see `tools/export_openapi.py`. It covers the full current backend surface:
 auth, assessments, resumable+manifest-verified uploads (P6), queue, admin,
 scoring/decisions/reports (P2.2), worker self-registration and pack lookup
-(P6), sync status and the audit log (P6), and every error schema FastAPI
-derives from the endpoints' declared response models and `HTTPException`
-usage.
+(P6), sync status and the audit log (P6), computed-outcome/task-specific
+reassessment/worker-updates/password-confirmed sign-off/public report
+verification (P7), and every error schema FastAPI derives from the
+endpoints' declared response models and `HTTPException` usage.
 
 Regenerate after any backend route/schema change:
 

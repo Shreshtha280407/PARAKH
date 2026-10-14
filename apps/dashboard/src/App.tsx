@@ -3,6 +3,7 @@ import { logout as apiLogout, me } from "./api";
 import { LoginPage } from "./pages/LoginPage";
 import { QueuePage } from "./pages/QueuePage";
 import { AssessmentDetailPage } from "./pages/AssessmentDetailPage";
+import { VerifyReportPage } from "./pages/VerifyReportPage";
 import { useHashRoute } from "./useHashRoute";
 import type { MeOut } from "./types";
 
@@ -13,9 +14,21 @@ function App() {
   const [user, setUser] = useState<MeOut | null>(null);
   const hash = useHashRoute();
 
+  // P7: /verify/:reportId is PUBLIC -- the exact page a signed PDF's QR code
+  // points at, meant for an arbitrary third party who scanned it, not a
+  // logged-in assessor. Checked BEFORE the auth gate below on purpose, and
+  // never touches checkAuth/the login flow at all.
+  const verifyMatch = hash.match(/^#\/verify\/([^/]+)$/);
+
   useEffect(() => {
+    if (verifyMatch) return; // public page -- no need to check auth at all
     checkAuth();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verifyMatch !== null]);
+
+  if (verifyMatch) {
+    return <VerifyReportPage reportId={decodeURIComponent(verifyMatch[1])} />;
+  }
 
   function checkAuth() {
     // No local token to check first -- the session lives in an HttpOnly

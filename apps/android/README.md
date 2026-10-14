@@ -5,19 +5,27 @@ network, no backend, no worker account login); P6 adds real, resumable
 sync of the P5 sealed outbox to the FastAPI backend over HTTPS, still with
 no worker login -- only a device-scoped self-registration bootstrap (see
 `docs/worker_capability_tokens.md`'s "Identity bootstrap (P6)" section).
-Reads `packs/ae-con-q0602/` as bundled task-pack data (synced in at build
-time, never hand-duplicated — see `core/mapping/build.gradle.kts`). See
-`docs/gates/P3.md` / `P4.md` / `P5.md` / `P6.md` for the full scope
-boundary of each phase and `docs/gates/IC1A.md` for the acceptance gate
-this module is held to. The app's user-visible display name is "PARAKH";
-the Android package (`in.kaushalpramaan.app`) and internal identifiers are
-unchanged.
+P7 adds periodic polling (`data/sync/WorkerUpdatesWorker.kt`, 15-minute
+`PeriodicWork`) for assessor-initiated targeted reassessment requests and
+report-availability status, and — when a request lands — unlocks and
+re-seals only the specific reopened task(s)
+(`SealOrchestrator.sealTargetedRevision`): unchanged tasks' evidence is
+reused by reference (re-declared in a new signed manifest, never
+re-encrypted or re-uploaded), matching the fact that a prior revision's
+synced vault files are already deleted from the device by the time a
+reassessment request can arrive. Reads `packs/ae-con-q0602/` as bundled
+task-pack data (synced in at build time, never hand-duplicated — see
+`core/mapping/build.gradle.kts`). See `docs/gates/P3.md` / `P4.md` /
+`P5.md` / `P6.md` / `P7.md` for the full scope boundary of each phase and
+`docs/gates/IC1A.md` for the acceptance gate this module is held to. The
+app's user-visible display name is "PARAKH"; the Android package
+(`in.kaushalpramaan.app`) and internal identifiers are unchanged.
 
 ## Modules
 
 | Module | Role |
 |---|---|
-| `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, real in-app CameraX photo/video evidence capture into a SQLCipher-encrypted Room draft store (preview, retake, replace, delete), automatic optimisation/seal/encrypted-vault-outbox (P5), and resumable WorkManager sync of that sealed outbox to the server (P6, `data/sync/`). |
+| `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, real in-app CameraX photo/video evidence capture into a SQLCipher-encrypted Room draft store (preview, retake, replace, delete), automatic optimisation/seal/encrypted-vault-outbox (P5), resumable WorkManager sync of that sealed outbox to the server (P6, `data/sync/`), and P7's periodic worker-updates poll + task-scoped reassessment unlock/reseal/resubmit. |
 | `:core:mapping` | Pure Kotlin/JVM port of `ml/mapping/matcher.py` (match-rules@r3, 20 declaration cards + 6 tools). No Android dependency — its `GoldenVectorsTest` runs as a plain fast JUnit `test` task. `:app` depends on it like any other library. |
 | `:core:budget` | Pure Kotlin/JVM deterministic budget ledger (P5) — per-task/total byte accounting, no Android dependency. |
 | `:core:seal` | Android library: streaming SHA-256, the canonical signed manifest, Android Keystore ECDSA signing/verification, and the Tink `StreamingAead`-encrypted vault — including P6's bounded `decryptingStream` API the sync layer reads from. |

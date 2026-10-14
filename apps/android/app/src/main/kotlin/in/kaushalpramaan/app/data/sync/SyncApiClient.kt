@@ -165,10 +165,26 @@ class SyncApiClient(
     }
 
     /** Final step once every declared item is verified -- moves the assessment out of
-     * 'draft' server-side (see routers/assessments.py::submit_assessment's P6 gate). */
+     * 'draft' server-side (see routers/assessments.py::submit_assessment's P6 gate). Also
+     * the P7 RESUBMIT path once a targeted-reassessment revision's manifest is complete
+     * (same endpoint, same gate, now additionally accepted from 'needs_reassessment'). */
     fun submitAssessment(assessmentId: Long) {
         val request = requestBuilder("/assessments/$assessmentId/submit").post("".toRequestBody(null)).build()
         executeNoBody(request, expectCode = 200)
+    }
+
+    /** P7: durable, idempotent snapshot poll -- the latest pending reassessment request (if
+     * any), current assessment status, and report availability. See
+     * routers/reassessment.py::get_worker_updates. */
+    fun getWorkerUpdates(assessmentId: Long, since: Long): WorkerUpdatesOut {
+        val request = requestBuilder("/assessments/$assessmentId/worker-updates?since=$since").get().build()
+        return execute(request, expectCode = 200)
+    }
+
+    /** v1/v2/... revision history -- same dual auth as GET /assessments/{id}. */
+    fun getRevisions(assessmentId: Long): List<AssessmentRevisionOut> {
+        val request = requestBuilder("/assessments/$assessmentId/revisions").get().build()
+        return execute(request, expectCode = 200)
     }
 }
 

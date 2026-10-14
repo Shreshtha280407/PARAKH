@@ -1,0 +1,6 @@
+{
+  "status": 422,
+  "body": {
+    "detail": "override_reason is required when final_recommendation differs from the computed outcome"
+  }
+}

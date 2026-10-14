@@ -179,6 +179,59 @@ dd {
   background: #fde2e1;
 }
 
+/* P7: computed-outcome values (CompetencyProfileOut.computed_outcome) and
+   reassessment-request/revision status values -- same generic pill, just a
+   distinct background per value for quick scanning. */
+.status-recommend_certification,
+.status-fulfilled,
+.status-signed {
+  background: #d1fadf;
+}
+
+.status-partially_competent,
+.status-pending,
+.status-open {
+  background: #fff3cd;
+}
+
+.status-not_yet_competent,
+.status-insufficient_evidence,
+.status-rejected,
+.status-cancelled {
+  background: #fde2e1;
+}
+
+/* P7: targeted-reassessment dialog -- a simple centered overlay, same flat,
+   un-nested class-naming style as the rest of this file. */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 32rem;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 1rem;
+  font-weight: normal;
+}
+
 .evidence-list {
   list-style: none;
   padding: 0;

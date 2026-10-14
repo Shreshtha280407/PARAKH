@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="2" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-10-14T11:32:39" hostname="localhost">
+  <testsuite name="in.kaushalpramaan.app.data.draft.AppDatabaseMigrationTest" tests="2" failures="0" errors="0" skipped="0" time="0.044" timestamp="2026-10-14T11:32:39" hostname="localhost">
+    <properties>
+      <property name="device" value="d34cebae" />
+    </properties>
+    <testcase name="migrate_3_to_4_adds_sync_columns_with_safe_defaults_and_preserves_existing_rows" classname="in.kaushalpramaan.app.data.draft.AppDatabaseMigrationTest" time="0.001" />
+    <testcase name="migrate_4_to_5_adds_reassessment_columns_with_safe_defaults_and_preserves_existing_rows" classname="in.kaushalpramaan.app.data.draft.AppDatabaseMigrationTest" time="0.043" />
+  </testsuite>
+</testsuites>

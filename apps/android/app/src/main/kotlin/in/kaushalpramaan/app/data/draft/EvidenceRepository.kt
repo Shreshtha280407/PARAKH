@@ -1,6 +1,7 @@
 package `in`.kaushalpramaan.app.data.draft
 
 import `in`.kaushalpramaan.app.BuildConfig
+import `in`.kaushalpramaan.app.data.DeclarationState
 import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.core.mapping.MatchOutput
 import `in`.kaushalpramaan.core.mapping.Rules
@@ -8,11 +9,18 @@ import android.util.Log
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /** Structured, content-free diagnostic tag: only safe technical state (task id, lifecycle
  * state, byte counts, error categories) is ever logged here -- never a file path, media
  * content, database passphrase, or personal information. */
 private const val LOG_TAG = "KP-Capture"
+
+/** Shared JSON codec for the P7 durable declaration/match snapshot (see
+ * AssessmentDraftEntity's declarationAnswersJson/matchOutputJson) -- plain, permissive
+ * defaults; this is app-private persisted state, never wire data. */
+internal val DRAFT_JSON = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
 enum class CaptureRejectionReason { INSUFFICIENT_FREE_SPACE, TASK_BUDGET_EXHAUSTED, TOTAL_BUDGET_EXHAUSTED }
 
@@ -65,6 +73,7 @@ class EvidenceRepository(
         workerId: String?,
         language: String,
         matchOutput: MatchOutput?,
+        declaration: DeclarationState? = null,
     ): AssessmentDraftEntity {
         assessmentDraftDao.getActiveOnce()?.let { return it }
 
@@ -87,6 +96,18 @@ class EvidenceRepository(
             isTestOnly = true,
             createdAtMillis = now,
             updatedAtMillis = now,
+            // P7: the full declaration/match snapshot, durably persisted -- see
+            // AssessmentDraftEntity's P7 field docs and docs/gates/P7.md section 3. The
+            // bounded summary fields above (matchResult/overallCoverage/gapTaskIdsCsv)
+            // already existed pre-P7; these are what let a LATER targeted-reassessment
+            // reseal (SealOrchestrator.sealTargetedRevision) and the signed manifest's
+            // declarationSummary carry real content instead of nothing.
+            declarationAnswersJson = declaration?.let { DRAFT_JSON.encodeToString(it.answers) },
+            declarationYearsOfExperience = declaration?.yearsOfExperience ?: 0,
+            declarationFreeText = declaration?.freeText.orEmpty(),
+            declarationWorkSetting = declaration?.workSetting,
+            declarationPriorTraining = declaration?.priorTraining,
+            matchOutputJson = matchOutput?.let { DRAFT_JSON.encodeToString(it) },
         )
         assessmentDraftDao.insert(assessment)
         taskDraftDao.insertAll(

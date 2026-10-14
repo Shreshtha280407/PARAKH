@@ -17,12 +17,32 @@ data class ManifestEvidenceItem(
     val widthPx: Int? = null,
     val heightPx: Int? = null,
     /** e.g. "KEPT_AS_IS", "OPTIMIZED", "TRIMMED" -- how this final item was produced from its
-     * raw capture, so a verifier/assessor can see at a glance whether anything was altered. */
+     * raw capture, so a verifier/assessor can see at a glance whether anything was altered.
+     * P7 adds "INHERITED": this exact item (same evidenceId/sha256/bytes/task) was already
+     * verified under an EARLIER revision and is being re-declared by reference, never
+     * re-uploaded -- see SealOrchestrator.sealTargetedRevision. */
     val processing: String,
+    /** P7: on-device capture timestamp, device-reported and NOT independently verified by
+     * the server (see server/app/models.py's EvidenceItem.device_captured_at). Null for an
+     * item sealed before this field existed. */
+    val capturedAtMillis: Long? = null,
 )
 
 @Serializable
 data class ManifestTaskTotal(val taskId: String, val finalBytes: Long, val budgetBytes: Long)
+
+/** P7: the bounded, honest declaration/match snapshot the server stores on Assessment
+ * (declared_match_result/declared_coverage_fraction/declared_gap_task_codes/
+ * declared_match_reasons -- see server/app/manifest_verify.py). [matchReasons] mirrors
+ * MatchOutput.because verbatim -- the matcher's own overall "why", never a fabricated
+ * per-task breakdown it does not produce. */
+@Serializable
+data class ManifestDeclarationSummary(
+    val matchResult: String,
+    val overallCoverage: Double,
+    val gapTaskCodes: List<String>,
+    val matchReasons: List<String>,
+)
 
 /**
  * The P5 canonical, tamper-evident manifest (spec part F). One instance describes everything
@@ -56,6 +76,11 @@ data class SealManifest(
     val idempotencyKey: String,
     val signerKeyId: String,
     val signerPublicKeyBase64: String,
+    /** P7: null for an assessment that never computed a match (should not happen in
+     * practice -- computeMatch() always runs before task capture begins -- but kept nullable
+     * rather than a fabricated default so a genuinely missing value is honestly absent from
+     * the signed bytes, not silently replaced with placeholder zeros). */
+    val declarationSummary: ManifestDeclarationSummary? = null,
 ) {
     /** Deterministic canonical form: evidence/taskTotals sorted by their own id so caller
      * list-construction order never affects the signed bytes, encoded as compact

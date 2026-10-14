@@ -10,7 +10,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, outcome as outcome_module, schemas
 from ..auth import require_assessor
 from ..db import get_db
 
@@ -41,6 +41,8 @@ def _score_out(score: models.AssessmentCriterionScore) -> schemas.CriterionScore
         assessor_id=score.assessor_id,
         scored_at=score.scored_at,
         version=score.version,
+        revision_number=score.revision_number,
+        needs_review=score.needs_review,
     )
 
 
@@ -139,6 +141,12 @@ def put_score(
     existing.marks_awarded = marks_awarded
     existing.assessor_id = user.id
     existing.scored_at = now
+    # P7: this PC has now genuinely been looked at again in the CURRENT
+    # revision -- clears any stale "its task reopened, re-review me" flag
+    # set by routers/reassessment.py (see AssessmentCriterionScore.needs_review's
+    # docstring in models.py).
+    existing.needs_review = False
+    existing.revision_number = assessment.revision_number
 
     from .assessments import _audit  # local import: avoids a circular import at module load time
 
@@ -151,6 +159,19 @@ def put_score(
     db.commit()
     db.refresh(existing)
     return _score_out(existing)
+
+
+def get_computed_outcome(db: Session, assessment: models.Assessment) -> outcome_module.ComputedOutcome:
+    """Shared by GET /competency-profile and routers/reports.py's sign_off
+    -- the exact same rows/scores feed both, so the number a report signs
+    is always the same one the dashboard showed the assessor beforehand."""
+    pack = db.get(models.QualificationPack, assessment.pack_id)
+    rows = _rubric_rows(db, assessment.pack_id)
+    scores = {
+        s.pc_id: s
+        for s in db.query(models.AssessmentCriterionScore).filter_by(assessment_id=assessment.id).all()
+    }
+    return outcome_module.compute_outcome(rows, scores, pack.minimum_aggregate_passing_percent)
 
 
 @router.get("/{assessment_id}/competency-profile", response_model=schemas.CompetencyProfileOut)
@@ -193,6 +214,8 @@ def get_competency_profile(
         bucket["possible"] += item.marks
 
     overall_percent = float(overall_awarded / overall_possible * 100) if overall_possible else 0.0
+    computed = get_computed_outcome(db, assessment)
+    nos_by_code = {n.nos_code: n for n in computed.nos_results}
     return schemas.CompetencyProfileOut(
         assessment_id=assessment_id,
         overall_marks_awarded=overall_awarded,
@@ -207,7 +230,16 @@ def get_competency_profile(
                 nos_code=b["nos_code"], nos_title=b["nos_title"],
                 marks_awarded=b["awarded"], marks_possible=b["possible"],
                 percent=round(float(b["awarded"] / b["possible"] * 100), 2) if b["possible"] else 0.0,
+                meets_threshold=nos_by_code[b["nos_code"]].meets_threshold if b["nos_code"] in nos_by_code else False,
+                critical_violation=nos_by_code[b["nos_code"]].critical_violation if b["nos_code"] in nos_by_code else False,
+                has_insufficient_evidence=nos_by_code[b["nos_code"]].has_insufficient_evidence if b["nos_code"] in nos_by_code else False,
+                competent=nos_by_code[b["nos_code"]].competent if b["nos_code"] in nos_by_code else False,
             )
             for b in nos_totals.values()
         ],
+        computed_outcome=computed.outcome,
+        achieved_nos_codes=computed.achieved_nos_codes,
+        gap_nos_codes=computed.gap_nos_codes,
+        insufficient_evidence_nos_codes=computed.insufficient_evidence_nos_codes,
+        critical_violation_pc_ids=computed.critical_violation_pc_ids,
     )

@@ -65,6 +65,13 @@ class ParsedManifest:
     declared_match_result: str | None
     declared_coverage_fraction: float | None
     declared_gap_task_codes: list[str] | None
+    # P7: the matcher's overall "why" explanation (a flat list of reason
+    # strings -- MatchOutput.because on the Android side has no per-task
+    # breakdown, so this never invents one). None (not []) when the client
+    # never supplied this key at all (pre-P7 Android build), so the report
+    # can distinguish "matcher gave no reasons" from "this was never
+    # recorded at all".
+    declared_match_reasons: list[str] | None
 
 
 def _b64decode(value: object, field: str) -> bytes:
@@ -161,6 +168,7 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
         for field in ("evidenceId", "taskId", "kind", "bytes", "sha256"):
             if field not in raw:
                 raise ManifestVerificationError(f"manifest evidence entry missing required field '{field}'")
+        captured_at_millis = raw.get("capturedAtMillis")
         items.append({
             "evidence_id": str(raw["evidenceId"]),
             "task_code": str(raw["taskId"]),
@@ -169,6 +177,9 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
             "sha256": str(raw["sha256"]).lower(),
             "mime": raw.get("mimeType"),
             "processing": raw.get("processing"),
+            # Device-reported, NOT independently verified -- see
+            # EvidenceItem.device_captured_at's docstring in models.py.
+            "captured_at_millis": int(captured_at_millis) if isinstance(captured_at_millis, (int, float)) else None,
         })
 
     task_totals = {
@@ -179,6 +190,14 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
 
     declaration = manifest.get("declarationSummary") or {}
     gap_codes = declaration.get("gapTaskCodes")
+    # The matcher's own overall "why" explanation (MatchOutput.because on the
+    # Android side -- a flat list of reason strings for the WHOLE match
+    # decision, not scoped per task; the matcher does not produce a
+    # structured per-task reason, so this never fabricates one either).
+    match_reasons = declaration.get("matchReasons")
+    parsed_match_reasons = (
+        [str(r) for r in match_reasons] if isinstance(match_reasons, list) else None
+    )
 
     return ParsedManifest(
         manifest_assessment_id=manifest_assessment_id,
@@ -196,4 +215,5 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
         declared_match_result=declaration.get("matchResult"),
         declared_coverage_fraction=declaration.get("overallCoverage"),
         declared_gap_task_codes=list(gap_codes) if isinstance(gap_codes, list) else None,
+        declared_match_reasons=parsed_match_reasons,
     )
