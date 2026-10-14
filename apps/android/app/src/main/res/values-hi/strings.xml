@@ -12,7 +12,7 @@
 
     <!-- Consent screen -->
     <string name="consent_title">शुरू करने से पहले</string>
-    <string name="consent_body">PARAKH आपसे बिजली के काम के आपके पुराने अनुभव के बारे में पूछेगा और आपको इस फ़ोन पर अभ्यास का प्रमाण रिकॉर्ड करने देगा। ऐप के इस संस्करण में कुछ भी फ़ोन से बाहर नहीं जाता — यहाँ इंटरनेट पर कुछ भी अपलोड नहीं होता। आपके जवाब एक व्यक्ति (असेसर) को आपका अनुभव समझने में मदद करते हैं; ये आपको प्रमाणित, योग्य, पास या फेल नहीं करते। आप किसी भी समय रुक सकते हैं।</string>
+    <string name="consent_body">PARAKH आपसे बिजली के काम के आपके पुराने अनुभव के बारे में पूछेगा और आपको अभ्यास का प्रमाण रिकॉर्ड करने देगा। आपके जवाब और प्रमाण इस फ़ोन पर निजी रूप से सहेजे जाते हैं। आकलन सील करने के बाद, कनेक्शन उपलब्ध होने पर ऐप घोषणा और प्रमाण आकलन सर्वर पर भेजता है, ताकि एक व्यक्ति (असेसर) उनकी समीक्षा कर सके। अभ्यास के ये परिणाम आपको प्रमाणित, योग्य, पास या फेल नहीं करते। आप किसी भी समय रुक सकते हैं।</string>
     <string name="consent_play_audio">इसे ज़ोर से सुनें</string>
     <string name="consent_audio_unavailable">इस समय इस फ़ोन पर आवाज़ चलाना संभव नहीं है — आप ऊपर लिखा हुआ पढ़ सकते हैं।</string>
     <string name="consent_checkbox">मैंने यह पढ़ा/सुना है और आगे बढ़ने के लिए सहमत हूँ।</string>
@@ -129,8 +129,8 @@
     <string name="capture_action_take_photo">फ़ोटो लें</string>
     <string name="capture_action_stop_recording">रिकॉर्डिंग बंद करें</string>
     <string name="capture_action_start_recording">रिकॉर्डिंग शुरू करें</string>
-    <string name="capture_permission_rationale_video">इस स्क्रीन को अभ्यास वीडियो प्रमाण रिकॉर्ड करने के लिए कैमरा और माइक्रोफ़ोन की अनुमति चाहिए। कुछ भी अपलोड या साझा नहीं किया जाता।</string>
-    <string name="capture_permission_rationale_photo">इस स्क्रीन को अभ्यास फ़ोटो प्रमाण लेने के लिए कैमरे की अनुमति चाहिए। कुछ भी अपलोड या साझा नहीं किया जाता।</string>
+    <string name="capture_permission_rationale_video">इस स्क्रीन को अभ्यास वीडियो प्रमाण रिकॉर्ड करने के लिए कैमरा और माइक्रोफ़ोन की अनुमति चाहिए। प्रमाण इस फ़ोन पर निजी रूप से सहेजा जाता है और आकलन सील करने के बाद आकलन सर्वर पर अपलोड होता है।</string>
+    <string name="capture_permission_rationale_photo">इस स्क्रीन को अभ्यास फ़ोटो प्रमाण लेने के लिए कैमरे की अनुमति चाहिए। प्रमाण इस फ़ोन पर निजी रूप से सहेजा जाता है और आकलन सील करने के बाद आकलन सर्वर पर अपलोड होता है।</string>
     <string name="capture_permission_grant_action">अनुमति दें</string>
     <string name="capture_permission_denied_permanently">अनुमति अस्वीकार कर दी गई। इस ऐप के लिए कैमरा अनुमति देने के लिए सेटिंग्स खोलें।</string>
     <string name="capture_action_open_settings">ऐप सेटिंग्स खोलें</string>
@@ -193,6 +193,19 @@
     <string name="p6_test_only_sync_url_hint">उदाहरण: http://192.168.1.23:8000</string>
     <string name="p6_test_only_sync_url_save">सहेजें</string>
 
+    <!-- P7: targeted reassessment request + report status -->
+    <string name="reassessment_pending_summary">असेसर ने आपसे यह फिर से रिकॉर्ड करने के लिए कहा है: %1$s। कारण और क्या रिकॉर्ड करना है देखने के लिए वह कार्य खोलें।</string>
+    <string name="reassessment_banner_title">इस कार्य के लिए पुनर्मूल्यांकन का अनुरोध किया गया है</string>
+    <string name="reassessment_banner_reason">कारण: %1$s</string>
+    <string name="reassessment_banner_instructions">क्या रिकॉर्ड करना है: %1$s</string>
+    <string name="task_detail_locked_pending_other_task">किसी दूसरे कार्य का पुनर्मूल्यांकन चलने तक यह कार्य लॉक है।</string>
+    <string name="task_reassessment_badge">पुनर्मूल्यांकन आवश्यक</string>
+    <string name="task_locked_badge">लॉक्ड</string>
+    <string name="evidence_from_previous_revision">पहले सबमिट किया गया — डिवाइस पर पूर्वावलोकन उपलब्ध नहीं है।</string>
+    <string name="action_check_for_updates">अपडेट जांचें</string>
+    <string name="report_status_pending">आपका असेसर आपकी रिपोर्ट अंतिम रूप दे रहा है।</string>
+    <string name="report_status_available">आपकी हस्ताक्षरित रिपोर्ट तैयार है।</string>
+
     <!-- Common -->
     <string name="content_desc_back">वापस</string>
     <string name="content_desc_language_switch">भाषा बदलें</string>
@@ -200,5 +213,5 @@
     <string name="content_desc_photo_evidence">फ़ोटो प्रमाण आइटम</string>
     <string name="content_desc_video_evidence">वीडियो प्रमाण आइटम</string>
     <string name="loading">लोड हो रहा है…</string>
-    <string name="offline_badge">ऑफ़लाइन — इंटरनेट की ज़रूरत नहीं</string>
+    <string name="offline_badge">ऑफ़लाइन प्रमाण लें; कनेक्शन पर सिंक करें</string>
 </resources>

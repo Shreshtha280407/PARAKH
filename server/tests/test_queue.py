@@ -48,3 +48,27 @@ def test_seed_script_populates_a_non_empty_queue(db_session):
 
     non_draft = db_session.query(models.Assessment).filter(models.Assessment.status != "draft").count()
     assert non_draft == 2  # submitted + in_review, per seed.py's demo workers
+
+
+def test_seed_preserves_multiple_existing_assessments_for_a_demo_worker(db_session):
+    from server.app import models
+    from server.app.seed import seed
+    from server.app.worker_tokens import generate_worker_token
+
+    seed(db_session)
+    original = db_session.query(models.Assessment).order_by(models.Assessment.id).first()
+    _, token_hash = generate_worker_token()
+    follow_up = models.Assessment(
+        worker_id=original.worker_id, pack_id=original.pack_id,
+        status="draft", worker_token_hash=token_hash, reassessment_of_id=original.id,
+    )
+    db_session.add(follow_up)
+    db_session.commit()
+    expected = {a.id: (a.worker_id, a.pack_id, a.status, a.reassessment_of_id)
+                for a in db_session.query(models.Assessment).all()}
+
+    seed(db_session)
+
+    actual = {a.id: (a.worker_id, a.pack_id, a.status, a.reassessment_of_id)
+              for a in db_session.query(models.Assessment).all()}
+    assert actual == expected

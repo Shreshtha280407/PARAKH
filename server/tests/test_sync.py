@@ -139,7 +139,10 @@ def _seal_and_sync_full_package(client, imported_pack, worker, revision_id="rev-
 def test_full_sync_happy_path_reaches_complete_and_allows_submit(client, imported_pack, worker):
     a, token, priv, pub_b64, manifest_complete = _seal_and_sync_full_package(
         client, imported_pack, worker,
-        declaration={"matchResult": "PARTIAL", "overallCoverage": 0.6, "gapTaskCodes": ["T3", "T5"]},
+        declaration={
+            "matchResult": "PARTIAL", "overallCoverage": 0.6, "gapTaskCodes": ["T3", "T5"],
+            "matchReasons": ["experience claimed below threshold for CON/N0603", "no prior training declared"],
+        },
     )
     mbody = manifest_complete.json()
     assert mbody["status"] == "received"
@@ -158,6 +161,9 @@ def test_full_sync_happy_path_reaches_complete_and_allows_submit(client, importe
     assert detail["declared_match_result"] == "PARTIAL"
     assert float(detail["declared_coverage_fraction"]) == pytest.approx(0.6)
     assert detail["declared_gap_task_codes"] == ["T3", "T5"]
+    assert detail["declared_match_reasons"] == [
+        "experience claimed below threshold for CON/N0603", "no prior training declared",
+    ]
     assert detail["current_revision_id"] == "rev-1"
 
     submitted = client.post(f"/assessments/{a['id']}/submit", headers={WT_HEADER: token})

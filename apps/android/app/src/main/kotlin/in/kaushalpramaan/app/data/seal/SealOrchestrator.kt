@@ -3,6 +3,7 @@ package `in`.kaushalpramaan.app.data.seal
 import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.draft.AssessmentDraftDao
 import `in`.kaushalpramaan.app.data.draft.AssessmentDraftEntity
+import `in`.kaushalpramaan.app.data.draft.DRAFT_JSON
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftDao
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
@@ -15,7 +16,9 @@ import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.core.budget.BudgetLedger
 import `in`.kaushalpramaan.core.budget.LedgerItem
 import `in`.kaushalpramaan.core.budget.TaskBudget
+import `in`.kaushalpramaan.core.mapping.MatchOutput
 import `in`.kaushalpramaan.core.mapping.Rules
+import `in`.kaushalpramaan.core.seal.ManifestDeclarationSummary
 import `in`.kaushalpramaan.core.seal.ManifestEvidenceItem
 import `in`.kaushalpramaan.core.seal.ManifestSigner
 import `in`.kaushalpramaan.core.seal.ManifestTaskTotal
@@ -25,6 +28,7 @@ import `in`.kaushalpramaan.core.seal.StreamingHasher
 import `in`.kaushalpramaan.core.seal.VaultKeysetProvider
 import `in`.kaushalpramaan.core.seal.VaultStreamCipher
 import `in`.kaushalpramaan.core.seal.VaultCipher
+import kotlinx.serialization.decodeFromString
 import `in`.kaushalpramaan.media.PhotoOptimizationResult
 import `in`.kaushalpramaan.media.PhotoOptimizer
 import `in`.kaushalpramaan.media.VideoOptimizationResult
@@ -358,6 +362,7 @@ class SealOrchestrator(
                 widthPx = item.finalWidthPx,
                 heightPx = item.finalHeightPx,
                 processing = item.finalState.name,
+                capturedAtMillis = item.createdAtMillis,
             )
         }
         val taskTotals = rules.tasksFile.tasks.map { task ->
@@ -381,6 +386,7 @@ class SealOrchestrator(
             idempotencyKey = idempotencyKey,
             signerKeyId = signingKeyAlias,
             signerPublicKeyBase64 = publicKeyBase64,
+            declarationSummary = buildDeclarationSummary(assessment),
         )
         val canonicalBytes = manifest.canonicalJsonBytes()
         val signature = ManifestSigner.sign(canonicalBytes, signingKey.privateKey)
@@ -615,5 +621,262 @@ class SealOrchestrator(
         fileManager.deleteVaultTree(assessmentId)
         fileManager.deleteP5TempTree(assessmentId)
         Log.d(LOG_TAG, "discard_and_reopen result=completed")
+    }
+
+    /** P7: seals a TARGETED reassessment revision -- only the reopened tasks' genuinely new
+     * evidence gets encrypted/uploaded; every other task's already-verified evidence is
+     * re-declared in the manifest BY REFERENCE (same evidenceId/sha256/bytes/task the server
+     * already has), never re-encrypted or re-sent. This is what makes versioned resubmission
+     * work even though P6 already deleted those items' local vault files right after their
+     * original receipt (see EvidenceDraftEntity.fromPreviousRevision's doc comment) -- the
+     * EvidenceDraftEntity row's cached final metadata (finalBytes/finalSha256/...) is the only
+     * thing needed to re-declare them honestly, and it survives that deletion.
+     *
+     * A deliberately separate method from [seal] (not a shared refactor) -- [seal]'s exact
+     * behaviour is covered by existing P5 instrumented tests this phase must not disturb;
+     * the two share the same signing/vault/outbox primitives, just applied to a different
+     * (inherited + new) item set. */
+    suspend fun sealTargetedRevision(assessmentId: String, reopenedTaskCodes: Set<String>): SealOutcome {
+        val assessment = assessmentDraftDao.getById(assessmentId) ?: return SealOutcome.NoActiveAssessment
+        if (assessment.sealState != SealState.FINAL_REVIEW_READY) return SealOutcome.NotReady
+        if (!assessment.attestationConfirmed) return SealOutcome.AttestationRequired
+
+        val newItems = evidenceDraftDao.getAllForAssessmentOnce(assessmentId)
+            .filter {
+                it.state == EvidenceDraftState.READY && it.taskId in reopenedTaskCodes &&
+                    it.finalState != FinalEvidenceState.SEALED
+            }
+        if (newItems.isEmpty()) return SealOutcome.NoEvidence
+        if (newItems.any { it.finalState == FinalEvidenceState.NOT_PROCESSED || it.finalState == FinalEvidenceState.QUALITY_FLOOR_EXCEEDED }) {
+            return SealOutcome.ItemsNotReady
+        }
+        val inheritedItems = evidenceDraftDao.getAllForAssessmentOnce(assessmentId)
+            .filter {
+                it.state == EvidenceDraftState.READY && it.taskId !in reopenedTaskCodes &&
+                    it.finalState == FinalEvidenceState.SEALED && !it.fromPreviousRevision
+            }
+
+        val revisionId = UUID.randomUUID().toString()
+        assessmentDraftDao.update(assessment.copy(sealState = SealState.SEAL_IN_PROGRESS, revisionId = revisionId))
+        Log.d(LOG_TAG, "seal_targeted_revision result=started revisionId=$revisionId newItems=${newItems.size} inherited=${inheritedItems.size}")
+
+        val signingKey = ManifestSigner.getOrCreateSigningKey(signingKeyAlias)
+        val publicKeyBase64 = Base64.encodeToString(signingKey.certificate.publicKey.encoded, Base64.NO_WRAP)
+        val idempotencyKey = "$assessmentId:$revisionId"
+        val now = System.currentTimeMillis()
+
+        val sha256ByEvidenceId = mutableMapOf<String, String>()
+        val newManifestItems = newItems.map { item ->
+            val finalFile = fileManager.resolveRelativePath(requireNotNull(item.finalRelativePath))
+            val sha256 = StreamingHasher.sha256Hex(finalFile)
+            sha256ByEvidenceId[item.id] = sha256
+            ManifestEvidenceItem(
+                evidenceId = item.id,
+                taskId = item.taskId,
+                kind = item.kind.name,
+                fileName = finalFile.name,
+                bytes = requireNotNull(item.finalBytes),
+                sha256 = sha256,
+                mimeType = item.finalMimeType ?: "application/octet-stream",
+                durationMillis = item.finalDurationMillis,
+                widthPx = item.finalWidthPx,
+                heightPx = item.finalHeightPx,
+                processing = item.finalState.name,
+                capturedAtMillis = item.createdAtMillis,
+            )
+        }
+        val inheritedManifestItems = inheritedItems.map { item ->
+            ManifestEvidenceItem(
+                evidenceId = item.id,
+                taskId = item.taskId,
+                kind = item.kind.name,
+                fileName = File(item.finalRelativePath ?: item.relativePath).name,
+                bytes = requireNotNull(item.finalBytes) { "inherited item ${item.id} has no final size" },
+                sha256 = requireNotNull(item.finalSha256) { "inherited item ${item.id} has no final hash" },
+                mimeType = item.finalMimeType ?: "application/octet-stream",
+                durationMillis = item.finalDurationMillis,
+                widthPx = item.finalWidthPx,
+                heightPx = item.finalHeightPx,
+                processing = "INHERITED",
+                capturedAtMillis = item.createdAtMillis,
+            )
+        }
+        val allManifestItems = newManifestItems + inheritedManifestItems
+        val taskTotals = rules.tasksFile.tasks.map { task ->
+            ManifestTaskTotal(task.id, allManifestItems.filter { it.taskId == task.id }.sumOf { it.bytes }, task.budgetBytes)
+        }
+        val manifest = SealManifest(
+            schemaVersion = 1,
+            assessmentId = assessmentId,
+            revisionId = revisionId,
+            qpCode = assessment.qpCode,
+            qpVersion = assessment.qpVersion,
+            appVersion = appVersion,
+            createdAtMillis = assessment.createdAtMillis,
+            sealedAtMillis = now,
+            attestationConfirmed = true,
+            attestationAtMillis = assessment.attestationAtMillis ?: now,
+            evidence = allManifestItems,
+            taskTotals = taskTotals,
+            assessmentFinalBytes = allManifestItems.sumOf { it.bytes },
+            assessmentBudgetBytes = rules.tasksFile.finalEvidenceBudgetBytes,
+            idempotencyKey = idempotencyKey,
+            signerKeyId = signingKeyAlias,
+            signerPublicKeyBase64 = publicKeyBase64,
+            declarationSummary = buildDeclarationSummary(assessment),
+        )
+        val canonicalBytes = manifest.canonicalJsonBytes()
+        val signature = ManifestSigner.sign(canonicalBytes, signingKey.privateKey)
+        if (!ManifestSigner.verify(canonicalBytes, signature, signingKey.certificate.publicKey)) {
+            Log.e(LOG_TAG, "seal_targeted_revision result=failed category=self_verification_failed")
+            assessmentDraftDao.getById(assessmentId)?.let { assessmentDraftDao.update(it.copy(sealState = SealState.FINAL_REVIEW_READY)) }
+            return SealOutcome.VerificationFailed
+        }
+
+        val signedPackage = SignedManifestPackage(
+            manifestBase64 = Base64.encodeToString(canonicalBytes, Base64.NO_WRAP),
+            signatureBase64 = Base64.encodeToString(signature, Base64.NO_WRAP),
+            algorithm = ManifestSigner.SIGNATURE_ALGORITHM,
+            signerKeyId = signingKeyAlias,
+            signerPublicKeyBase64 = publicKeyBase64,
+        )
+        val manifestPlainFile = File(fileManager.sealTempDir(assessmentId), "manifest_package.json")
+        manifestPlainFile.writeBytes(signedPackage.toJsonBytes())
+
+        val vaultDir = fileManager.vaultDir(assessmentId, revisionId)
+        val cipher = vaultKeysetProvider.getOrCreateCipher()
+
+        val manifestVaultFile = File(vaultDir, "manifest.vault")
+        cipher.encryptFile(
+            manifestPlainFile,
+            manifestVaultFile,
+            VaultStreamCipher.associatedData(assessmentId, revisionId, "manifest", "manifest"),
+        )
+
+        // Only the GENUINELY NEW items are encrypted into this revision's vault -- inherited
+        // items were already uploaded/verified under an earlier revision, and P6 already
+        // deleted their local vault file right after that receipt; there is nothing left to
+        // re-encrypt, and nothing new needs sending for them.
+        val vaultFilesByEvidenceId = mutableMapOf<String, File>()
+        for (item in newItems) {
+            val finalFile = fileManager.resolveRelativePath(requireNotNull(item.finalRelativePath))
+            val vaultFile = File(vaultDir, "${item.id}.vault")
+            cipher.encryptFile(
+                finalFile,
+                vaultFile,
+                VaultStreamCipher.associatedData(assessmentId, revisionId, item.id, "evidence"),
+            )
+            vaultFilesByEvidenceId[item.id] = vaultFile
+            evidenceDraftDao.update(
+                item.copy(
+                    vaultRelativePath = fileManager.relativePathOf(vaultFile),
+                    finalSha256 = sha256ByEvidenceId[item.id],
+                ),
+            )
+        }
+
+        assessmentDraftDao.getById(assessmentId)?.let {
+            assessmentDraftDao.update(
+                it.copy(
+                    sealState = SealState.VAULT_READY,
+                    manifestVaultRelativePath = fileManager.relativePathOf(manifestVaultFile),
+                    signerKeyId = signingKeyAlias,
+                    signerPublicKeyBase64 = publicKeyBase64,
+                    idempotencyKey = idempotencyKey,
+                ),
+            )
+        }
+        Log.d(LOG_TAG, "seal_targeted_revision result=vault_ready revisionId=$revisionId")
+
+        val outboxRows = mutableListOf(
+            OutboxItemEntity(
+                id = UUID.randomUUID().toString(),
+                assessmentId = assessmentId,
+                revisionId = revisionId,
+                idempotencyKey = idempotencyKey,
+                kind = OutboxItemKind.MANIFEST,
+                evidenceId = null,
+                taskId = null,
+                vaultRelativePath = fileManager.relativePathOf(manifestVaultFile),
+                priority = 0,
+                createdAtMillis = now,
+            ),
+        )
+        newItems.forEachIndexed { index, item ->
+            outboxRows += OutboxItemEntity(
+                id = UUID.randomUUID().toString(),
+                assessmentId = assessmentId,
+                revisionId = revisionId,
+                idempotencyKey = idempotencyKey,
+                kind = OutboxItemKind.EVIDENCE,
+                evidenceId = item.id,
+                taskId = item.taskId,
+                vaultRelativePath = fileManager.relativePathOf(requireNotNull(vaultFilesByEvidenceId[item.id])),
+                priority = index + 1,
+                createdAtMillis = now,
+            )
+        }
+        outboxDao.insertAll(outboxRows)
+        Log.d(LOG_TAG, "seal_targeted_revision result=outbox_committed revisionId=$revisionId rows=${outboxRows.size}")
+
+        for (item in newItems) {
+            // Preserve the hash and vault path written during encryption; the
+            // pre-encryption item snapshot still has their old values.
+            evidenceDraftDao.update(item.copy(
+                finalState = FinalEvidenceState.SEALED,
+                finalSha256 = sha256ByEvidenceId.getValue(item.id),
+                vaultRelativePath = fileManager.relativePathOf(vaultFilesByEvidenceId.getValue(item.id)),
+            ))
+            val rawFile = fileManager.resolveRelativePath(item.relativePath)
+            val finalFile = item.finalRelativePath?.let { fileManager.resolveRelativePath(it) }
+            if (finalFile != null && finalFile.absolutePath != rawFile.absolutePath) finalFile.delete()
+            rawFile.delete()
+        }
+        // The OLD (now-superseded) item(s) for a reopened task become historical -- kept in
+        // Room (immutable, still viewable -- see docs/gates/P7.md section 3), excluded from
+        // the active working set.
+        val newItemIds = newItems.map { it.id }.toSet()
+        val supersededItems = evidenceDraftDao.getAllForAssessmentOnce(assessmentId).filter {
+            it.taskId in reopenedTaskCodes && it.state == EvidenceDraftState.READY &&
+                it.finalState == FinalEvidenceState.SEALED && it.id !in newItemIds
+        }
+        for (item in supersededItems) {
+            evidenceDraftDao.update(item.copy(fromPreviousRevision = true))
+        }
+        fileManager.deleteP5TempTree(assessmentId)
+
+        assessmentDraftDao.getById(assessmentId)?.let {
+            assessmentDraftDao.update(
+                it.copy(
+                    sealState = SealState.READY_TO_SYNC,
+                    sealedAtMillis = now,
+                    // A fresh revision must actually attempt to sync -- syncedAtMillis
+                    // otherwise still holds the PREVIOUS (already-submitted) revision's
+                    // value, and SyncRepository.syncAssessment's very first check would
+                    // short-circuit to Success without ever looking at the new outbox rows.
+                    syncedAtMillis = null,
+                ),
+            )
+        }
+        Log.d(LOG_TAG, "seal_targeted_revision result=ready_to_sync")
+        return SealOutcome.Sealed
+    }
+
+    private fun buildDeclarationSummary(assessment: AssessmentDraftEntity): ManifestDeclarationSummary? {
+        val matchOutput = assessment.matchOutputJson?.let {
+            try {
+                DRAFT_JSON.decodeFromString<MatchOutput>(it)
+            } catch (e: Exception) {
+                Log.w(LOG_TAG, "build_declaration_summary result=undecodable_match_output")
+                null
+            }
+        } ?: return null
+        val gapTaskCodes = matchOutput.applicableTasks.filter { it.extraEvidenceNeeded }.mapNotNull { it.task }
+        return ManifestDeclarationSummary(
+            matchResult = matchOutput.matchResult,
+            overallCoverage = matchOutput.overallCoverage,
+            gapTaskCodes = gapTaskCodes,
+            matchReasons = matchOutput.because,
+        )
     }
 }

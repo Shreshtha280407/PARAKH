@@ -136,3 +136,38 @@ data class AssessmentCreatedOut(
     val id: Long,
     @SerialName("worker_token") val workerToken: String,
 )
+
+// ---- P7: task-specific reassessment requests + durable worker-updates polling ----
+
+@Serializable
+data class ReassessmentRequestOut(
+    val id: Long,
+    @SerialName("assessment_id") val assessmentId: Long,
+    @SerialName("revision_number") val revisionNumber: Int,
+    @SerialName("task_codes") val taskCodes: List<String>,
+    val reason: String,
+    @SerialName("capture_instructions") val captureInstructions: String,
+    @SerialName("requested_by_id") val requestedById: Long,
+    @SerialName("requested_at") val requestedAt: String,
+    val status: String, // "pending" | "fulfilled" | "cancelled"
+)
+
+@Serializable
+data class AssessmentRevisionOut(
+    @SerialName("revision_number") val revisionNumber: Int,
+    @SerialName("revision_id") val revisionId: String? = null,
+    @SerialName("reopened_task_codes") val reopenedTaskCodes: List<String>? = null,
+    val status: String,
+    @SerialName("created_at") val createdAt: String,
+    @SerialName("submitted_at") val submittedAt: String? = null,
+)
+
+@Serializable
+data class WorkerUpdatesOut(
+    @SerialName("assessment_id") val assessmentId: Long,
+    @SerialName("assessment_status") val assessmentStatus: String,
+    @SerialName("revision_number") val revisionNumber: Int,
+    @SerialName("pending_reassessment_request") val pendingReassessmentRequest: ReassessmentRequestOut? = null,
+    @SerialName("report_status") val reportStatus: String, // "none" | "pending" | "available"
+    @SerialName("latest_event_id") val latestEventId: Long,
+)

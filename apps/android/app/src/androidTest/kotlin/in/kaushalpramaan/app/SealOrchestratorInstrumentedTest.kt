@@ -14,6 +14,10 @@ import `in`.kaushalpramaan.app.data.seal.SealOrchestrator
 import `in`.kaushalpramaan.app.data.seal.SealOutcome
 import `in`.kaushalpramaan.core.mapping.RulesLoader
 import `in`.kaushalpramaan.core.seal.VaultKeysetProvider
+import `in`.kaushalpramaan.core.seal.SealManifest
+import `in`.kaushalpramaan.core.seal.SignedManifestPackage
+import `in`.kaushalpramaan.core.seal.VaultStreamCipher
+import android.util.Base64
 import `in`.kaushalpramaan.media.PhotoOptimizer
 import `in`.kaushalpramaan.media.VideoOptimizer
 import android.graphics.Bitmap
@@ -257,6 +261,143 @@ class SealOrchestratorInstrumentedTest {
             assertEquals(SealOutcome.AttestationRequired, outcome)
             assertEquals(SealState.FINAL_REVIEW_READY, db.assessmentDraftDao().getById(assessment.id)!!.sealState)
             assertTrue(db.outboxDao().getAllForAssessmentOnce(assessment.id).isEmpty())
+        } finally {
+            db.close()
+        }
+    }
+
+    // ---- P7: task-specific reassessment -- sealTargetedRevision ----
+
+    @Test
+    fun targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task() = runBlocking {
+        val (repo, orchestrator, db) = freshHarness()
+        try {
+            val assessment = repo.createOrResumeAssessment("KP-SEAL-TEST", "en", null)
+            val v1EvidenceIds = RulesLoader.load().tasksFile.tasks.associate { it.id to captureRealPhoto(repo, assessment.id, it.id) }
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+            check(orchestrator.seal(assessment.id) == SealOutcome.Sealed)
+            val v1Revision = db.assessmentDraftDao().getById(assessment.id)!!.revisionId!!
+            val v1Sha256ByTask = v1EvidenceIds.mapValues { (_, id) -> db.evidenceDraftDao().getById(id)!!.finalSha256!! }
+
+            // A fresh T4 capture -- the only task being reopened.
+            val newT4EvidenceId = captureRealPhoto(repo, assessment.id, "T4")
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+
+            val outcome = orchestrator.sealTargetedRevision(assessment.id, setOf("T4"))
+
+            assertEquals(SealOutcome.Sealed, outcome)
+            val v2Assessment = db.assessmentDraftDao().getById(assessment.id)!!
+            assertEquals(SealState.READY_TO_SYNC, v2Assessment.sealState)
+            assertNull("a fresh revision must actually attempt to sync", v2Assessment.syncedAtMillis)
+            val v2Revision = v2Assessment.revisionId!!
+            assertTrue("a targeted revision must mint a genuinely new revisionId", v2Revision != v1Revision)
+
+            // Only ONE new outbox row set is committed: the v2 manifest + the ONE new T4
+            // evidence item -- never a row for the four unchanged tasks.
+            val outboxRows = db.outboxDao().getAllForAssessmentOnce(assessment.id).filter { it.revisionId == v2Revision }
+            assertEquals(2, outboxRows.size)
+            assertEquals(OutboxItemKind.MANIFEST, outboxRows[0].kind)
+            assertEquals(OutboxItemKind.EVIDENCE, outboxRows[1].kind)
+            assertEquals(newT4EvidenceId, outboxRows[1].evidenceId)
+            val newT4 = db.evidenceDraftDao().getById(newT4EvidenceId)!!
+            assertEquals("reassessment sealing must preserve the new item's receipt metadata", 64, newT4.finalSha256?.length)
+            assertTrue(EvidenceFileManager(context).resolveRelativePath(requireNotNull(newT4.vaultRelativePath)).isFile)
+
+            // The OLD T4 item is now historical -- immutable, excluded from the active set.
+            val oldT4 = db.evidenceDraftDao().getById(v1EvidenceIds.getValue("T4"))!!
+            assertTrue(oldT4.fromPreviousRevision)
+            assertEquals(FinalEvidenceState.SEALED, oldT4.finalState)
+
+            // Every OTHER task's v1 item is untouched -- same finalSha256, not marked
+            // historical, and (critically) its vault file was never re-touched by the v2
+            // seal, since it had none left to re-touch (P6 already deleted it post-receipt
+            // in reality; here it simply proves sealTargetedRevision never tries).
+            for (task in listOf("T1", "T2", "T3", "T5")) {
+                val item = db.evidenceDraftDao().getById(v1EvidenceIds.getValue(task))!!
+                assertFalse("unchanged task '$task' must not be marked historical", item.fromPreviousRevision)
+                assertEquals(v1Sha256ByTask.getValue(task), item.finalSha256)
+            }
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test
+    fun repeated_targeted_revisions_inherit_only_active_evidence_after_receipt_cleanup() = runBlocking {
+        val (repo, orchestrator, db) = freshHarness()
+        try {
+            val assessment = repo.createOrResumeAssessment("KP-SEAL-TEST", "en", null)
+            captureRealPhoto(repo, assessment.id, "T1")
+            captureRealPhoto(repo, assessment.id, "T2")
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+            check(orchestrator.seal(assessment.id) == SealOutcome.Sealed)
+            val fileManager = EvidenceFileManager(context)
+
+            suspend fun receiptAndReopen() {
+                fileManager.deleteVaultTree(assessment.id)
+                db.outboxDao().deleteAllForAssessment(assessment.id)
+                val current = db.assessmentDraftDao().getById(assessment.id)!!
+                db.assessmentDraftDao().update(current.copy(sealState = SealState.DRAFT_EDITABLE, syncedAtMillis = System.currentTimeMillis()))
+            }
+
+            receiptAndReopen()
+            val activeT1 = captureRealPhoto(repo, assessment.id, "T1")
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+            check(orchestrator.sealTargetedRevision(assessment.id, setOf("T1")) == SealOutcome.Sealed)
+
+            receiptAndReopen()
+            val activeT2 = captureRealPhoto(repo, assessment.id, "T2")
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+            assertEquals(SealOutcome.Sealed, orchestrator.sealTargetedRevision(assessment.id, setOf("T2")))
+
+            val latest = db.assessmentDraftDao().getById(assessment.id)!!
+            val vault = fileManager.resolveRelativePath(requireNotNull(latest.manifestVaultRelativePath))
+            val cipher = VaultKeysetProvider(context).getOrCreateCipher()
+            val envelope = cipher.openDecryptingStream(vault, VaultStreamCipher.associatedData(assessment.id, latest.revisionId!!, "manifest", "manifest")).use { it.readBytes() }
+            val signed = SignedManifestPackage.fromJsonBytes(envelope)
+            val canonical = Base64.decode(signed.manifestBase64, Base64.NO_WRAP)
+            val manifest = SealManifest.CANONICAL_JSON.decodeFromString(SealManifest.serializer(), canonical.decodeToString())
+            assertEquals("superseded evidence must never re-enter the current snapshot", setOf(activeT1, activeT2), manifest.evidence.map { it.evidenceId }.toSet())
+            assertEquals("INHERITED", manifest.evidence.single { it.evidenceId == activeT1 }.processing)
+            val outbox = db.outboxDao().getAllForAssessmentOnce(assessment.id)
+            assertEquals(2, outbox.size)
+            assertEquals(activeT2, outbox.single { it.kind == OutboxItemKind.EVIDENCE }.evidenceId)
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test
+    fun targeted_revision_fails_closed_when_the_reopened_task_has_no_new_evidence() = runBlocking {
+        val (repo, orchestrator, db) = freshHarness()
+        try {
+            val assessment = repo.createOrResumeAssessment("KP-SEAL-TEST", "en", null)
+            captureRealPhoto(repo, assessment.id, "T1")
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+            check(orchestrator.seal(assessment.id) == SealOutcome.Sealed)
+
+            // Nothing new captured for T4 -- it is being "reopened" but the worker hasn't
+            // actually added anything yet.
+            val originalRevision = db.assessmentDraftDao().getById(assessment.id)!!.revisionId
+            val originalOutbox = db.outboxDao().getAllForAssessmentOnce(assessment.id)
+            assertEquals(SealOutcome.NotReady, orchestrator.sealTargetedRevision(assessment.id, setOf("T4")))
+
+            // The real UI runs optimisation and requires a fresh attestation before
+            // calling this method. Reach that state without adding any new evidence,
+            // so the test exercises the missing-evidence guard rather than readiness.
+            check(orchestrator.processEvidence(assessment.id) == ProcessOutcome.AllFit)
+            orchestrator.setAttestation(assessment.id, true)
+            val outcome = orchestrator.sealTargetedRevision(assessment.id, setOf("T4"))
+
+            assertEquals(SealOutcome.NoEvidence, outcome)
+            assertEquals(originalRevision, db.assessmentDraftDao().getById(assessment.id)!!.revisionId)
+            assertEquals(originalOutbox, db.outboxDao().getAllForAssessmentOnce(assessment.id))
         } finally {
             db.close()
         }

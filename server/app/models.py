@@ -238,6 +238,31 @@ class Assessment(Base):
     declared_match_result: Mapped[str | None] = mapped_column(String(40), nullable=True)
     declared_coverage_fraction: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     declared_gap_task_codes: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # P7: the matcher's overall "why" explanation -- a flat list of reason
+    # strings (MatchOutput.because on the Android side has no per-task
+    # breakdown; this never fabricates one). Closes a real, previously
+    # undiscovered gap: the Android SealManifest class never actually sent
+    # ANY declarationSummary field at all (confirmed by grepping the
+    # Android source for "declarationSummary" before this phase -- zero
+    # matches), so even the already-existing declared_match_result/
+    # declared_coverage_fraction/declared_gap_task_codes above were only
+    # ever populated by Python test fixtures, never a real device, until
+    # this phase wires the Android side up for real too. Populated from
+    # the manifest's declarationSummary.matchReasons (see
+    # manifest_verify.ParsedManifest.declared_match_reasons) -- null (not
+    # an empty list) for any assessment synced before the Android app
+    # durably persists and seals this, so the report can show an honest
+    # "not recorded" instead of a false empty list.
+    declared_match_reasons: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    # --- P7: task-specific reassessment + versioned resubmission ---
+    # The revision number currently active for this assessment (1 = the
+    # original submission). Bumped by POST .../reassessment-requests when an
+    # assessor reopens specific tasks; see AssessmentRevision below. Distinct
+    # from current_revision_id (the P6 manifest's own client-chosen string
+    # id) -- this is the small, server-owned, human-readable sequence number
+    # ("v1"/"v2"/...) that appears on the signed report and in the dashboard.
+    revision_number: Mapped[int] = mapped_column(Integer, default=1)
 
     worker: Mapped[User] = relationship(foreign_keys=[worker_id])
     assessor: Mapped[User | None] = relationship(foreign_keys=[assessor_id])
@@ -308,6 +333,14 @@ class EvidenceItem(Base):
     # DeviceManifest entry it was verified against (see routers/uploads.py).
     revision_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     client_evidence_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # P7: the on-device capture timestamp, as DECLARED by the phone in the
+    # signed manifest (manifest_verify.ParsedManifest items' capturedAtMillis)
+    # -- NOT independently verified by the server, and deliberately distinct
+    # from `created_at` above (server receipt time). Null for any item
+    # synced before the Android app started sealing this field, or uploaded
+    # via the pre-P6 direct protocol -- the report must show those
+    # honestly as "not recorded", never substitute created_at for it.
+    device_captured_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     assessment_task: Mapped[AssessmentTask] = relationship(back_populates="evidence_items")
 
@@ -450,25 +483,122 @@ class AssessmentCriterionScore(Base):
     assessor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     scored_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
+    # P7: which revision_number (Assessment.revision_number at the time)
+    # last confirmed/updated this score -- lets the dashboard show "carried
+    # forward from v1, not re-reviewed" vs "re-reviewed in v2" provenance
+    # without a separate history table (PUT /review already bumps `version`
+    # on every save; this records *which revision's review pass* did so).
+    revision_number: Mapped[int] = mapped_column(Integer, default=1)
+    # P7: set True on every PC whose task is reopened by a new
+    # reassessment request (routers/reassessment.py), cleared back to False
+    # the next time this PC is actually re-scored (routers/scoring.py's
+    # put_score). Keeps the OLD score/marks visible with clear provenance
+    # (never deleted -- "unchanged scores retained with clear provenance")
+    # while making "this PC has not actually been re-reviewed since its
+    # task reopened" a real, queryable fact rather than an assumption --
+    # routers/reports.py's sign_off refuses to sign while any PC is still
+    # in this state, so a reopened PC can never be blindly carried forward
+    # into a final signed recommendation.
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False)
 
     pc: Mapped[PerformanceCriterion] = relationship()
 
 
+class AssessmentRevision(Base):
+    """P7: one row per resubmission cycle of an assessment. Revision 1 is
+    created implicitly alongside the Assessment itself (see
+    routers.assessments._new_assessment) and covers all five tasks
+    (reopened_task_codes=None). A later revision is created only by
+    POST /assessments/{id}/reassessment-requests, scoped to the exact tasks
+    the assessor reopened -- every other task's v1 evidence/scores stay
+    exactly as they were, never mutated in place.
+
+    revision_id mirrors the P6 manifest's own client-chosen revisionId
+    string (see Assessment.current_revision_id) once the phone's sealed
+    manifest for this revision has actually been received -- null until
+    then, since the revision row itself is created server-side the moment
+    the assessor requests reassessment, before the phone has synced
+    anything for it.
+    """
+
+    __tablename__ = "assessment_revisions"
+    __table_args__ = (
+        UniqueConstraint("assessment_id", "revision_number", name="uq_revision_assessment_number"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    revision_number: Mapped[int] = mapped_column(Integer)
+    revision_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # None for revision 1 (everything is "open" on first capture); a JSON
+    # list of task_codes (e.g. ["T4"]) for every later revision -- the
+    # server-side source of truth for "which tasks may receive new evidence
+    # under this revision" (see routers/uploads.py's open_upload_session).
+    reopened_task_codes: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # open -- accepting new evidence/manifest uploads for its reopened tasks.
+    # submitted -- the phone resubmitted; back in the assessor's queue.
+    # superseded -- a later revision was opened before this one was ever submitted.
+    status: Mapped[str] = mapped_column(String(20), default="open")
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    submitted_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ReassessmentRequest(Base):
+    """P7: one row per assessor-initiated targeted reassessment request --
+    the per-task 'reason + what to capture' loop from master-plan §4.4,
+    distinct from the pre-existing whole-new-assessment
+    POST /assessments/{id}/reassess (routers/decisions.py), which is kept
+    unchanged for the "start over completely" case. Always 1:1 with the
+    AssessmentRevision it opens (fulfilled_by_revision_id is set once the
+    phone resubmits that revision)."""
+
+    __tablename__ = "reassessment_requests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    revision_id: Mapped[int] = mapped_column(ForeignKey("assessment_revisions.id"))
+    task_codes: Mapped[list] = mapped_column(JSON)  # e.g. ["T4"]
+    reason: Mapped[str] = mapped_column(Text)  # mandatory, non-whitespace -- enforced in schemas.py
+    capture_instructions: Mapped[str] = mapped_column(Text)  # mandatory, non-whitespace
+    requested_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    requested_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # pending -- waiting on the worker to resubmit.
+    # fulfilled -- the targeted revision was resubmitted (back in review).
+    # cancelled -- never used by any code path yet; reserved for a future
+    #   "assessor withdraws the request" action, not part of this phase.
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    fulfilled_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class SignedReport(Base):
     """Tamper-evident competency profile + assessor recommendation (never an
-    official NCVET/MSDE certificate). canonical_json is the exact byte
-    sequence that was hashed and signed -- re-serializing the same data
-    differently must never be mistaken for the signed artifact, so we store
-    the literal signed bytes rather than re-deriving them from live rows."""
+    official NCVET/MSDE certificate). P7: signs the RENDERED PDF BYTES, not
+    a JSON snapshot -- canonical_json below is kept only as an informational,
+    UNSIGNED snapshot for the format=json download/audit trail. The signed
+    artifact is pdf_sha256 (over the literal stored PDF bytes at
+    pdf_storage_key) + signature (Ed25519 over that same digest) -- the PDF
+    is rendered once, hashed, signed, and stored immutably; it is never
+    re-rendered on a later download, and signing never happens twice for the
+    same assessment (idempotent -- see routers/reports.py sign_off)."""
 
     __tablename__ = "signed_reports"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), unique=True)
-    canonical_json: Mapped[str] = mapped_column(Text)
-    sha256: Mapped[str] = mapped_column(String(64))
-    signature: Mapped[str] = mapped_column(Text)  # hex-encoded Ed25519 signature
+    # Stable, public identifier for /verify/{report_id} -- deliberately NOT
+    # the raw assessment_id (avoids exposing a sequential internal id on a
+    # public, unauthenticated endpoint).
+    report_uid: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    revision_number: Mapped[int] = mapped_column(Integer)
+    canonical_json: Mapped[str] = mapped_column(Text)  # informational only, NOT the signed payload
+    pdf_storage_key: Mapped[str] = mapped_column(String(300))
+    pdf_sha256: Mapped[str] = mapped_column(String(64))  # the actual signed digest
+    signature: Mapped[str] = mapped_column(Text)  # hex-encoded Ed25519 signature over pdf_sha256's raw digest bytes
     key_id: Mapped[str] = mapped_column(String(60))
+    computed_recommendation: Mapped[str] = mapped_column(String(40))
+    final_recommendation: Mapped[str] = mapped_column(String(40))
+    override_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    signed_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     signed_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

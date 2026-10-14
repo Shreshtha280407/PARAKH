@@ -6,6 +6,7 @@ import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
+import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
 import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
@@ -29,6 +30,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -67,8 +69,13 @@ fun TaskDetailScreen(
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
     // Once sealing has started, evidence is immutable in normal worker flow (spec part E.3)
     // -- edits are only possible again via an explicit discard/reopen from the final review
-    // screen, never silently here.
-    val editable = uiState.sealState.isEditable()
+    // screen, never silently here. P7: a task the assessor did NOT reopen for targeted
+    // reassessment stays locked even while the assessment as a whole is editable again --
+    // see TaskDraftEntity.locked's doc comment; this is the UI's own affordance, the real
+    // enforcement is server-side (routers/uploads.py).
+    val taskLocked = taskDraft?.locked == true
+    val editable = uiState.sealState.isEditable() && !taskLocked
+    val isReopenedForReassessment = taskId in uiState.pendingReassessmentTaskCodes
 
     KpScaffold(
         title = "${task.id} — " + stringResource(taskTitleRes(task.id)),
@@ -78,6 +85,41 @@ fun TaskDetailScreen(
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             SafetyNoticeCard()
+
+            if (isReopenedForReassessment) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp).testTag("reassessment_banner"),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            stringResource(R.string.reassessment_banner_title),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        uiState.pendingReassessmentReason?.let {
+                            Text(
+                                stringResource(R.string.reassessment_banner_reason, it),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                        uiState.pendingReassessmentCaptureInstructions?.let {
+                            Text(
+                                stringResource(R.string.reassessment_banner_instructions, it),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 4.dp).testTag("reassessment_capture_instructions"),
+                            )
+                        }
+                    }
+                }
+            } else if (taskLocked) {
+                Text(
+                    stringResource(R.string.task_detail_locked_pending_other_task),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 12.dp).testTag("task_detail_locked_pending_other_task"),
+                )
+            }
 
             Text(
                 stringResource(R.string.task_detail_guide_title),
@@ -121,11 +163,14 @@ fun TaskDetailScreen(
                 Text(stringResource(R.string.task_detail_no_evidence), style = MaterialTheme.typography.bodyMedium)
             } else {
                 evidenceItems.forEachIndexed { index, item ->
+                    val previouslySubmitted = item.fromPreviousRevision ||
+                        (taskLocked && item.finalState == FinalEvidenceState.SEALED)
                     EvidenceRow(
                         item = item,
                         index = index,
                         editable = editable,
-                        onOpen = { if (item.state == EvidenceDraftState.READY) onPreviewEvidence(item.id) },
+                        previouslySubmitted = previouslySubmitted,
+                        onOpen = { if (item.state == EvidenceDraftState.READY && !previouslySubmitted) onPreviewEvidence(item.id) },
                         onReplace = { onCapture(item.id) },
                         onRemove = { pendingDeleteId = item.id },
                     )
@@ -139,7 +184,7 @@ fun TaskDetailScreen(
                 ) {
                     Text(stringResource(R.string.action_add_evidence))
                 }
-            } else {
+            } else if (!taskLocked) {
                 Text(
                     stringResource(R.string.task_detail_sealed_read_only),
                     style = MaterialTheme.typography.bodySmall,
@@ -176,10 +221,10 @@ fun TaskDetailScreen(
 }
 
 @Composable
-private fun EvidenceRow(item: EvidenceDraftEntity, index: Int, editable: Boolean, onOpen: () -> Unit, onReplace: () -> Unit, onRemove: () -> Unit) {
+private fun EvidenceRow(item: EvidenceDraftEntity, index: Int, editable: Boolean, previouslySubmitted: Boolean, onOpen: () -> Unit, onReplace: () -> Unit, onRemove: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-            .let { if (item.state == EvidenceDraftState.READY) it.clickable(onClick = onOpen) else it }
+            .let { if (item.state == EvidenceDraftState.READY && !previouslySubmitted) it.clickable(onClick = onOpen) else it }
             .testTag("evidence_row"),
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -197,13 +242,24 @@ private fun EvidenceRow(item: EvidenceDraftEntity, index: Int, editable: Boolean
                             DateFormat.getDateTimeInstance().format(Date(item.createdAtMillis)),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                        // P7: a superseded prior-revision item has no local file left to
+                        // preview (P6 deletes the vault copy right after its server receipt)
+                        // -- say so honestly instead of offering a preview that cannot exist.
+                        if (previouslySubmitted) {
+                            Text(
+                                stringResource(R.string.evidence_from_previous_revision),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("evidence_from_previous_revision_$index"),
+                            )
+                        }
                     }
                     EvidenceDraftState.STAGING -> Text(stringResource(R.string.task_status_capturing), style = MaterialTheme.typography.bodyLarge)
                     EvidenceDraftState.FAILED -> AssistChip(onClick = onRemove, label = { Text(stringResource(R.string.task_status_failed)) })
                     EvidenceDraftState.DELETED -> Unit
                 }
             }
-            if (editable && (item.state == EvidenceDraftState.READY || item.state == EvidenceDraftState.FAILED)) {
+            if (editable && !previouslySubmitted && (item.state == EvidenceDraftState.READY || item.state == EvidenceDraftState.FAILED)) {
                 TextButton(
                     onClick = onReplace,
                     modifier = Modifier.defaultMinTapTarget().testTag("btn_replace_evidence_$index"),

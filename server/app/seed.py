@@ -44,7 +44,9 @@ def seed(db: Session) -> None:
 
     statuses = ["draft", "submitted", "in_review"]
     for worker, status in zip(workers, statuses):
-        existing = db.query(models.Assessment).filter_by(worker_id=worker.id, pack_id=pack.id).one_or_none()
+        # A worker may legitimately have several assessments, including broad
+        # reassessments. Seeding only needs to know whether any already exists.
+        existing = db.query(models.Assessment).filter_by(worker_id=worker.id, pack_id=pack.id).first()
         if existing:
             continue
         _raw_token, token_hash = generate_worker_token()

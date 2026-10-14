@@ -138,10 +138,15 @@ fun PreviewScreen(
                         if (items.isEmpty()) {
                             Text(stringResource(R.string.preview_empty_task), style = MaterialTheme.typography.bodySmall)
                         } else {
+                            // P7: a task the assessor did NOT reopen for targeted
+                            // reassessment stays read-only here too, even while the
+                            // assessment overall is editable again -- see
+                            // TaskDetailScreen's identical taskLocked check.
+                            val taskLocked = uiState.taskDrafts[task.id]?.locked == true
                             items.forEach { item ->
                                 FinalReviewItemRow(
                                     item = item,
-                                    editable = uiState.sealState.isEditable(),
+                                    editable = uiState.sealState.isEditable() && !taskLocked && !item.fromPreviousRevision,
                                     onOpen = { onPreviewEvidence(item.id) },
                                     onTrim = { onTrimEvidence(item.id) },
                                 )

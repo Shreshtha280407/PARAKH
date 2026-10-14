@@ -1,0 +1,55 @@
+--------- beginning of main
+10-14 17:34:07.052 25698 25698 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-14 17:34:07.056 25698 25698 I AndroidRuntime: Using default boot image
+10-14 17:34:07.056 25698 25698 I AndroidRuntime: Leaving lock profiling enabled
+10-14 17:34:07.156 25698 25698 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-14 17:34:08.723 25698 25698 D AndroidRuntime: Shutting down VM
+--------- beginning of crash
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: FATAL EXCEPTION: main
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: Process: in.kaushalpramaan.app, PID: 11002
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: android.os.NetworkOnMainThreadException
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at android.os.StrictMode$AndroidBlockGuardPolicy.onNetwork(StrictMode.java:1838)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:389)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:230)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:212)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:436)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at java.net.Socket.connect(Socket.java:646)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:128)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.RealConnection.connectSocket(RealConnection.kt:295)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.RealConnection.connect(RealConnection.kt:207)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.ExchangeFinder.findConnection(ExchangeFinder.kt:226)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.ExchangeFinder.findHealthyConnection(ExchangeFinder.kt:106)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.ExchangeFinder.find(ExchangeFinder.kt:74)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.RealCall.initExchange$okhttp(RealCall.kt:255)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:32)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:109)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:95)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:109)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:83)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:109)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:76)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:109)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:201)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at okhttp3.internal.connection.RealCall.execute(RealCall.kt:154)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at in.kaushalpramaan.app.data.sync.SyncApiClient.getWorkerUpdates(SyncApiClient.kt:383)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepository.pollAndApply(WorkerUpdatesRepository.kt:39)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepository$pollAndApply$1.invokeSuspend(WorkerUpdatesRepository.kt:15)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at androidx.compose.ui.platform.AndroidUiDispatcher.performTrampolineDispatch(AndroidUiDispatcher.android.kt:79)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at androidx.compose.ui.platform.AndroidUiDispatcher.access$performTrampolineDispatch(AndroidUiDispatcher.android.kt:41)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at androidx.compose.ui.platform.AndroidUiDispatcher$dispatchCallback$1.run(AndroidUiDispatcher.android.kt:57)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:1001)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:109)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:306)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:416)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:10001)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:613)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1074)
+10-14 17:34:09.817 11002 11002 E AndroidRuntime: 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [androidx.compose.ui.platform.MotionDurationScaleImpl@bd11f31, androidx.compose.runtime.BroadcastFrameClock@716616, StandaloneCoroutine{Cancelling}@8675b97, AndroidUiDispatcher@fb43184]
+10-14 17:34:10.180 26026 26026 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-14 17:34:10.183 26026 26026 I AndroidRuntime: Using default boot image
+10-14 17:34:10.183 26026 26026 I AndroidRuntime: Leaving lock profiling enabled
+10-14 17:34:10.257 26026 26026 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-14 17:34:11.395 26026 26026 D AndroidRuntime: Shutting down VM

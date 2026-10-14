@@ -1,0 +1,29 @@
+{
+  "physical_device": "OnePlus 13R / CPH2691 / Android 16 API 36",
+  "physical_classes": {
+    "SealOrchestratorInstrumentedTest": 8,
+    "AppDatabaseMigrationTest": 2,
+    "WorkerUpdatesRepositoryInstrumentedTest": 1
+  },
+  "physical_total": 11,
+  "physical_failures_after_fixes": 0,
+  "backend_checks": [
+    {
+      "command": "server/.venv/bin/python -m pytest server/tests/test_queue.py -vv -o faulthandler_timeout=20",
+      "passed": 7,
+      "seconds": 1.27
+    },
+    {
+      "command": "server/.venv/bin/python -m pytest server/tests/test_print_report_public_key_tool.py -q",
+      "passed": 4,
+      "seconds": 0.28
+    }
+  ],
+  "string_parity_passed": true,
+  "android_debug_build_passed": true,
+  "dashboard_docker_build_passed": true,
+  "git_diff_check_passed": true,
+  "lan_health_initial": "timeout",
+  "lan_health_final": "HTTP 200 from phone and host",
+  "signed_report_status_on_phone_over_lan": "Your signed report is ready."
+}

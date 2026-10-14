@@ -110,6 +110,42 @@ data class AssessmentDraftEntity(
      * branches throughout this file are P5-tested crash-recovery logic; a simple nullable
      * timestamp lets P6 add a terminal condition without touching any of them). */
     @ColumnInfo(name = "synced_at_millis") val syncedAtMillis: Long? = null,
+
+    // ---- P7: durable declaration/match snapshot (closes the P6/P3-disclosed gap --
+    // see docs/gates/P7.md section 3). Persisted once, at createOrResumeAssessment(), from
+    // the ViewModel's in-memory DeclarationState/MatchOutput -- this does NOT change where
+    // the live editing state lives (still ViewModel-scoped during the session), it only
+    // gives the app something to re-seal from on a later targeted-reassessment revision,
+    // after process death, and to seal into the manifest's declarationSummary for the
+    // server/report (see SealOrchestrator.seal()). ----
+    @ColumnInfo(name = "declaration_answers_json") val declarationAnswersJson: String? = null,
+    @ColumnInfo(name = "declaration_years_of_experience", defaultValue = "0") val declarationYearsOfExperience: Int = 0,
+    @ColumnInfo(name = "declaration_free_text", defaultValue = "''") val declarationFreeText: String = "",
+    @ColumnInfo(name = "declaration_work_setting") val declarationWorkSetting: String? = null,
+    @ColumnInfo(name = "declaration_prior_training") val declarationPriorTraining: String? = null,
+    /** JSON-encoded [in.kaushalpramaan.core.mapping.MatchOutput] -- already @Serializable. */
+    @ColumnInfo(name = "match_output_json") val matchOutputJson: String? = null,
+
+    // ---- P7: task-specific reassessment + versioned resubmission ----
+    /** Mirrors the server's Assessment.revision_number -- the human-readable "v1"/"v2"/...
+     * sequence. Bumped locally only once a pending reassessment request is pulled and
+     * accepted (see AppViewModel.applyWorkerUpdates); the NEXT seal() targets this number. */
+    @ColumnInfo(name = "current_revision_number", defaultValue = "1") val currentRevisionNumber: Int = 1,
+    /** Durable cursor for GET /assessments/{id}/worker-updates -- see
+     * WorkerUpdatesWorker/schemas.WorkerUpdatesOut.latest_event_id. Advanced ONLY after the
+     * corresponding update (a reassessment request, a report becoming available) has been
+     * durably applied to this row -- never before, so a crash between "saw the update" and
+     * "applied it" replays safely on the next poll instead of silently skipping it. */
+    @ColumnInfo(name = "worker_updates_cursor", defaultValue = "0") val workerUpdatesCursor: Long = 0,
+    /** "none" | "pending" | "available" -- mirrored from the last worker-updates poll, purely
+     * for UI display (e.g. "your report is ready"); never gates any local state transition. */
+    @ColumnInfo(name = "report_status", defaultValue = "'none'") val reportStatus: String = "none",
+    /** Comma-separated task codes the assessor reopened in the currently-pending
+     * reassessment request, or null if none is pending. Drives per-task locking (see
+     * TaskDraftEntity.locked) and the on-screen reason/instructions banner. */
+    @ColumnInfo(name = "pending_reassessment_task_codes_csv") val pendingReassessmentTaskCodesCsv: String? = null,
+    @ColumnInfo(name = "pending_reassessment_reason") val pendingReassessmentReason: String? = null,
+    @ColumnInfo(name = "pending_reassessment_capture_instructions") val pendingReassessmentCaptureInstructions: String? = null,
 )
 
 @Entity(
@@ -136,6 +172,13 @@ data class TaskDraftEntity(
     @ColumnInfo(name = "budget_bytes") val budgetBytes: Long,
     @ColumnInfo(name = "captured_bytes") val capturedBytes: Long,
     @ColumnInfo(name = "updated_at_millis") val updatedAtMillis: Long,
+    /** P7: true while this task is NOT part of the active reassessment revision's reopened
+     * set -- blocks new capture/retake/delete in the UI (see TaskDetailScreen) and, as the
+     * real enforcement, blocks the server from ever opening a new upload session for it
+     * (routers/uploads.py). False for every task on a fresh (revision 1) assessment -- only
+     * a targeted reassessment request (AppViewModel.applyWorkerUpdates) ever sets this true
+     * for the UNREQUESTED tasks. */
+    @ColumnInfo(name = "locked", defaultValue = "0") val locked: Boolean = false,
 )
 
 @Entity(
@@ -194,6 +237,17 @@ data class EvidenceDraftEntity(
     /** App-private relative path to this item's encrypted vault copy, set once sealing
      * reaches VAULT_READY for this item. */
     @ColumnInfo(name = "vault_relative_path") val vaultRelativePath: String? = null,
+
+    /** P7: true once this item's revision has been fully synced/receipted and a LATER
+     * reassessment revision has been opened -- i.e. this is historical, read-only evidence
+     * from a prior revision, kept only for on-device record-keeping (see
+     * SealOrchestrator.sealTargetedRevision). Its vault file is long gone by the time this
+     * flips true (P6 deletes it right after the server receipt -- see
+     * SyncRepository.markSynced), so there is nothing left to preview on-device; the UI
+     * shows an honest "previously submitted, not available for on-device preview" instead
+     * of pretending to offer a preview that cannot exist. Never true for the item that is
+     * still part of the CURRENT revision's working set. */
+    @ColumnInfo(name = "from_previous_revision", defaultValue = "0") val fromPreviousRevision: Boolean = false,
 )
 
 enum class OutboxItemKind { MANIFEST, EVIDENCE }

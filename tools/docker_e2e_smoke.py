@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """End-to-end smoke test against a running, seeded KaushalPramaan stack
-(see infra/docker-compose.yml). Exercises the full P2.2 assessment
+(see infra/docker-compose.yml). Exercises the full P2.2/P7 assessment
 lifecycle in one pass: create -> upload evidence -> submit -> login ->
-start review -> score -> competency profile -> recommend -> generate
-signed report -> public verify -> reassess -> worker token rotate/revoke.
+start review -> score -> competency profile -> password-confirmed sign-off
+-> Ed25519-signed PDF -> public verify -> reassess -> worker token
+rotate/revoke. See tools/docker_e2e_smoke_p6.py for the P6 sync protocol
+and the P7 task-specific reassessment/versioned-resubmission loop, which
+both need a real signed manifest this script's direct-upload path doesn't use.
 
 Stdlib only (urllib) -- no new CI dependency for one script. Run with the
 stack already up and seeded:
@@ -106,24 +109,47 @@ def main() -> None:
     assert "Decision support only" in profile["disclaimer"]
     assert "final certification/recommendation remains with the human assessor" in profile["disclaimer"]
 
-    print("9. assessor recommends")
-    decided = call("POST", f"{base}/assessments/{aid}/decision", token=token, body={
-        "decision": "recommended", "notes": "docker e2e smoke test",
+    print("9. computed outcome (decision support only, never auto-certifies)")
+    profile2 = call("GET", f"{base}/assessments/{aid}/competency-profile", token=token)
+    computed = profile2["computed_outcome"]
+
+    print("10. password-confirmed sign-off produces the one, immutable, Ed25519-signed PDF")
+    wrong_pw = call("POST", f"{base}/assessments/{aid}/sign-off", token=token, expect=401, body={
+        "password": "definitely-the-wrong-password", "final_recommendation": computed,
     })
-    assert decided["status"] == "recommended"
+    signed = call("POST", f"{base}/assessments/{aid}/sign-off", token=token, expect=201, body={
+        "password": args.assessor_password, "final_recommendation": computed,
+    })
+    assert len(signed["pdf_sha256"]) == 64 and len(signed["signature"]) == 128
+    resigned = call("POST", f"{base}/assessments/{aid}/sign-off", token=token, expect=201, body={
+        "password": args.assessor_password, "final_recommendation": computed,
+    })
+    assert resigned == signed, "retrying sign-off must return the exact same artifact, never resign"
 
-    print("10. generate the signed report")
-    report = call("POST", f"{base}/assessments/{aid}/report", token=token, expect=201)
-    assert len(report["sha256"]) == 64 and len(report["signature"]) == 128
+    print("11. the stored PDF downloads with real %PDF magic bytes and the required disclaimer")
+    pdf_req = urllib.request.Request(f"{base}/assessments/{aid}/report?format=pdf")
+    pdf_req.add_header("Authorization", f"Bearer {token}")
+    with urllib.request.urlopen(pdf_req) as resp:
+        pdf_bytes = resp.read()
+    assert pdf_bytes[:4] == b"%PDF"
+    assert b"Assessor recommendation" in pdf_bytes and b"not an official certificate" in pdf_bytes
+    assert hashlib.sha256(pdf_bytes).hexdigest() == signed["pdf_sha256"]
 
-    print("11. public verify endpoint confirms it, with no auth at all")
-    verify = call("GET", f"{base}/reports/{aid}/verify")
-    assert verify["valid"] is True
+    print("12. public /verify/{report_id} confirms it, with no auth at all, minimal safe fields only")
+    verify = call("GET", f"{base}/verify/{signed['report_uid']}")
+    assert verify["valid"] is True and verify["status"] == "SIGNED"
+    assert verify["sha256"] == signed["pdf_sha256"]
+    for forbidden in ("worker_name", "worker_id", "criteria", "evidence"):
+        assert forbidden not in verify
 
-    print("12. reassess is correctly rejected outside needs_reassessment")
+    print("12b. legacy /reports/{assessment_id}/verify still works too")
+    legacy_verify = call("GET", f"{base}/reports/{aid}/verify")
+    assert legacy_verify["valid"] is True
+
+    print("13. reassess is correctly rejected outside needs_reassessment")
     call("POST", f"{base}/assessments/{aid}/reassess", token=token, expect=409)
 
-    print("13. a second assessment routed to needs_reassessment IS reassessable, original untouched")
+    print("14. a second assessment routed to needs_reassessment IS reassessable, original untouched")
     created2 = call("POST", f"{base}/assessments", body={"worker_id": args.worker_id, "pack_id": args.pack_id}, expect=201)
     aid2, wt2 = created2["id"], created2["worker_token"]
     call("POST", f"{base}/assessments/{aid2}/submit", worker_token=wt2)
@@ -136,7 +162,7 @@ def main() -> None:
     assert before == after, "the original assessment must be untouched by creating its reassessment"
     assert call("GET", f"{base}/assessments/{reassessed['id']}", token=token)["reassessment_of_id"] == aid2
 
-    print("14. worker token rotate invalidates the old one; revoke disables it entirely")
+    print("15. worker token rotate invalidates the old one; revoke disables it entirely")
     rotated = call("POST", f"{base}/assessments/{aid}/worker-token/rotate", token=token)
     assert rotated["worker_token"] != wt
     old_rejected = urllib.request.Request(f"{base}/assessments/{aid}", headers={"X-Worker-Token": wt})
@@ -149,7 +175,7 @@ def main() -> None:
     revoked = call("POST", f"{base}/assessments/{aid}/worker-token/revoke", token=token)
     assert revoked["status"] == "revoked"
 
-    print("ALL P2.2 END-TO-END CHECKS PASSED")
+    print("ALL P2.2/P7 END-TO-END CHECKS PASSED")
 
 
 if __name__ == "__main__":

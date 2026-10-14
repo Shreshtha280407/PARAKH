@@ -14,10 +14,14 @@ _REAL_SECRET = "a-real-jwt-secret"
 _REAL_ORIGIN = "https://assess.kaushalpramaan.example"
 
 
-def test_development_without_a_signing_key_auto_generates_one():
-    s = Settings(app_env="development", report_signing_private_key=None)
-    assert s.report_signing_private_key is not None
-    assert len(bytes.fromhex(s.report_signing_private_key)) == 32
+def test_development_without_a_signing_key_fails_fast_too():
+    """P7: a signing key that regenerates itself on every process restart
+    would silently invalidate every previously-signed report -- see
+    docs/gates/P7.md section 4. Unlike JWT_SECRET (still fine to
+    auto-generate in development, see the test right below), this MUST
+    fail fast in every environment, including development."""
+    with pytest.raises(ValidationError, match="REPORT_SIGNING_PRIVATE_KEY"):
+        Settings(app_env="development", report_signing_private_key=None)
 
 
 def test_development_without_a_jwt_secret_auto_generates_one():

@@ -1,0 +1,12 @@
+{
+  "assessment_id": 20,
+  "report_uid": "ul1ep08zi8H0z4u3KNvOrg",
+  "revision_number": 3,
+  "pdf_sha256": "1da4764eefbb4959d63ff97f96bc2957190809d3ae3bb4db27cdd998553ab3cb",
+  "signature": "bc075438eac33dd3138e3cdbc22a20a88943a28dee898f8d02b9cd7bd4fe447696f579e714b3629ff89af0c74dd35390b59444577b32c4999c65a7428cb73f06",
+  "key_id": "dev-key-2026-10-14",
+  "computed_recommendation": "INSUFFICIENT_EVIDENCE",
+  "final_recommendation": "NOT_YET_COMPETENT",
+  "override_reason": "P7 physical-device technical practice run. Only incidental camera photographs for T1 and T2 were submitted; the trade skills and remaining tasks were not demonstrated. The computed outcome is insufficient evidence. The final recommendation is not yet competent because no occupational competency has been established in this practice run.",
+  "signed_at": "2026-10-14T12:25:27.513560Z"
+}

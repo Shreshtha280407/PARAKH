@@ -1,0 +1,68 @@
+
+in.kaushalpramaan.app.SealOrchestratorInstrumentedTest:..
+Error in repeated_targeted_revisions_inherit_only_active_evidence_after_receipt_cleanup(in.kaushalpramaan.app.SealOrchestratorInstrumentedTest):
+java.lang.IllegalArgumentException: inherited item 023c0a6a-3a5b-4333-a4b9-27b14550f7b3 has no final hash
+	at in.kaushalpramaan.app.data.seal.SealOrchestrator.sealTargetedRevision(SealOrchestrator.kt:692)
+	at in.kaushalpramaan.app.data.seal.SealOrchestrator$sealTargetedRevision$1.invokeSuspend(SealOrchestrator.kt:15)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at in.kaushalpramaan.app.SealOrchestratorInstrumentedTest.repeated_targeted_revisions_inherit_only_active_evidence_after_receipt_cleanup(SealOrchestratorInstrumentedTest.kt:328)
+....
+Error in targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task(in.kaushalpramaan.app.SealOrchestratorInstrumentedTest):
+java.lang.AssertionError: reassessment sealing must preserve the new item's receipt metadata expected:<64> but was:<null>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at in.kaushalpramaan.app.SealOrchestratorInstrumentedTest$targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task$1.invokeSuspend(SealOrchestratorInstrumentedTest.kt:305)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at in.kaushalpramaan.app.SealOrchestratorInstrumentedTest.targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task(SealOrchestratorInstrumentedTest.kt:272)
+
+
+Time: 5.581
+There were 2 failures:
+1) repeated_targeted_revisions_inherit_only_active_evidence_after_receipt_cleanup(in.kaushalpramaan.app.SealOrchestratorInstrumentedTest)
+java.lang.IllegalArgumentException: inherited item 023c0a6a-3a5b-4333-a4b9-27b14550f7b3 has no final hash
+	at in.kaushalpramaan.app.data.seal.SealOrchestrator.sealTargetedRevision(SealOrchestrator.kt:692)
+	at in.kaushalpramaan.app.data.seal.SealOrchestrator$sealTargetedRevision$1.invokeSuspend(SealOrchestrator.kt:15)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at in.kaushalpramaan.app.SealOrchestratorInstrumentedTest.repeated_targeted_revisions_inherit_only_active_evidence_after_receipt_cleanup(SealOrchestratorInstrumentedTest.kt:328)
+2) targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task(in.kaushalpramaan.app.SealOrchestratorInstrumentedTest)
+java.lang.AssertionError: reassessment sealing must preserve the new item's receipt metadata expected:<64> but was:<null>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at in.kaushalpramaan.app.SealOrchestratorInstrumentedTest$targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task$1.invokeSuspend(SealOrchestratorInstrumentedTest.kt:305)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at in.kaushalpramaan.app.SealOrchestratorInstrumentedTest.targeted_revision_reuses_unchanged_tasks_by_reference_and_only_vault_encrypts_the_reopened_task(SealOrchestratorInstrumentedTest.kt:272)
+
+FAILURES!!!
+Tests run: 8,  Failures: 2
+
+

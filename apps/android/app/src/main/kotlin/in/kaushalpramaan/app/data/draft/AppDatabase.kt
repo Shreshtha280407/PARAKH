@@ -91,9 +91,35 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+/** P7: durable declaration/match snapshot (closes the P6/P3-disclosed gap where this was
+ * ViewModel-scoped only), per-task reassessment lock state, and the worker-updates polling
+ * cursor + cached report/reassessment status -- see AssessmentDraftEntity/TaskDraftEntity/
+ * EvidenceDraftEntity's new P7 fields. Real, additive migration, never
+ * fallbackToDestructiveMigration, same reasoning as MIGRATION_1_2/2_3/3_4. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN declaration_answers_json TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN declaration_years_of_experience INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN declaration_free_text TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN declaration_work_setting TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN declaration_prior_training TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN match_output_json TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN current_revision_number INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN worker_updates_cursor INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN report_status TEXT NOT NULL DEFAULT 'none'")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN pending_reassessment_task_codes_csv TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN pending_reassessment_reason TEXT")
+        db.execSQL("ALTER TABLE assessment_drafts ADD COLUMN pending_reassessment_capture_instructions TEXT")
+
+        db.execSQL("ALTER TABLE task_drafts ADD COLUMN locked INTEGER NOT NULL DEFAULT 0")
+
+        db.execSQL("ALTER TABLE evidence_drafts ADD COLUMN from_previous_revision INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 @androidx.room.Database(
     entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class, OutboxItemEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -135,7 +161,7 @@ abstract class AppDatabase : RoomDatabase() {
             val factory = SupportFactory(passphrase)
             return Room.databaseBuilder(appContext, AppDatabase::class.java, dbFileName)
                 .openHelperFactory(factory)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
         }
     }

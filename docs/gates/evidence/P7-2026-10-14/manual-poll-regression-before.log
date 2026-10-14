@@ -1,0 +1,61 @@
+
+in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest:
+Error in manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation(in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest):
+android.os.NetworkOnMainThreadException
+	at android.os.StrictMode$AndroidBlockGuardPolicy.onNetwork(StrictMode.java:1838)
+	at java.net.Inet6AddressImpl.getHostByAddr(Inet6AddressImpl.java:162)
+	at java.net.InetAddress$1.getHostByAddr(InetAddress.java:286)
+	at java.net.InetAddress.getHostFromNameService(InetAddress.java:658)
+	at java.net.InetAddress.getCanonicalHostName(InetAddress.java:629)
+	at okhttp3.mockwebserver.MockWebServer.getHostName(MockWebServer.kt:159)
+	at okhttp3.mockwebserver.MockWebServer.url(MockWebServer.kt:234)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest$manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation$1$endpoint$1.baseUrl(WorkerUpdatesRepositoryInstrumentedTest.kt:36)
+	at in.kaushalpramaan.app.data.sync.SyncApiClient.getBase(SyncApiClient.kt:37)
+	at in.kaushalpramaan.app.data.sync.SyncApiClient.requestBuilder(SyncApiClient.kt:42)
+	at in.kaushalpramaan.app.data.sync.SyncApiClient.getWorkerUpdates(SyncApiClient.kt:180)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepository.pollAndApply(WorkerUpdatesRepository.kt:39)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepository$pollAndApply$1.invokeSuspend(WorkerUpdatesRepository.kt:15)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at android.os.Handler.handleCallback(Handler.java:1001)
+	at android.os.Handler.dispatchMessage(Handler.java:109)
+	at android.os.Looper.loopOnce(Looper.java:306)
+	at android.os.Looper.loop(Looper.java:416)
+	at android.app.ActivityThread.main(ActivityThread.java:10001)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:613)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1074)
+
+
+Time: 0.433
+There was 1 failure:
+1) manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation(in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest)
+android.os.NetworkOnMainThreadException
+	at android.os.StrictMode$AndroidBlockGuardPolicy.onNetwork(StrictMode.java:1838)
+	at java.net.Inet6AddressImpl.getHostByAddr(Inet6AddressImpl.java:162)
+	at java.net.InetAddress$1.getHostByAddr(InetAddress.java:286)
+	at java.net.InetAddress.getHostFromNameService(InetAddress.java:658)
+	at java.net.InetAddress.getCanonicalHostName(InetAddress.java:629)
+	at okhttp3.mockwebserver.MockWebServer.getHostName(MockWebServer.kt:159)
+	at okhttp3.mockwebserver.MockWebServer.url(MockWebServer.kt:234)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest$manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation$1$endpoint$1.baseUrl(WorkerUpdatesRepositoryInstrumentedTest.kt:36)
+	at in.kaushalpramaan.app.data.sync.SyncApiClient.getBase(SyncApiClient.kt:37)
+	at in.kaushalpramaan.app.data.sync.SyncApiClient.requestBuilder(SyncApiClient.kt:42)
+	at in.kaushalpramaan.app.data.sync.SyncApiClient.getWorkerUpdates(SyncApiClient.kt:180)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepository.pollAndApply(WorkerUpdatesRepository.kt:39)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepository$pollAndApply$1.invokeSuspend(WorkerUpdatesRepository.kt:15)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at android.os.Handler.handleCallback(Handler.java:1001)
+	at android.os.Handler.dispatchMessage(Handler.java:109)
+	at android.os.Looper.loopOnce(Looper.java:306)
+	at android.os.Looper.loop(Looper.java:416)
+	at android.app.ActivityThread.main(ActivityThread.java:10001)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:613)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1074)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+

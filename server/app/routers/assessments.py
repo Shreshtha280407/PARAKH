@@ -95,6 +95,13 @@ def _new_assessment(
             budget_bytes=t.budget_bytes,
         ))
 
+    # P7: revision 1 always exists from the moment the assessment does --
+    # see models.AssessmentRevision's docstring. reopened_task_codes=None
+    # means "everything" (no task-specific restriction on the first pass).
+    db.add(models.AssessmentRevision(
+        assessment_id=assessment.id, revision_number=1, status="open",
+    ))
+
     _audit(
         db, assessment.id, actor_user_id=actor_user_id, actor_role=actor_role, action="created",
         details={"reassessment_of_id": reassessment_of_id} if reassessment_of_id else {},
@@ -142,6 +149,28 @@ def _audit(db: Session, assessment_id: int, actor_user_id: int | None, actor_rol
     ))
 
 
+def _evidence_currency(db: Session, assessment: models.Assessment) -> tuple[dict[str, int], set[tuple[str, str]]]:
+    """P7: (revision_id -> revision_number) and the set of (task_code,
+    client_evidence_id) pairs declared in the assessment's latest COMPLETE
+    manifest -- i.e. the active revision's full evidence snapshot, inherited
+    items included. An item with no revision_id at all (pre-P6 direct
+    upload protocol -- tests, the old docker_e2e_smoke script) is always
+    "current": there is no versioning concept for it to be stale against."""
+    revisions = db.query(models.AssessmentRevision).filter_by(assessment_id=assessment.id).all()
+    revision_number_by_id = {r.revision_id: r.revision_number for r in revisions if r.revision_id}
+
+    latest_complete = (
+        db.query(models.DeviceManifest)
+        .filter_by(assessment_id=assessment.id, status="complete")
+        .order_by(models.DeviceManifest.id.desc())
+        .first()
+    )
+    current_pairs: set[tuple[str, str]] = set()
+    if latest_complete is not None:
+        current_pairs = {(i["task_code"], i["evidence_id"]) for i in latest_complete.declared_items}
+    return revision_number_by_id, current_pairs
+
+
 def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.AssessmentOut:
     assessment = db.get(
         models.Assessment, assessment.id,
@@ -149,6 +178,19 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
     )
     pack = db.get(models.QualificationPack, assessment.pack_id)
     worker_user = db.get(models.User, assessment.worker_id)
+    revision_number_by_id, current_pairs = _evidence_currency(db, assessment)
+
+    def _evidence_out(e: models.EvidenceItem, task_code: str) -> schemas.EvidenceReceiptOut:
+        revision_number = revision_number_by_id.get(e.revision_id, 1) if e.revision_id else 1
+        is_current = True if e.revision_id is None else (task_code, e.client_evidence_id) in current_pairs
+        return schemas.EvidenceReceiptOut(
+            id=e.id, kind=e.kind, mime=e.mime, declared_size_bytes=e.declared_size_bytes,
+            sha256=e.sha256, created_at=e.created_at, thumbnail_status=e.thumbnail_status,
+            metadata_status=e.metadata_status, duration_ms=e.duration_ms, width_px=e.width_px,
+            height_px=e.height_px, revision_number=revision_number, is_current_revision=is_current,
+            device_captured_at=e.device_captured_at,
+        )
+
     return schemas.AssessmentOut(
         id=assessment.id,
         worker_id=assessment.worker_id,
@@ -168,14 +210,16 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
         declared_match_result=assessment.declared_match_result,
         declared_coverage_fraction=assessment.declared_coverage_fraction,
         declared_gap_task_codes=assessment.declared_gap_task_codes,
+        declared_match_reasons=assessment.declared_match_reasons,
         current_revision_id=assessment.current_revision_id,
+        revision_number=assessment.revision_number,
         tasks=[
             schemas.AssessmentTaskOut(
                 task_code=t.task_code,
                 budget_bytes=t.budget_bytes,
                 bytes_used=t.bytes_used,
                 status=t.status,
-                evidence=[schemas.EvidenceReceiptOut.model_validate(e) for e in t.evidence_items],
+                evidence=[_evidence_out(e, t.task_code) for e in t.evidence_items],
             )
             for t in assessment.tasks
         ],
@@ -213,8 +257,17 @@ def submit_assessment(
         or hash_worker_token(x_worker_token) != assessment.worker_token_hash
     ):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing or invalid X-Worker-Token for this assessment")
-    if assessment.status != models.AssessmentStatus.draft.value:
-        raise HTTPException(status.HTTP_409_CONFLICT, f"cannot submit: assessment is '{assessment.status}', not 'draft'")
+    # P7: a targeted reassessment reopens the SAME assessment (status
+    # 'needs_reassessment') rather than creating a new one -- resubmitting
+    # that revision is accepted here too, moving back to 'submitted' so the
+    # assessor's existing start-review flow picks it up unchanged. Anything
+    # else (in_review, submitted, recommended) cannot be (re)submitted.
+    is_resubmission = assessment.status == models.AssessmentStatus.needs_reassessment.value
+    if assessment.status != models.AssessmentStatus.draft.value and not is_resubmission:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"cannot submit: assessment is '{assessment.status}', not 'draft' or 'needs_reassessment'",
+        )
 
     # P6: an assessment that has a sync revision in progress may only be
     # submitted once every item that revision's manifest declares has been
@@ -222,7 +275,28 @@ def submit_assessment(
     # An assessment that never used the P6 sync path (current_revision_id is
     # never set) is unaffected -- submit behaves exactly as it did in P2.1/
     # P2.2, so the pre-P6 direct-upload tests/scripts keep working unchanged.
-    if assessment.current_revision_id:
+    active_revision = None
+    if is_resubmission:
+        active_revision = (
+            db.query(models.AssessmentRevision)
+            .filter_by(assessment_id=assessment.id, revision_number=assessment.revision_number, status="open")
+            .one_or_none()
+        )
+        if active_revision is None:
+            raise HTTPException(status.HTTP_409_CONFLICT, "no open reassessment revision to resubmit")
+        if not active_revision.revision_id:
+            raise HTTPException(status.HTTP_409_CONFLICT, "no sealed package has been received yet for this revision")
+        manifest = (
+            db.query(models.DeviceManifest)
+            .filter_by(assessment_id=assessment.id, revision_id=active_revision.revision_id)
+            .one_or_none()
+        )
+        if manifest is None or manifest.status != "complete":
+            raise HTTPException(
+                status.HTTP_409_CONFLICT,
+                "sealed package is not fully synced and verified yet -- cannot resubmit",
+            )
+    elif assessment.current_revision_id:
         manifest = (
             db.query(models.DeviceManifest)
             .filter_by(assessment_id=assessment.id, revision_id=assessment.current_revision_id)
@@ -234,9 +308,33 @@ def submit_assessment(
                 "sealed package is not fully synced and verified yet -- cannot submit",
             )
 
+    now = datetime.datetime.now(datetime.timezone.utc)
     assessment.status = models.AssessmentStatus.submitted.value
-    assessment.submitted_at = datetime.datetime.now(datetime.timezone.utc)
-    _audit(db, assessment.id, actor_user_id=None, actor_role="worker", action="submitted")
+    if is_resubmission:
+        active_revision.status = "submitted"
+        active_revision.submitted_at = now
+        pending_request = (
+            db.query(models.ReassessmentRequest)
+            .filter_by(assessment_id=assessment.id, revision_id=active_revision.id, status="pending")
+            .one_or_none()
+        )
+        if pending_request is not None:
+            pending_request.status = "fulfilled"
+            pending_request.fulfilled_at = now
+        _audit(db, assessment.id, actor_user_id=None, actor_role="worker", action="resubmitted", details={
+            "revision_number": active_revision.revision_number,
+        })
+    else:
+        assessment.submitted_at = now
+        current_revision = (
+            db.query(models.AssessmentRevision)
+            .filter_by(assessment_id=assessment.id, revision_number=assessment.revision_number)
+            .one_or_none()
+        )
+        if current_revision is not None:
+            current_revision.status = "submitted"
+            current_revision.submitted_at = now
+        _audit(db, assessment.id, actor_user_id=None, actor_role="worker", action="submitted")
     db.commit()
     db.refresh(assessment)
     return _assessment_out(db, assessment)

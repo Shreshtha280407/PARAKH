@@ -1,0 +1,41 @@
+
+in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest:
+Error in manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation(in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest):
+java.lang.AssertionError: a later request must reopen editing even before the old pending banner was cleared expected:<DRAFT_EDITABLE> but was:<FINAL_REVIEW_READY>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest$manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation$1.invokeSuspend(WorkerUpdatesRepositoryInstrumentedTest.kt:71)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest.manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation(WorkerUpdatesRepositoryInstrumentedTest.kt:25)
+
+
+Time: 0.656
+There was 1 failure:
+1) manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation(in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest)
+java.lang.AssertionError: a later request must reopen editing even before the old pending banner was cleared expected:<DRAFT_EDITABLE> but was:<FINAL_REVIEW_READY>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest$manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation$1.invokeSuspend(WorkerUpdatesRepositoryInstrumentedTest.kt:71)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(dex-id-d1920aca97f9d6b43c10da869397a608561cac28:1)
+	at in.kaushalpramaan.app.data.sync.WorkerUpdatesRepositoryInstrumentedTest.manual_poll_from_main_thread_applies_task_locks_and_repeated_poll_preserves_attestation(WorkerUpdatesRepositoryInstrumentedTest.kt:25)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+

@@ -1,0 +1,144 @@
+{
+  "assessment_id": 20,
+  "client_assessment_id": "d735c536-aa41-41b3-b928-0dcf52a90bed",
+  "status": "submitted",
+  "revision_number": 3,
+  "revisions": [
+    {
+      "revision_number": 1,
+      "revision_id": "132a2e7a-1841-44c5-b226-1b2ef36fc794",
+      "reopened_tasks": null,
+      "submitted_at": "2026-10-14T11:55:40.582984+00:00",
+      "manifest_id": 15,
+      "canonical_sha256": "8d32bb778315b0c99f34bc68265e68ff71b9db65f2014fb36446065771d42d11",
+      "evidence": {
+        "T2": {
+          "evidence_id": "106b30de-c8bb-4370-8337-3d2a07c21acb",
+          "task_code": "T2",
+          "kind": "photo",
+          "bytes": 1352281,
+          "sha256": "e2ee0f505cb21c3be7163c7f2bb26dd1fbaa729e1829319fff7c5e51446bab28",
+          "mime": "image/jpeg",
+          "processing": "FITS_AS_IS",
+          "captured_at_millis": 1791978726652
+        },
+        "T1": {
+          "evidence_id": "b6a4c7e6-47ff-4ac7-b8cd-7c945cb95db6",
+          "task_code": "T1",
+          "kind": "photo",
+          "bytes": 1356335,
+          "sha256": "9b8d31f054492a71c30d6ea6f9d7299f1dd176634aa418633922ffe6bfc49f5a",
+          "mime": "image/jpeg",
+          "processing": "FITS_AS_IS",
+          "captured_at_millis": 1791978531730
+        }
+      },
+      "uploaded_evidence_tasks": [
+        "T1",
+        "T2"
+      ],
+      "upload_session_ids": [
+        33,
+        34,
+        35
+      ]
+    },
+    {
+      "revision_number": 2,
+      "revision_id": "cd787ef0-b4bc-4c69-8031-c0438105ea8a",
+      "reopened_tasks": [
+        "T1"
+      ],
+      "submitted_at": "2026-10-14T12:14:30.581792+00:00",
+      "manifest_id": 16,
+      "canonical_sha256": "70159bef89b0cf78f5c5ce20acc23cd7440945f1a45ec3c1415683a63c36fd5f",
+      "evidence": {
+        "T2": {
+          "evidence_id": "106b30de-c8bb-4370-8337-3d2a07c21acb",
+          "task_code": "T2",
+          "kind": "photo",
+          "bytes": 1352281,
+          "sha256": "e2ee0f505cb21c3be7163c7f2bb26dd1fbaa729e1829319fff7c5e51446bab28",
+          "mime": "image/jpeg",
+          "processing": "INHERITED",
+          "captured_at_millis": 1791978726652
+        },
+        "T1": {
+          "evidence_id": "6aa7408d-6725-40df-aa50-e77127a66b95",
+          "task_code": "T1",
+          "kind": "photo",
+          "bytes": 1350105,
+          "sha256": "eb76e34d35600b37d225fe8ee3eeee2df42658d02dc4e7d9f0f99669a28bd6a2",
+          "mime": "image/jpeg",
+          "processing": "FITS_AS_IS",
+          "captured_at_millis": 1791979997013
+        }
+      },
+      "uploaded_evidence_tasks": [
+        "T1"
+      ],
+      "upload_session_ids": [
+        36,
+        37
+      ]
+    },
+    {
+      "revision_number": 3,
+      "revision_id": "b7c3a0f8-b945-4fde-b7ce-48b1c9a912c4",
+      "reopened_tasks": [
+        "T2"
+      ],
+      "submitted_at": "2026-10-14T12:22:33.876161+00:00",
+      "manifest_id": 17,
+      "canonical_sha256": "1ac0b1b58e6329f5f5901d7c30604db54b1584e710e61a3f0a0a6cb82feed5e2",
+      "evidence": {
+        "T1": {
+          "evidence_id": "6aa7408d-6725-40df-aa50-e77127a66b95",
+          "task_code": "T1",
+          "kind": "photo",
+          "bytes": 1350105,
+          "sha256": "eb76e34d35600b37d225fe8ee3eeee2df42658d02dc4e7d9f0f99669a28bd6a2",
+          "mime": "image/jpeg",
+          "processing": "INHERITED",
+          "captured_at_millis": 1791979997013
+        },
+        "T2": {
+          "evidence_id": "f67f2b7b-fdb3-4304-b72d-d38ebe60c4ee",
+          "task_code": "T2",
+          "kind": "photo",
+          "bytes": 3146340,
+          "sha256": "26e1c75d689fcef20fefa0698b7497cface307e34dffd9b1ac7ba405102b8dc1",
+          "mime": "image/jpeg",
+          "processing": "FITS_AS_IS",
+          "captured_at_millis": 1791980330541
+        }
+      },
+      "uploaded_evidence_tasks": [
+        "T2"
+      ],
+      "upload_session_ids": [
+        38,
+        39
+      ]
+    }
+  ],
+  "evidence_rows": 4,
+  "upload_sessions": 7,
+  "flagged_pcs": [
+    "CON/N0602.PC10",
+    "CON/N0602.PC11",
+    "CON/N0602.PC4",
+    "CON/N0602.PC5",
+    "CON/N0602.PC6",
+    "CON/N0602.PC7",
+    "CON/N0602.PC8",
+    "CON/N0602.PC9",
+    "CON/N0602.PC1",
+    "CON/N0602.PC2",
+    "CON/N0602.PC3"
+  ],
+  "all_file_hashes_verified": true,
+  "unchanged_tasks_not_reuploaded": true,
+  "historical_snapshots_preserved": true,
+  "pass": true
+}

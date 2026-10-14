@@ -1,0 +1,14 @@
+{
+  "id": 6,
+  "assessment_id": 20,
+  "revision_number": 3,
+  "task_codes": [
+    "T2"
+  ],
+  "reason": "The submitted T2 practice photograph does not show the task steps clearly enough to assess the performance criteria. Please provide a clearer replacement capture.",
+  "capture_instructions": "P7 technical practice: capture a new T2 photograph with a visibly different view. For trade evidence use an isolated, confirmed de-energised training board under supervision; show the required equipment and task steps clearly. Leave other tasks unchanged.",
+  "requested_by_id": 1,
+  "requested_at": "2026-10-14T12:16:09.747401Z",
+  "status": "pending",
+  "fulfilled_at": null
+}
