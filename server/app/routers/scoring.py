@@ -8,6 +8,7 @@ import datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models, outcome as outcome_module, schemas
@@ -79,7 +80,15 @@ def put_score(
     db: Session = Depends(get_db),
     user: models.User = Depends(require_assessor),
 ) -> schemas.CriterionScoreOut:
-    assessment = db.get(models.Assessment, assessment_id)
+    # Locks the SAME row sign_off() locks (see routers/reports.py), in the
+    # same order (assessment, then the individual score row below) --
+    # otherwise a concurrent sign-off could render/sign the report from a
+    # snapshot that a still-in-flight score save then overwrites a moment
+    # later, or this save could land after the report was already produced
+    # from a status this transaction never actually observed.
+    assessment = db.execute(
+        select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()
+    ).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
     if assessment.status != "in_review":

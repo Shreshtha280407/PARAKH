@@ -100,13 +100,18 @@ def compute_outcome(rows, scores: dict, minimum_aggregate_passing_percent: int) 
 
     # Priority order mirrors rubric.json's own critical_pc rule ("regardless
     # of overall NOS %", i.e. the safety veto dominates everything else)
-    # followed by the master-plan 4.4 table's own row order.
+    # followed by the master-plan 4.4 table's own row order: certification
+    # needs every mandatory NOS; most (a strict majority) failing is itself
+    # a NOT_YET_COMPETENT verdict, not "partially competent" -- partial is
+    # reserved for a genuine minority of gaps.
     if all_critical_violations:
         outcome: Outcome = "NOT_YET_COMPETENT"
     elif insufficient and len(achieved) < total:
         outcome = "INSUFFICIENT_EVIDENCE"
     elif total > 0 and len(achieved) == total:
         outcome = "RECOMMEND_CERTIFICATION"
+    elif len(gap) * 2 > total:
+        outcome = "NOT_YET_COMPETENT"
     elif achieved:
         outcome = "PARTIALLY_COMPETENT"
     else:

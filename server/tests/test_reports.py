@@ -3,6 +3,17 @@ sign-off, PDF-bytes-first Ed25519 signing, immutable stored artifact,
 public /verify/{report_id}. See server/app/report_signing.py,
 routers/reports.py, routers/verify.py, docs/gates/P7.md sections 4-5.
 """
+import threading
+import time
+
+import pytest
+from fastapi import HTTPException
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+
+from server.app import models, schemas
+from server.app.routers import scoring
+
 WT_HEADER = "X-Worker-Token"
 ASSESSOR_PASSWORD = "correct horse battery staple"  # matches conftest.assessor
 
@@ -115,6 +126,163 @@ def test_sign_off_succeeds_and_is_idempotent(client, imported_pack, worker, asse
 
     detail = client.get(f"/assessments/{a['id']}", headers=assessor_headers).json()
     assert detail["status"] == "recommended"
+
+
+def test_sign_off_repeat_call_still_validates_the_password(client, imported_pack, worker, assessor_headers):
+    """A report already existing must never become a way to skip the
+    password check -- every sign-off call proves the password, including
+    a retry against an assessment that's already signed off."""
+    a = _recommended_assessment(client, imported_pack, worker, assessor_headers)
+    first = _sign_off(client, a["id"], assessor_headers)
+    assert first.status_code == 201
+
+    wrong = _sign_off(client, a["id"], assessor_headers, password="definitely not the password")
+    assert wrong.status_code == 401, wrong.text
+
+    correct = _sign_off(client, a["id"], assessor_headers)
+    assert correct.status_code == 201
+    assert correct.json() == first.json()  # still the exact same stored artifact
+
+
+def test_put_score_blocks_on_and_then_loses_to_a_concurrent_sign_off(client, imported_pack, worker, assessor_headers, db_session):
+    """put_score() and sign_off() must lock the SAME assessment row (see
+    the comment at the top of put_score) -- otherwise a score save that
+    starts just before a sign-off can land just after it, mutating an
+    assessment a report was already produced from. Requires real
+    PostgreSQL (row-level locking); fails loudly rather than skipping
+    otherwise, like test_jobs.py::test_concurrent_claims_never_double_process."""
+    if db_session.bind.dialect.name != "postgresql":
+        pytest.fail(
+            "this test requires TEST_DATABASE_URL to point at a real PostgreSQL database -- "
+            "SQLite has no row-level locking, so FOR UPDATE blocking cannot be demonstrated "
+            "against it. See server/README.md for how to run against the dockerized Postgres."
+        )
+
+    a = _recommended_assessment(client, imported_pack, worker, assessor_headers)
+    pc_full_id = client.get(f"/assessments/{a['id']}/review", headers=assessor_headers).json()[0]["pc_full_id"]
+
+    # NOT str(db_session.bind.url) -- that redacts the password. Two
+    # independent connections, like the real sign-off request and the
+    # real score-save request each getting their own DB connection.
+    url = db_session.bind.url.render_as_string(hide_password=False)
+    SessionLock = sessionmaker(bind=create_engine(url))
+    SessionScore = sessionmaker(bind=create_engine(url))
+
+    lock_acquired = threading.Event()
+    release_lock = threading.Event()
+    result: dict = {}
+
+    def _hold_assessment_lock_like_sign_off():
+        s = SessionLock()
+        try:
+            s.execute(select(models.Assessment).where(models.Assessment.id == a["id"]).with_for_update())
+            lock_acquired.set()
+            release_lock.wait(timeout=5)
+            assessment = s.get(models.Assessment, a["id"])
+            assessment.status = "recommended"  # exactly what sign_off() does before releasing
+            s.commit()
+        finally:
+            s.close()
+
+    def _attempt_concurrent_score_save():
+        assert lock_acquired.wait(timeout=5)
+        s = SessionScore()
+        try:
+            user = s.query(models.User).filter_by(email="assessor@test.local").one()
+            body = schemas.CriterionScoreIn(
+                pc_full_id=pc_full_id, score_level=2, evidence_status="DEMONSTRATED", expected_version=1,
+            )
+            started = time.monotonic()
+            try:
+                scoring.put_score(a["id"], body, s, user)
+                result["outcome"] = "unexpectedly_succeeded"
+            except HTTPException as exc:
+                result["outcome"] = "rejected"
+                result["status_code"] = exc.status_code
+            result["elapsed"] = time.monotonic() - started
+        finally:
+            s.close()
+
+    t_lock = threading.Thread(target=_hold_assessment_lock_like_sign_off)
+    t_score = threading.Thread(target=_attempt_concurrent_score_save)
+    t_lock.start()
+    t_score.start()
+    time.sleep(0.3)  # give the score thread time to actually reach and block on FOR UPDATE
+    release_lock.set()
+    t_lock.join(timeout=5)
+    t_score.join(timeout=5)
+
+    # Proves put_score genuinely WAITED on the lock (not a lucky race) and,
+    # once unblocked, correctly saw the post-sign-off status and rejected --
+    # never silently wrote a score the signed report can no longer reflect.
+    assert result["elapsed"] >= 0.25, "put_score did not actually block on the assessment lock"
+    assert result["outcome"] == "rejected"
+    assert result["status_code"] == 409
+
+
+def test_render_pdf_never_truncates_hashes_reasons_or_remarks():
+    """Direct unit test of _render_pdf (pure function, no DB/HTTP needed --
+    same spirit as test_outcome.py) proving every piece of evidentiary
+    text survives in full: a real 64-char sha256 (never shortened -- that
+    IS the integrity record a verifier checks a file against), and
+    override reasons / PC remarks / reassessment reasons long enough that
+    the old fixed-length slices would have cut them off. pageCompression=0
+    keeps the rendered content plain-text greppable, so a literal
+    substring check on the raw bytes is a faithful proof, not a reportlab
+    internals assumption."""
+    from server.app.routers.reports import REPORT_DISCLAIMER, _render_pdf
+
+    full_hash = "ab" * 32
+    assert len(full_hash) == 64
+    # Each string pads PAST the old fixed-length slice before a UNIQUE
+    # marker word that appears nowhere earlier in the string -- repeating
+    # the same filler phrase wouldn't prove anything (the old truncated
+    # slice would still contain copies of every repeated word); only a
+    # tail-only marker proves the full text, not a prefix, made it through.
+    long_override_reason = "Filler padding word. " * 8 + "OVERRIDEUNIQUETAILMARKER"  # marker starts at char 168, past [:140]
+    long_remark = "Remark padding word. " * 7 + "REMARKUNIQUETAILMARKER"  # marker starts at char 147, past [:110]
+    long_reassessment_reason = "Reassessment padding word. " * 6 + "REASSESSMENTUNIQUETAILMARKER"  # marker starts at char 162, past [:100]
+    assert len(long_override_reason) - len("OVERRIDEUNIQUETAILMARKER") > 140
+    assert len(long_remark) - len("REMARKUNIQUETAILMARKER") > 110
+    assert len(long_reassessment_reason) - len("REASSESSMENTUNIQUETAILMARKER") > 100
+
+    data = {
+        "report_uid": "rpt-1", "assessment_id": 1, "revision_number": 1,
+        "verify_url": "http://localhost:5173/#/verify/rpt-1",
+        "worker_name": "Test Worker", "qp_code": "CON/Q0602", "qp_name": "Assistant Electrician",
+        "qp_version": "1.0", "rubric_version": "1.0",
+        "declaration": {"recorded": False, "match_result": None, "coverage_percent": None, "gap_task_codes": None, "match_reasons": None},
+        "nos_breakdown": [{
+            "nos_code": "CON/N0602", "nos_title": "Title", "marks_awarded": "10.00", "marks_possible": "10.00",
+            "percent": 100.0, "meets_threshold": True, "critical_violation": False,
+            "has_insufficient_evidence": False, "competent": True,
+        }],
+        "criteria_by_task": {"T1": [{
+            "pc_full_id": "CON/N0602.PC1", "nos_code": "CON/N0602", "critical": False, "max_marks": "10.00",
+            "score_level": 3, "evidence_status": "DEMONSTRATED", "assessor_comment": long_remark,
+            "marks_awarded": "10.00", "revision_number": 1,
+        }]},
+        "computed_recommendation": "RECOMMEND_CERTIFICATION", "final_recommendation": "NOT_YET_COMPETENT",
+        "override_reason": long_override_reason, "assessor_remarks": None,
+        "evidence": [{
+            "task_code": "T1", "kind": "photo", "sha256": full_hash, "declared_size_bytes": 12345,
+            "device_captured_at": None, "received_at": "2026-01-01T00:00:00+00:00",
+        }],
+        "revision_history": [],
+        "reassessment_history": [{
+            "task_codes": ["T1"], "reason": long_reassessment_reason,
+            "capture_instructions": "x", "requested_at": "2026-01-01T00:00:00+00:00", "status": "pending",
+        }],
+        "assessor_name": "Test Assessor", "minimum_aggregate_passing_percent": 50,
+        "disclaimer": REPORT_DISCLAIMER,
+    }
+
+    pdf_bytes = _render_pdf(data)
+
+    assert full_hash.encode() in pdf_bytes
+    assert b"OVERRIDEUNIQUETAILMARKER" in pdf_bytes
+    assert b"REMARKUNIQUETAILMARKER" in pdf_bytes
+    assert b"REASSESSMENTUNIQUETAILMARKER" in pdf_bytes
 
 
 def test_sign_off_blocked_while_a_reassessment_request_is_pending(client, imported_pack, worker, assessor_headers):

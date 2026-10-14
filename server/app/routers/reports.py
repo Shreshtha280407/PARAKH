@@ -182,6 +182,7 @@ def _render_pdf(data: dict) -> bytes:
     them -- those are computed from these exact bytes afterward (see
     sign_off below) and are never fed back into a re-render."""
     from reportlab.lib.pagesizes import A4
+    from reportlab.pdfbase.pdfmetrics import stringWidth
     from reportlab.pdfgen import canvas
 
     buf = io.BytesIO()
@@ -198,6 +199,34 @@ def _render_pdf(data: dict) -> bytes:
         if y < needed:
             c.showPage()
             return height - margin
+        return y
+
+    def _wrap(text: str, font: str, size: float, max_width: float) -> list[str]:
+        """Greedy word-wrap against the real rendered width of this exact
+        font/size -- this report is the evidentiary record of what an
+        assessor actually wrote (override reasons, PC remarks); it must
+        never silently drop characters to fit a fixed-length slice."""
+        words = text.split()
+        if not words:
+            return [""]
+        lines: list[str] = []
+        current = words[0]
+        for word in words[1:]:
+            candidate = f"{current} {word}"
+            if stringWidth(candidate, font, size) <= max_width:
+                current = candidate
+            else:
+                lines.append(current)
+                current = word
+        lines.append(current)
+        return lines
+
+    def _draw_wrapped(x: float, y: float, text: str, font: str, size: float, max_width: float, line_height: float) -> float:
+        c.setFont(font, size)
+        for line in _wrap(text, font, size, max_width):
+            y = _new_page_if_needed(y)
+            c.drawString(x, y, line)
+            y -= line_height
         return y
 
     y = height - margin
@@ -283,9 +312,10 @@ def _render_pdf(data: dict) -> bytes:
             )
             y -= 9
             if pc["assessor_comment"]:
-                y = _new_page_if_needed(y)
-                c.drawString(margin + 14, y, f"remark: {pc['assessor_comment'][:110]}")
-                y -= 9
+                y = _draw_wrapped(
+                    margin + 14, y, f"remark: {pc['assessor_comment']}",
+                    "Helvetica", 7.5, width - 2 * margin - 14, 9,
+                )
     y -= 8
 
     y = _new_page_if_needed(y, 100)
@@ -296,11 +326,9 @@ def _render_pdf(data: dict) -> bytes:
     c.drawString(margin, y, f"Computed: {data['computed_recommendation']}    Final (assessor): {data['final_recommendation']}")
     y -= 11
     if data["override_reason"]:
-        c.drawString(margin, y, f"Override reason: {data['override_reason'][:140]}")
-        y -= 11
+        y = _draw_wrapped(margin, y, f"Override reason: {data['override_reason']}", "Helvetica", 8.5, width - 2 * margin, 11)
     if data["assessor_remarks"]:
-        c.drawString(margin, y, f"Assessor remarks: {data['assessor_remarks'][:140]}")
-        y -= 11
+        y = _draw_wrapped(margin, y, f"Assessor remarks: {data['assessor_remarks']}", "Helvetica", 8.5, width - 2 * margin, 11)
     y -= 6
 
     if data["revision_history"] or data["reassessment_history"]:
@@ -315,9 +343,10 @@ def _render_pdf(data: dict) -> bytes:
             c.drawString(margin, y, f"v{rh['revision_number']} [{rh['status']}] -- tasks: {tasks}")
             y -= 9
         for rr in data["reassessment_history"]:
-            y = _new_page_if_needed(y)
-            c.drawString(margin, y, f"Requested {', '.join(rr['task_codes'])}: {rr['reason'][:100]}")
-            y -= 9
+            y = _draw_wrapped(
+                margin, y, f"Requested {', '.join(rr['task_codes'])}: {rr['reason']}",
+                "Helvetica", 7.5, width - 2 * margin, 9,
+            )
         y -= 6
 
     y = _new_page_if_needed(y, 150)
@@ -328,11 +357,13 @@ def _render_pdf(data: dict) -> bytes:
     for ev in data["evidence"]:
         y = _new_page_if_needed(y)
         captured = ev["device_captured_at"] or "not recorded (device-reported)"
-        c.drawString(
-            margin, y,
-            f"{ev['task_code']} {ev['kind']} sha256={ev['sha256'][:16]}... "
-            f"bytes={ev['declared_size_bytes']} captured={captured} received={ev['received_at']}",
-        )
+        # The full hash, never truncated -- this IS the integrity record a
+        # verifier checks a real evidence file against; a shortened hash
+        # would weaken exactly the guarantee this report line exists for.
+        c.drawString(margin, y, f"{ev['task_code']} {ev['kind']} sha256={ev['sha256']}")
+        y -= 9
+        y = _new_page_if_needed(y)
+        c.drawString(margin + 8, y, f"bytes={ev['declared_size_bytes']} captured={captured} received={ev['received_at']}")
         y -= 9
 
     y = _new_page_if_needed(y, 150)
@@ -393,12 +424,16 @@ def sign_off(
     # snapshot (see docs/gates/P7.md section 5).
     db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update())
 
+    # Password re-entry is validated on EVERY call, including an idempotent
+    # retry against an already-signed report -- "password-confirmed"
+    # means every sign-off request proves the password, not just the one
+    # that happens to create the report.
+    if not user.password_hash or not verify_password(body.password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "incorrect password")
+
     existing = db.query(models.SignedReport).filter_by(assessment_id=assessment_id).one_or_none()
     if existing is not None:
         return _report_out(existing)
-
-    if not user.password_hash or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "incorrect password")
 
     if assessment.status != "in_review":
         raise HTTPException(

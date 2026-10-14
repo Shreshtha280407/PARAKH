@@ -137,3 +137,48 @@ def test_fractional_marks_use_precise_decimal_arithmetic():
     nos1 = result.nos_results[0]
     assert nos1.marks_possible == Decimal("6.36")
     assert nos1.percent == 100.0
+
+
+def test_most_nos_below_threshold_is_not_yet_competent_even_with_one_achieved():
+    """1 of 5 mandatory NOS competent, 4 below threshold -- a strict
+    majority failing is NOT_YET_COMPETENT, not PARTIALLY_COMPETENT (the
+    master-plan 4.4 table's "most NOS below threshold" row; a lone
+    achieved NOS must not mask an overall failing picture)."""
+    rows = [
+        _row("N1", "PC1", "100.00"),
+        _row("N2", "PC2", "100.00"),
+        _row("N3", "PC3", "100.00"),
+        _row("N4", "PC4", "100.00"),
+        _row("N5", "PC5", "100.00"),
+    ]
+    scores = {
+        "PC1": _score(3, marks_awarded="100.00"),  # N1: 100% -- competent
+        "PC2": _score(1, marks_awarded="33.33"),  # N2-N5: 33% < 50% -- not competent
+        "PC3": _score(1, marks_awarded="33.33"),
+        "PC4": _score(1, marks_awarded="33.33"),
+        "PC5": _score(1, marks_awarded="33.33"),
+    }
+    result = compute_outcome(rows, scores, THRESHOLD)
+    assert result.outcome == "NOT_YET_COMPETENT"
+    assert result.achieved_nos_codes == ["N1"]
+    assert len(result.gap_nos_codes) == 4
+
+
+def test_exactly_half_nos_below_threshold_stays_partially_competent():
+    """An even split (not a strict majority failing) must NOT trip the
+    "most NOS failing" rule -- this is the boundary the fix must not
+    overreach past."""
+    rows = [
+        _row("N1", "PC1", "100.00"), _row("N2", "PC2", "100.00"),
+        _row("N3", "PC3", "100.00"), _row("N4", "PC4", "100.00"),
+    ]
+    scores = {
+        "PC1": _score(3, marks_awarded="100.00"),
+        "PC2": _score(3, marks_awarded="100.00"),
+        "PC3": _score(1, marks_awarded="33.33"),
+        "PC4": _score(1, marks_awarded="33.33"),
+    }
+    result = compute_outcome(rows, scores, THRESHOLD)
+    assert result.outcome == "PARTIALLY_COMPETENT"
+    assert len(result.achieved_nos_codes) == 2
+    assert len(result.gap_nos_codes) == 2
