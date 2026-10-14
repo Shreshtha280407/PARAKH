@@ -1,20 +1,27 @@
 # apps/android/
 
-Kotlin + Jetpack Compose offline worker app (P-3/P-4). Reads
-`packs/ae-con-q0602/` as bundled task-pack data (synced in at build time,
-never hand-duplicated — see `core/mapping/build.gradle.kts`). No backend,
-no network, no worker account login for anything in this module's scope —
-see `docs/gates/P3.md` / `docs/gates/P4.md` for the full scope boundary and
-`docs/gates/IC1A.md` for the acceptance gate this module is held to. The
-app's user-visible display name is "PARAKH"; the Android package
-(`in.kaushalpramaan.app`) and internal identifiers are unchanged.
+Kotlin + Jetpack Compose worker app. Fully offline through P3-P5 (no
+network, no backend, no worker account login); P6 adds real, resumable
+sync of the P5 sealed outbox to the FastAPI backend over HTTPS, still with
+no worker login -- only a device-scoped self-registration bootstrap (see
+`docs/worker_capability_tokens.md`'s "Identity bootstrap (P6)" section).
+Reads `packs/ae-con-q0602/` as bundled task-pack data (synced in at build
+time, never hand-duplicated — see `core/mapping/build.gradle.kts`). See
+`docs/gates/P3.md` / `P4.md` / `P5.md` / `P6.md` for the full scope
+boundary of each phase and `docs/gates/IC1A.md` for the acceptance gate
+this module is held to. The app's user-visible display name is "PARAKH";
+the Android package (`in.kaushalpramaan.app`) and internal identifiers are
+unchanged.
 
 ## Modules
 
 | Module | Role |
 |---|---|
-| `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, real in-app CameraX photo/video evidence capture into a SQLCipher-encrypted Room draft store (preview, retake, replace, delete — see `docs/gates/P4.md`), preview, attestation, local "sealed" submit. |
+| `:app` | The worker-facing Compose app (`in.kaushalpramaan.app`). Language, consent, registration, declaration, match result, task list/detail, real in-app CameraX photo/video evidence capture into a SQLCipher-encrypted Room draft store (preview, retake, replace, delete), automatic optimisation/seal/encrypted-vault-outbox (P5), and resumable WorkManager sync of that sealed outbox to the server (P6, `data/sync/`). |
 | `:core:mapping` | Pure Kotlin/JVM port of `ml/mapping/matcher.py` (match-rules@r3, 20 declaration cards + 6 tools). No Android dependency — its `GoldenVectorsTest` runs as a plain fast JUnit `test` task. `:app` depends on it like any other library. |
+| `:core:budget` | Pure Kotlin/JVM deterministic budget ledger (P5) — per-task/total byte accounting, no Android dependency. |
+| `:core:seal` | Android library: streaming SHA-256, the canonical signed manifest, Android Keystore ECDSA signing/verification, and the Tink `StreamingAead`-encrypted vault — including P6's bounded `decryptingStream` API the sync layer reads from. |
+| `:media` | Android library: real local photo/video optimisation (Media3 Transformer) to fit the task/total byte budgets (P5) — never exposes a bitrate/resolution/quality control to the worker. |
 
 ## One-time environment setup
 
@@ -106,12 +113,19 @@ of sync. Declaration card/tool **labels** shown in the Compose UI
 mirror of `links.json`'s `label` field, not a second data source for the
 matcher itself — the matcher never reads string resources.
 
-## Offline-first, enforced at build time
+## Capture/declaration/match stays offline; sync (P6) is the one real network path
 
-`app/build.gradle.kts`'s `verifyNoNetworkDependencies` task fails the build
-if `AndroidManifest.xml` ever declares `android.permission.INTERNET` or
-`ACCESS_NETWORK_STATE`. No networking library is declared as a dependency
-anywhere in this module. `OfflineAirplaneModeTest` (instrumented) and
-`NetworkAssertions` (helper) additionally prove at runtime that the
-installed app holds no INTERNET permission and that the full match →
-task → evidence journey completes with the emulator in airplane mode.
+P3-P5's entire worker journey (register, declare, match, capture, optimise,
+seal) still needs no network at all and still works with the phone in
+airplane mode — `OfflineAirplaneModeTest` (instrumented) and
+`NetworkAssertions` (helper) prove this at runtime. P6 adds the one and
+only real network path: syncing an already-`READY_TO_SYNC` sealed package
+to the server. `app/build.gradle.kts`'s `verifyExpectedNetworkPermissions`/
+`verifyMergedManifestHasExpectedNetworkPermissions` tasks (renamed from, and
+replacing, the old P3-P5 "no network permission at all"
+`verifyNoNetworkDependencies` check) now assert the opposite, P6-correct
+policy: exactly `INTERNET` + `ACCESS_NETWORK_STATE` are declared, and
+nothing else network/media/gallery/public-storage-related ever is.
+`verifyReleaseForbidsCleartextTraffic` separately proves a release build
+cannot use plain HTTP even once it does have that permission — see
+`docs/gates/P6.md`.

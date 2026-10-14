@@ -1,0 +1,28 @@
+{"utc": "2026-10-14T07:11:10Z", "epoch": 1791961870.308527, "phase": "proxy-started", "port": 18001}
+{"utc": "2026-10-14T07:11:32Z", "epoch": 1791961892.8179736, "phase": "proxy-started", "port": 18001}
+{"utc": "2026-10-14T07:11:38Z", "epoch": 1791961898.9466586, "method": "POST", "path": "/workers/register", "phase": "upstream-response", "status": 200, "request_bytes": 58}
+{"utc": "2026-10-14T07:11:39Z", "epoch": 1791961899.0050962, "method": "GET", "path": "/packs/by-code?qp_code=CON%2FQ0602&qp_version=4.0", "phase": "upstream-response", "status": 200, "request_bytes": 0}
+{"utc": "2026-10-14T07:11:39Z", "epoch": 1791961899.1262572, "method": "POST", "path": "/assessments", "phase": "upstream-response", "status": 201, "request_bytes": 28}
+{"utc": "2026-10-14T07:11:39Z", "epoch": 1791961899.390371, "method": "POST", "path": "/uploads", "phase": "upstream-response", "status": 201, "request_bytes": 186}
+{"utc": "2026-10-14T07:11:39Z", "epoch": 1791961899.4214866, "method": "PUT", "path": "/uploads/14/chunks/0", "phase": "upstream-response", "status": 200, "request_bytes": 2087}
+{"utc": "2026-10-14T07:11:41Z", "epoch": 1791961901.5554645, "method": "POST", "path": "/uploads/14/complete", "phase": "upstream-response", "status": 200, "request_bytes": 84}
+{"utc": "2026-10-14T07:11:41Z", "epoch": 1791961901.7364357, "method": "POST", "path": "/uploads", "phase": "upstream-response", "status": 201, "request_bytes": 234}
+{"utc": "2026-10-14T07:11:41Z", "epoch": 1791961901.8519435, "method": "PUT", "path": "/uploads/15/chunks/0", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:11:41Z", "epoch": 1791961901.9528797, "method": "PUT", "path": "/uploads/15/chunks/0", "phase": "ack-dropped-after-server-commit"}
+{"utc": "2026-10-14T07:22:22Z", "epoch": 1791962542.442903, "method": "POST", "path": "/uploads", "phase": "upstream-response", "status": 201, "request_bytes": 234}
+{"utc": "2026-10-14T07:22:22Z", "epoch": 1791962542.6287913, "method": "PUT", "path": "/uploads/15/chunks/1", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:22Z", "epoch": 1791962542.9063303, "method": "PUT", "path": "/uploads/15/chunks/2", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:23Z", "epoch": 1791962543.204161, "method": "PUT", "path": "/uploads/15/chunks/3", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:23Z", "epoch": 1791962543.5166051, "method": "PUT", "path": "/uploads/15/chunks/4", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:23Z", "epoch": 1791962543.8016005, "method": "PUT", "path": "/uploads/15/chunks/5", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:24Z", "epoch": 1791962544.1050882, "method": "PUT", "path": "/uploads/15/chunks/6", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:24Z", "epoch": 1791962544.4032204, "method": "PUT", "path": "/uploads/15/chunks/7", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:24Z", "epoch": 1791962544.7175117, "method": "PUT", "path": "/uploads/15/chunks/8", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:24Z", "epoch": 1791962544.9871006, "method": "PUT", "path": "/uploads/15/chunks/9", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:25Z", "epoch": 1791962545.2900066, "method": "PUT", "path": "/uploads/15/chunks/10", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:25Z", "epoch": 1791962545.555254, "method": "PUT", "path": "/uploads/15/chunks/11", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:25Z", "epoch": 1791962545.8964152, "method": "PUT", "path": "/uploads/15/chunks/12", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:26Z", "epoch": 1791962546.1984272, "method": "PUT", "path": "/uploads/15/chunks/13", "phase": "upstream-response", "status": 200, "request_bytes": 1048576}
+{"utc": "2026-10-14T07:22:26Z", "epoch": 1791962546.4310791, "method": "PUT", "path": "/uploads/15/chunks/14", "phase": "upstream-response", "status": 200, "request_bytes": 699424}
+{"utc": "2026-10-14T07:22:26Z", "epoch": 1791962546.7039216, "method": "POST", "path": "/uploads/15/complete", "phase": "upstream-response", "status": 200, "request_bytes": 84}
+{"utc": "2026-10-14T07:22:26Z", "epoch": 1791962546.850663, "method": "POST", "path": "/assessments/10/submit", "phase": "upstream-response", "status": 200, "request_bytes": 0}

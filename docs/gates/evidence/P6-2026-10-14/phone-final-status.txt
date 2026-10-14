@@ -1,0 +1,13 @@
+T5 — Temporary LV panel
+View
+0.0 MB of 30.0 MB used
+No evidence added for this task.
+Assessment sealed on this device. Ready to sync when connectivity is available.
+Sync status
+Synced and submitted for assessor review.
+P5_TEST_ONLY verification export (debug builds only)
+Decrypt for verification
+P6_TEST_ONLY sync server URL (debug builds only)
+http://127.0.0.1:8000
+Save
+Review and seal

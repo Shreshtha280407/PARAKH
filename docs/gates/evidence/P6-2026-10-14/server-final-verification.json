@@ -1,0 +1,78 @@
+{
+  "assessment_id": 10,
+  "client_assessment_id": "430713ef-a547-4d8e-a164-c2dd3b60482b",
+  "revision_id": "fa273812-886c-40fe-ae96-1ede2e4f2f86",
+  "status": "submitted",
+  "submitted_at": "2026-10-14T07:22:26.812446+00:00",
+  "session_count": 2,
+  "evidence_count": 1,
+  "sessions": [
+    {
+      "id": 14,
+      "target": "manifest",
+      "status": "completed",
+      "received_bytes": 2087,
+      "claimed_size_bytes": 2087,
+      "chunk_count": 1,
+      "chunk_indexes": [
+        0
+      ],
+      "actual_sha256": "e33578c6f621ed4211bef41e6f66d7cb49b84007a844c267391162b817140e21",
+      "completed_at": "2026-10-14T07:11:41.536860+00:00"
+    },
+    {
+      "id": 15,
+      "target": "evidence",
+      "status": "completed",
+      "received_bytes": 15379488,
+      "claimed_size_bytes": 15379488,
+      "chunk_count": 15,
+      "chunk_indexes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "actual_sha256": "17fc3bbcaa57bb5b6c7cf2bee450d973f726a02c6b139aae7884e91609b089ad",
+      "completed_at": "2026-10-14T07:22:26.652370+00:00"
+    }
+  ],
+  "evidence": [
+    {
+      "id": 7,
+      "client_evidence_id": "f7e3b9e0-0892-42af-b73d-28f73d56deac",
+      "kind": "video",
+      "bytes": 15379488,
+      "sha256": "17fc3bbcaa57bb5b6c7cf2bee450d973f726a02c6b139aae7884e91609b089ad",
+      "matches_signed_manifest": true,
+      "metadata_status": "completed",
+      "thumbnail_status": "completed",
+      "width_px": 1280,
+      "height_px": 720,
+      "duration_ms": 8765
+    }
+  ],
+  "manifests": [
+    {
+      "id": 8,
+      "status": "complete",
+      "item_count": 1,
+      "signature_verified_again": true,
+      "canonical_sha256": "4a44130df962e1fb766dbc0ff53ac34956116364335c52e06af80e3ea2012152"
+    }
+  ],
+  "duplicate_chunk_rows": 0,
+  "orphan_chunk_rows": 0,
+  "pass": true
+}

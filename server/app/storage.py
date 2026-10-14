@@ -116,3 +116,9 @@ def upload_key_for(assessment_id: int, task_code: str, session_id: int) -> str:
     """In-progress (and, once completed, final) storage key for a resumable
     upload session. Server-generated -- never a client-supplied filename."""
     return f"assessments/{assessment_id}/{task_code}/uploads/{session_id}.part"
+
+
+def manifest_upload_key_for(assessment_id: int, session_id: int) -> str:
+    """Storage key for a P6 manifest-target upload session (not task-scoped
+    -- see UploadSession.target in models.py)."""
+    return f"assessments/{assessment_id}/sync/manifest/{session_id}.part"

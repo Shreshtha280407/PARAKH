@@ -1,9 +1,14 @@
-"""SQLAlchemy models for the P2/P2.1 backend.
+"""SQLAlchemy models for the backend.
 
-P2.1 adds: Numeric rubric marks, assessor/admin auth fields, worker
+P2.1 added: Numeric rubric marks, assessor/admin auth fields, worker
 capability tokens, a real resumable-upload protocol (UploadSession +
-UploadChunk), and a durable jobs table. Still out of scope: scoring/report
-tables, Android sync, CV/AI inference -- those land in later phases.
+UploadChunk), and a durable jobs table. P2.2 added: lifecycle/audit,
+human scoring, decisions/reassessment, signed reports, evidence serving.
+P6 adds: DeviceManifest (P5 sealed-package signature/manifest verification),
+revision/idempotency-key binding on UploadSession/EvidenceItem, a TOFU-pinned
+device public key + declared-match snapshot on Assessment, and real
+server-verified evidence metadata (width/height/duration). Still out of
+scope: CV/AI quality inference -- see docs/evidence_quality_result.md.
 """
 import datetime
 import enum
@@ -45,6 +50,13 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
     # Assessor/admin only -- workers have no login, see docs/worker_capability_tokens.md
     password_hash: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # P6: the worker app's own locally-generated stable identifier (e.g. "KP-A1B2C3D4",
+    # generated once at on-device registration -- see apps/android's RegistrationScreen/
+    # AppViewModel). Lets POST /workers/register be idempotent: the same device always
+    # resolves to the same worker User row, created on first sync rather than requiring any
+    # pre-provisioning. Not a credential -- no password, no OTP (see
+    # docs/worker_capability_tokens.md's "no worker login" design).
+    device_worker_id: Mapped[str | None] = mapped_column(String(60), unique=True, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -192,6 +204,41 @@ class Assessment(Base):
     # data, scores, and report are preserved, never overwritten in place).
     reassessment_of_id: Mapped[int | None] = mapped_column(ForeignKey("assessments.id"), nullable=True)
 
+    # --- P6: resumable sync (see DeviceManifest below) ---
+    # Trust-on-first-use pin: the Android Keystore ECDSA public key embedded
+    # in the FIRST successfully-verified manifest for this assessment is
+    # pinned here. Every later manifest (a resync after discard/reopen, a
+    # retried sync, etc.) must carry the exact same public key, or it is
+    # rejected -- this stops a different device/key from masquerading as a
+    # continuation of this assessment's evidence history even though it
+    # holds a valid worker capability token (defense in depth; the token
+    # already gates access, this binds *content provenance*).
+    device_public_key_b64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Trust-on-first-use pin for the OTHER identifier space in play here: the
+    # Android app's own locally-generated draft/assessment UUID, baked into
+    # the manifest's signed bytes at offline seal time -- entirely unrelated
+    # to this row's own integer primary key, which the server only assigns
+    # once the client bootstraps (POST /assessments) at sync time, long
+    # after the manifest was already signed. The FIRST successfully-verified
+    # manifest's own assessmentId is pinned here; a later manifest for this
+    # same server-side row carrying a different client id is rejected (see
+    # manifest_verify.ParsedManifest.manifest_assessment_id).
+    client_assessment_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # The revision_id of the manifest currently being synced/most recently
+    # verified -- lets the server recognise which revision a resumed upload
+    # belongs to and detect a stale/superseded one.
+    current_revision_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Honest, bounded declaration/match snapshot synced from the phone's
+    # durable AssessmentDraftEntity (matchResult/overallCoverage/
+    # gapTaskIdsCsv -- see apps/android DraftModels.kt). The full declaration
+    # Q&A and the on-device "because" reason text are NOT persisted on the
+    # phone past the live session (see docs/gates/P4.md), so they cannot be
+    # synced either -- this is a known, stated P3/P4 boundary, not a P6
+    # regression (see docs/gates/P6.md).
+    declared_match_result: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    declared_coverage_fraction: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
+    declared_gap_task_codes: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
     worker: Mapped[User] = relationship(foreign_keys=[worker_id])
     assessor: Mapped[User | None] = relationship(foreign_keys=[assessor_id])
     pack: Mapped[QualificationPack] = relationship()
@@ -224,6 +271,9 @@ class EvidenceItem(Base):
     created from client-declared metadata alone."""
 
     __tablename__ = "evidence_items"
+    __table_args__ = (
+        UniqueConstraint("assessment_task_id", "client_evidence_id", name="uq_evidence_task_client_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     assessment_task_id: Mapped[int] = mapped_column(ForeignKey("assessment_tasks.id"))
@@ -244,6 +294,21 @@ class EvidenceItem(Base):
     # not_run | queued | completed | unavailable.
     quality_check_status: Mapped[str] = mapped_column(String(20), default="not_run")
 
+    # --- P6: real server-extracted metadata (ffprobe, never trusted from
+    # the client manifest alone) + sealed-package binding. ---
+    # not_run | queued | completed | unavailable -- same pattern as
+    # thumbnail_status; a failed extraction never blocks serving the item.
+    metadata_status: Mapped[str] = mapped_column(String(20), default="not_run")
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    width_px: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    height_px: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # P5's revisionId and the manifest's opaque per-item evidenceId -- null
+    # for evidence uploaded via the pre-P6 direct protocol (tests, old
+    # clients). Set together; used to bind this row back to the exact
+    # DeviceManifest entry it was verified against (see routers/uploads.py).
+    revision_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    client_evidence_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
     assessment_task: Mapped[AssessmentTask] = relationship(back_populates="evidence_items")
 
 
@@ -257,14 +322,23 @@ class UploadSession(Base):
     claimed_size_bytes reserves task + total quota for the lifetime of the
     session (see server/app/quota.py) -- released when the session leaves
     'open' status (completed/aborted/expired).
+
+    P6 adds `target` ("evidence" | "manifest") so the exact same
+    open/chunk/complete machinery also carries a P5 SignedManifestPackage
+    envelope, and `assessment_id` (now the direct FK; assessment_task_id is
+    only set for target="evidence", since a manifest session is not scoped
+    to one task). `revision_id`/`client_evidence_id` bind the session back
+    to the exact P5 outbox row it came from, for idempotent resume/recover.
     """
 
     __tablename__ = "upload_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    assessment_task_id: Mapped[int] = mapped_column(ForeignKey("assessment_tasks.id"))
-    kind: Mapped[str] = mapped_column(String(10))  # photo | video
-    mime: Mapped[str] = mapped_column(String(60))
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"))
+    assessment_task_id: Mapped[int | None] = mapped_column(ForeignKey("assessment_tasks.id"), nullable=True)
+    target: Mapped[str] = mapped_column(String(20), default="evidence")  # evidence | manifest
+    kind: Mapped[str | None] = mapped_column(String(10), nullable=True)  # photo | video (null for target=manifest)
+    mime: Mapped[str | None] = mapped_column(String(60), nullable=True)
     claimed_size_bytes: Mapped[int] = mapped_column(Integer)  # declared total, reserved at open
     received_bytes: Mapped[int] = mapped_column(Integer, default=0)
     next_chunk_index: Mapped[int] = mapped_column(Integer, default=0)
@@ -273,11 +347,21 @@ class UploadSession(Base):
     server_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="open")  # open | completed | aborted | expired
     evidence_item_id: Mapped[int | None] = mapped_column(ForeignKey("evidence_items.id"), nullable=True)
+    manifest_id: Mapped[int | None] = mapped_column(ForeignKey("device_manifests.id"), nullable=True)
     opened_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revision_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    client_evidence_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Set whenever a complete() cross-check against the verified manifest
+    # fails (wrong hash/bytes/task binding for this evidenceId) -- cleared
+    # on the next successful chunk append. Surfaced via GET
+    # /assessments/{id}/sync-status so the phone (and the dashboard) can see
+    # *why* an item is stuck without needing a separate audit-log read.
+    last_rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    assessment_task: Mapped[AssessmentTask] = relationship()
+    assessment: Mapped["Assessment"] = relationship()
+    assessment_task: Mapped[AssessmentTask | None] = relationship()
     evidence_item: Mapped[EvidenceItem | None] = relationship()
     chunks: Mapped[list["UploadChunk"]] = relationship(back_populates="session", cascade="all, delete-orphan")
 
@@ -386,3 +470,60 @@ class SignedReport(Base):
     signature: Mapped[str] = mapped_column(Text)  # hex-encoded Ed25519 signature
     key_id: Mapped[str] = mapped_column(String(60))
     signed_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class DeviceManifest(Base):
+    """One row per P5 sealed-package manifest the phone has uploaded for
+    this assessment -- at most one per (assessment_id, revision_id). Holds
+    the exact signed envelope as received (never re-derived) so the
+    recorded sha256/signature always describe literal bytes, the same
+    "store the literal signed bytes" principle SignedReport already uses.
+
+    status:
+      received   -- ECDSA signature verified against the embedded public
+                     key, structurally valid, TOFU key pin checked/set; the
+                     declared evidence items are now known, but not all have
+                     arrived/matched yet.
+      complete   -- every declared evidence item has a matching, verified
+                     EvidenceItem (same sha256, byte count, task binding).
+                     This is the ONLY state from which the assessment may
+                     move out of 'draft' via POST /assessments/{id}/submit
+                     for an assessment that is using the P6 sync path (see
+                     routers/assessments.py::submit_assessment).
+      rejected   -- signature/structure/key-pin check failed; see
+                     rejection_reason. The phone must not delete its local
+                     encrypted outbox row for a rejected manifest.
+      superseded -- a newer revision for the same assessment reached
+                     'received' or 'complete' before this one did (e.g. the
+                     worker discarded/resealed on-device after a partial
+                     sync). Only possible while the assessment is still
+                     'draft' -- once 'complete', no other revision can ever
+                     reach 'received' for the same assessment (submit_assessment
+                     requires 'draft', and uploads require 'draft' too).
+    """
+
+    __tablename__ = "device_manifests"
+    __table_args__ = (
+        UniqueConstraint("assessment_id", "revision_id", name="uq_manifest_assessment_revision"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    revision_id: Mapped[str] = mapped_column(String(64))
+    idempotency_key: Mapped[str] = mapped_column(String(140), unique=True, index=True)
+    canonical_json: Mapped[str] = mapped_column(Text)
+    sha256: Mapped[str] = mapped_column(String(64))
+    signature_b64: Mapped[str] = mapped_column(Text)
+    algorithm: Mapped[str] = mapped_column(String(40))
+    signer_key_id: Mapped[str] = mapped_column(String(100))
+    signer_public_key_b64: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="received")
+    rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    item_count: Mapped[int] = mapped_column(Integer, default=0)
+    declared_total_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    # Parsed [{evidence_id, task_code, kind, bytes, sha256, mime, processing}, ...]
+    # from canonical_json -- a cached projection for fast sync-status lookups,
+    # never the source of truth (canonical_json + its verified signature is).
+    declared_items: Mapped[list] = mapped_column(JSON, default=list)
+    received_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    verified_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

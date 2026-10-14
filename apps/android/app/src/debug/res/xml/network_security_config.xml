@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  P6_TEST_ONLY, debug builds only: permits cleartext (plain HTTP) traffic
+  broadly, so a physical test device can sync against a local
+  Docker-Compose backend (infra/docker-compose.yml's `api` service has no
+  TLS) over the test Wi-Fi/hotspot, without needing a throwaway certificate
+  authority just for this. This resource file entirely REPLACES
+  src/main/res/xml/network_security_config.xml for the debug variant only
+  (standard AGP per-variant resource overlay), so it can never ship in a
+  release build, since release has no src/release/res/xml override and
+  falls back to main's cleartextTrafficPermitted="false". Proven by
+  app/build.gradle.kts's verifyReleaseForbidsCleartextTraffic task, which
+  independently reads BOTH files from source and asserts they genuinely
+  differ, and by the manual physical-device gate's own release-build
+  cleartext-rejection check (see docs/gates/P6.md).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

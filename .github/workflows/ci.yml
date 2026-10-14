@@ -58,7 +58,7 @@ jobs:
           expect_fail python ml/mapping/eval.py --rules packs/ae-con-q0602/mapping --set ml/mapping/data/labelled_60.jsonl --mode field
 
   p2-backend-tests:
-    name: P2/P2.1 backend tests + OpenAPI freshness
+    name: Backend tests (P2/P2.1/P2.2/P6) + OpenAPI freshness
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -111,7 +111,7 @@ jobs:
           if-no-files-found: ignore
 
   android-app-build:
-    name: P-3/P4/P5 Android unit tests + debug/release build
+    name: P-3/P4/P5/P6 Android unit tests + debug/release build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -154,19 +154,31 @@ jobs:
       - name: Assemble debug and release APKs
         working-directory: apps/android
         run: ./gradlew :app:assembleDebug :app:assembleRelease --console=plain
-      # P4/P5 debug-only-feature-absent-from-release proofs -- see each task's own doc
-      # comment in app/build.gradle.kts for exactly what each checks.
-      - name: Verify debug-only test features never reach release
+      # P4/P5/P6 debug-only-feature-absent-from-release proofs, and P6's network-permission/
+      # cleartext-policy proofs (P6 flips the OLD "no network at all" policy to "exactly
+      # INTERNET+ACCESS_NETWORK_STATE, nothing else, and release forbids cleartext") -- see
+      # each task's own doc comment in app/build.gradle.kts for exactly what each checks.
+      - name: Verify debug-only test features never reach release, and P6 network/cleartext policy
         working-directory: apps/android
         run: |
           ./gradlew \
             :app:verifyP4TestCeilingDisabledInRelease \
             :app:verifyP5DebugFeaturesDisabledInRelease \
             :app:verifyP5DebugExportAbsentFromRelease \
+            :app:verifyP6TestOnlySyncOverrideDisabledInRelease \
+            :app:verifyP6SyncEndpointOverrideAbsentFromRelease \
             :app:verifyNoGalleryImportPath \
-            :app:verifyNoNetworkDependencies \
-            :app:verifyMergedManifestHasNoNetworkPermissions \
+            :app:verifyExpectedNetworkPermissions \
+            :app:verifyMergedManifestHasExpectedNetworkPermissions \
+            :app:verifyReleaseForbidsCleartextTraffic \
             --console=plain
+      # P6 instrumented tests (SyncRepositoryInstrumentedTest, AppDatabaseMigrationTest) need a
+      # real device/AndroidKeyStore and so are NOT run here (see the real-device-only note
+      # below) -- but the androidTest source set itself must still compile cleanly in CI, the
+      # same bar every other source set in this build is held to.
+      - name: Compile instrumented test sources (compile-only check; real run needs a device)
+        working-directory: apps/android
+        run: ./gradlew :app:assembleDebugAndroidTest --console=plain
       - name: Upload debug APK
         if: always()
         uses: actions/upload-artifact@v4
@@ -176,21 +188,22 @@ jobs:
           if-no-files-found: ignore
     # Real-device-only coverage (CameraX capture, Media3 Transformer video transcoding, real
     # AndroidKeyStore ECDSA signing, real Tink StreamingAead vault encryption, SQLCipher's
-    # native library) is NOT run on GitHub-hosted runners -- nested KVM virtualization for an
-    # Android emulator is unavailable/unreliable there, and several of these primitives
-    # (AndroidKeyStore in particular) do not exist in any emulator either, only real hardware.
-    # This is a platform constraint, not an incomplete P3/P4/P5 feature: the instrumented
-    # tests exist (apps/android/app/src/androidTest, apps/android/media/src/androidTest,
-    # apps/android/core/seal/src/androidTest) and the commands below reproduce them exactly,
-    # run locally against a real physical device.
+    # native library, and P6's real-Keystore-backed sync tests) is NOT run on GitHub-hosted
+    # runners -- nested KVM virtualization for an Android emulator is unavailable/unreliable
+    # there, and several of these primitives (AndroidKeyStore in particular) do not exist in
+    # any emulator either, only real hardware. This is a platform constraint, not an
+    # incomplete P3/P4/P5/P6 feature: the instrumented tests exist (apps/android/app/src/
+    # androidTest, apps/android/media/src/androidTest, apps/android/core/seal/src/androidTest)
+    # and the commands below reproduce them exactly, run locally against a real physical
+    # device.
     #
     #   cd apps/android && ./gradlew :app:connectedDebugAndroidTest --console=plain
     #   cd apps/android && ./gradlew :media:connectedDebugAndroidTest --console=plain
     #   cd apps/android && ./gradlew :core:seal:connectedDebugAndroidTest --console=plain
     #
-    # See docs/gates/P3.md, docs/gates/P4.md, and docs/gates/P5.md for the actual run
-    # transcripts -- P3 against an emulator (KaushalPramaan_API35), P4/P5 against a real
-    # OnePlus 13R (physical AndroidKeyStore/CameraX/MediaCodec hardware is required).
+    # See docs/gates/P3.md, docs/gates/P4.md, docs/gates/P5.md, and docs/gates/P6.md for the
+    # actual run transcripts -- P3 against an emulator (KaushalPramaan_API35), P4/P5/P6 against
+    # a real OnePlus 13R (physical AndroidKeyStore/CameraX/MediaCodec hardware is required).
 
   dashboard-build:
     name: Dashboard build + typecheck
@@ -274,6 +287,11 @@ jobs:
       - name: Full P2.2 lifecycle end-to-end (create -> upload -> submit -> review -> score -> recommend -> signed report -> verify -> reassess -> token rotate/revoke)
         run: |
           python3 tools/docker_e2e_smoke.py --base-url http://localhost:8000 \
+            --assessor-email assessor.demo@parakh.test --assessor-password ci-smoke-test-pw
+      - name: Full P6 lifecycle end-to-end (register worker -> resolve pack -> signed manifest -> chunked evidence upload -> integrity rejection -> submit gate -> sync-status -> protected review -> audit log)
+        run: |
+          python3 -m pip install --quiet cryptography
+          python3 tools/docker_e2e_smoke_p6.py --base-url http://localhost:8000 \
             --assessor-email assessor.demo@parakh.test --assessor-password ci-smoke-test-pw
       - name: Dashboard is reachable
         run: curl -sf -o /dev/null http://localhost:5173/

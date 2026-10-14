@@ -117,6 +117,13 @@ def put_score(
     )
     now = datetime.datetime.now(datetime.timezone.utc)
 
+    # Captured before any mutation -- the audit entry below records exactly
+    # what changed (old -> new), not just the new state, per the P6
+    # requirement that the audit log show old/new score and remarks.
+    old_score_level = existing.score_level if existing is not None else None
+    old_evidence_status = existing.evidence_status if existing is not None else None
+    old_comment = existing.assessor_comment if existing is not None else None
+
     if existing is None:
         existing = models.AssessmentCriterionScore(
             assessment_id=assessment_id, pc_id=pc.id, rubric_version=rubric_item.rubric_version,
@@ -136,7 +143,10 @@ def put_score(
     from .assessments import _audit  # local import: avoids a circular import at module load time
 
     _audit(db, assessment_id, actor_user_id=user.id, actor_role=user.role, action="scored", details={
-        "pc_full_id": body.pc_full_id, "score_level": body.score_level, "evidence_status": body.evidence_status,
+        "pc_full_id": body.pc_full_id,
+        "old_score_level": old_score_level, "new_score_level": body.score_level,
+        "old_evidence_status": old_evidence_status, "new_evidence_status": body.evidence_status,
+        "old_assessor_comment": old_comment, "new_assessor_comment": body.assessor_comment,
     })
     db.commit()
     db.refresh(existing)

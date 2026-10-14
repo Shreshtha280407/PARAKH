@@ -14,8 +14,10 @@ def assessor_queue(
     _user: models.User = Depends(require_assessor),
 ) -> list[schemas.QueueItemOut]:
     """Submitted (or further-along) assessments waiting on an assessor,
-    oldest first. Assessor/admin only -- see server/app/auth.py. No scoring
-    here yet -- that's P6/P7."""
+    oldest first. Assessor/admin only -- see server/app/auth.py. Scoring,
+    decisions, reassessment and signed reports all exist (P2.2) and are
+    reached from here via GET /assessments/{id} -- this endpoint itself
+    stays a plain queue listing, not a scored summary."""
     rows = (
         db.query(models.Assessment, models.User, models.QualificationPack)
         .join(models.User, models.Assessment.worker_id == models.User.id)

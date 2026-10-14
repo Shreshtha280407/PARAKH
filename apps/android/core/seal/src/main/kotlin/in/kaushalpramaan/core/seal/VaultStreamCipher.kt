@@ -4,6 +4,7 @@ import com.google.crypto.tink.StreamingAead
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.InputStream
 
 /**
  * Pure streaming encrypt/decrypt against an already-obtained Tink [StreamingAead] primitive
@@ -36,6 +37,24 @@ object VaultStreamCipher {
         }
     }
 
+    /** P6: a true bounded decrypting stream -- the caller reads it in fixed-size chunks (e.g.
+     * 1 MiB) via [InputStream.read], uploading each chunk and discarding the buffer, so the
+     * full decrypted plaintext is NEVER materialised as a file on disk or held whole in
+     * memory (P6 security rule 4). Throws the same Tink AEAD authentication failure as
+     * [decryptFile] on the first read if [sourceFile]/[associatedData] don't match what
+     * [encryptFile] actually produced -- callers must not assume success until the stream is
+     * fully consumed without an exception. The returned stream owns the underlying file
+     * handle; callers must close it (`use { }`) exactly like any other InputStream. */
+    fun decryptingStream(aead: StreamingAead, sourceFile: File, associatedData: ByteArray): InputStream {
+        val rawIn = FileInputStream(sourceFile)
+        return try {
+            aead.newDecryptingStream(rawIn, associatedData)
+        } catch (e: Exception) {
+            rawIn.close()
+            throw e
+        }
+    }
+
     /** Builds the one associated-data byte string every P5 vault item is bound to: assessment
      * ID, revision ID, evidence ID (or a fixed logical id for the manifest/signature package
      * itself), and a logical role -- so ciphertext from one item can never be substituted for
@@ -53,4 +72,9 @@ class VaultCipher internal constructor(private val aead: StreamingAead) {
 
     fun decryptFile(sourceFile: File, destFile: File, associatedData: ByteArray) =
         VaultStreamCipher.decryptFile(aead, sourceFile, destFile, associatedData)
+
+    /** P6: see [VaultStreamCipher.decryptingStream] -- a bounded, chunk-at-a-time read of a
+     * vault item's plaintext that never touches disk or memory as a whole file. */
+    fun openDecryptingStream(sourceFile: File, associatedData: ByteArray): InputStream =
+        VaultStreamCipher.decryptingStream(aead, sourceFile, associatedData)
 }

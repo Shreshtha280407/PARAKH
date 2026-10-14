@@ -330,4 +330,48 @@ class SealOrchestratorTest {
         assertEquals(SealState.DRAFT_EDITABLE, assessmentRow.sealState)
         assertTrue(!assessmentRow.attestationConfirmed)
     }
+
+    @Test
+    fun discardAndReopen_is_refused_once_the_server_has_a_fully_synced_and_submitted_package() = runTest {
+        // P6: SealOrchestrator.discardAndReopen's one new guard -- once P6's SyncRepository has
+        // set syncedAtMillis (every outbox row server-verified AND POST /submit itself
+        // succeeded), the assessor-facing record already exists server-side with no server-side
+        // "unsubmit." A local discard/reopen past that point would silently diverge from what
+        // the assessor is reviewing, so it must be a hard no-op, not attempt a partial recovery.
+        //
+        // seal()'s own Keystore/Tink-dependent work needs a real device (see this file's class
+        // doc comment) -- so, following this file's own established pattern for simulating a
+        // post-seal state (see reconcileOnLaunch_finishes_a_seal_whose_outbox_was_already_
+        // committed_before_the_crash above), READY_TO_SYNC is set directly via the DAOs rather
+        // than calling the real seal(). SyncRepositoryInstrumentedTest is the real end-to-end
+        // proof that syncedAtMillis is only ever set after a genuine verified submit.
+        val assessment = evidenceRepository.createOrResumeAssessment("w", "en", null)
+        val evidenceId = captureRealPhoto(evidenceRepository, assessment.id, "T1", 50, 50)
+        orchestrator.processEvidence(assessment.id)
+        orchestrator.setAttestation(assessment.id, true)
+        val revisionId = "rev-already-synced-test"
+        val afterAttestation = db.assessmentDraftDao().getById(assessment.id)!!
+        db.assessmentDraftDao().update(
+            afterAttestation.copy(
+                sealState = SealState.READY_TO_SYNC, revisionId = revisionId,
+                syncedAtMillis = System.currentTimeMillis(),
+            ),
+        )
+        val sealedEvidenceRow = db.evidenceDraftDao().getById(evidenceId)!!
+        db.evidenceDraftDao().update(sealedEvidenceRow.copy(finalState = FinalEvidenceState.SEALED))
+
+        orchestrator.discardAndReopen(assessment.id)
+
+        val afterAttempt = db.assessmentDraftDao().getById(assessment.id)!!
+        assertEquals(
+            "a synced/submitted package must stay READY_TO_SYNC -- discard must be a complete no-op",
+            SealState.READY_TO_SYNC, afterAttempt.sealState,
+        )
+        assertTrue(afterAttempt.attestationConfirmed)
+        val evidenceRow = db.evidenceDraftDao().getById(evidenceId)!!
+        assertEquals(
+            "the item's SEALED state must be untouched by a refused discard attempt",
+            FinalEvidenceState.SEALED, evidenceRow.finalState,
+        )
+    }
 }

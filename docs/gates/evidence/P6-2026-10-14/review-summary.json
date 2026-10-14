@@ -1,0 +1,17 @@
+{
+  "assessment_id": 10,
+  "status": "in_review",
+  "saved_criteria": 71,
+  "remarked_criteria": 71,
+  "score_audit_entries": 71,
+  "review_start_audit_entries": 1,
+  "actor_names": [
+    "Demo Assessor"
+  ],
+  "score_levels": [
+    0
+  ],
+  "evidence_statuses": [
+    "NOT_OBSERVABLE"
+  ]
+}

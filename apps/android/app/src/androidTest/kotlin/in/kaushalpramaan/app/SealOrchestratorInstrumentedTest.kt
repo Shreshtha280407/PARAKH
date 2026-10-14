@@ -118,6 +118,9 @@ class SealOrchestratorInstrumentedTest {
             // Plaintext cleanup: raw capture and any optimisation temp must be gone.
             val sealedRow = db.evidenceDraftDao().getById(evidenceId)!!
             assertEquals(FinalEvidenceState.SEALED, sealedRow.finalState)
+            // Sync (P6) reuses this persisted hash instead of re-hashing plaintext at upload
+            // time -- if seal() ever stops writing it back, every real upload fails closed.
+            assertEquals(64, sealedRow.finalSha256?.length)
             assertFalse(fileManager.resolveRelativePath(sealedRow.relativePath).exists())
             val tempDir = fileManager.optimizationTempDir(assessment.id, "T1")
             assertTrue("no plaintext optimisation temp should remain after a successful seal", tempDir.listFiles()?.isEmpty() != false)

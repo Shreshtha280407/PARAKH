@@ -1,5 +1,6 @@
 # server/app/
 
-FastAPI backend (auth, assessments, uploads, review, reports, audit). Starts
-in P2. `server/worker.py` (background job runner) is a sibling, not yet
-created.
+FastAPI backend (auth, assessments, resumable+manifest-verified uploads,
+review/scoring, reports, audit, sync status). `app/worker.py` is the
+background job runner (`python -m app.worker`), run as its own process/
+container (see `infra/docker-compose.yml`'s `worker` service).

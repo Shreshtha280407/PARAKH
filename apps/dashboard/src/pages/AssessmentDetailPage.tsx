@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import {
-  BASE_URL,
   decideAssessment,
+  evidenceContentUrl,
+  evidenceThumbnailUrl,
   generateReport,
   getAssessment,
   getAssessmentRubric,
+  getAuditLog,
   getCompetencyProfile,
   getReview,
+  getSyncStatus,
   putScore,
   reassess,
   revokeWorkerToken,
   rotateWorkerToken,
   startReview,
   verifyReport,
+  BASE_URL,
 } from "../api";
 import { navigate } from "../useHashRoute";
 import {
   ApiError,
   type AssessmentOut,
+  type AuditLogEntryOut,
   type CompetencyProfileOut,
   type CriterionReviewItemOut,
   type EvidenceReceiptOut,
@@ -25,6 +30,7 @@ import {
   type ReportVerifyOut,
   type RubricItemOut,
   type SignedReportOut,
+  type SyncStatusOut,
 } from "../types";
 
 type LoadState = "loading" | "error" | "ready";
@@ -33,26 +39,63 @@ function formatBytes(n: number): string {
   return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function formatDuration(ms: number | null): string {
+  if (ms === null) return "";
+  const totalSeconds = Math.round(ms / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/** The protected evidence gallery/player item: plays video inline and shows the photo at
+ * preview size directly in the page (both authorised by the browser's own cookie-based
+ * dashboard session -- the same credentialed request the thumbnail/content endpoints already
+ * require, see server/app/routers/evidence.py's dual auth). A failed/queued thumbnail job
+ * (section B.4 of the P6 spec) shows a clear, safe fallback rather than a broken image or a
+ * claim that the media itself is missing -- the ORIGINAL content is always still playable
+ * regardless of thumbnail/metadata job outcome. */
 function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evidence: EvidenceReceiptOut }) {
-  const contentUrl = `${BASE_URL}/assessments/${assessmentId}/evidence/${evidence.id}/content`;
-  const thumbUrl = `${BASE_URL}/assessments/${assessmentId}/evidence/${evidence.id}/thumbnail`;
+  const contentUrl = evidenceContentUrl(assessmentId, evidence.id);
+  const [mediaFailed, setMediaFailed] = useState(false);
+
   return (
-    <li>
-      {evidence.kind} · {evidence.mime} · {formatBytes(evidence.declared_size_bytes)}
-      <br />
-      <code title="Server-verified SHA-256">{evidence.sha256.slice(0, 16)}…</code>{" "}
-      <span className="badge-ok">verified</span>
-      <br />
-      <a href={contentUrl} target="_blank" rel="noreferrer">
-        view full {evidence.kind}
-      </a>
-      {evidence.kind === "video" && (
-        <>
-          {" · "}
-          <img className="thumb" src={thumbUrl} alt="thumbnail" onError={(e) => (e.currentTarget.style.display = "none")} />
-        </>
-      )}
-      {evidence.kind === "photo" && <img className="thumb" src={thumbUrl} alt="thumbnail" />}
+    <li className="evidence-gallery-item">
+      <div className="evidence-media">
+        {mediaFailed ? (
+          <div className="thumb evidence-media-fallback">media unavailable</div>
+        ) : evidence.kind === "video" ? (
+          <video
+            className="thumb"
+            controls
+            preload="metadata"
+            src={contentUrl}
+            poster={evidence.thumbnail_status === "completed" ? evidenceThumbnailUrl(assessmentId, evidence.id) : undefined}
+            onError={() => setMediaFailed(true)}
+          />
+        ) : (
+          <img className="thumb" src={contentUrl} alt="evidence" onError={() => setMediaFailed(true)} />
+        )}
+      </div>
+      <div className="evidence-meta">
+        {evidence.kind} · {evidence.mime} · {formatBytes(evidence.declared_size_bytes)}
+        {evidence.width_px && evidence.height_px && (
+          <>
+            {" "}
+            · {evidence.width_px}×{evidence.height_px}
+          </>
+        )}
+        {evidence.kind === "video" && evidence.duration_ms && <> · {formatDuration(evidence.duration_ms)}</>}
+        <br />
+        <code title="Server-verified SHA-256">{evidence.sha256.slice(0, 16)}…</code>{" "}
+        <span className="badge-ok">hash verified</span>
+        {evidence.metadata_status === "unavailable" && (
+          <span className="hint"> · metadata unavailable (media itself is unaffected)</span>
+        )}
+        <br />
+        <a href={contentUrl} target="_blank" rel="noreferrer">
+          open in a new tab
+        </a>
+      </div>
     </li>
   );
 }
@@ -156,12 +199,24 @@ export function AssessmentDetailPage({ id }: { id: number }) {
   const [report, setReport] = useState<SignedReportOut | null>(null);
   const [reportVerify, setReportVerify] = useState<ReportVerifyOut | null>(null);
 
+  const [syncStatus, setSyncStatus] = useState<SyncStatusOut | null>(null);
+  const [syncStatusError, setSyncStatusError] = useState<string | null>(null);
+  const [activeTaskTab, setActiveTaskTab] = useState<string | null>(null);
+  const [auditLog, setAuditLog] = useState<AuditLogEntryOut[] | null>(null);
+  const [auditLogError, setAuditLogError] = useState<string | null>(null);
+
   function reload() {
     setState("loading");
     getAssessment(id)
       .then((result) => {
         setAssessment(result);
         setState("ready");
+        setActiveTaskTab((prev) => prev ?? result.tasks[0]?.task_code ?? null);
+        if (result.current_revision_id) {
+          getSyncStatus(id, result.current_revision_id)
+            .then(setSyncStatus)
+            .catch((err) => setSyncStatusError(err instanceof ApiError ? err.message : "Could not load sync status."));
+        }
       })
       .catch((err) => {
         setError(err instanceof ApiError ? `${err.status}: ${err.message}` : "Could not reach the server.");
@@ -189,6 +244,15 @@ export function AssessmentDetailPage({ id }: { id: number }) {
       setReview(await getReview(id));
     } catch (err) {
       setReviewError(err instanceof ApiError ? err.message : "Could not load the review.");
+    }
+  }
+
+  async function loadAuditLog() {
+    setAuditLogError(null);
+    try {
+      setAuditLog(await getAuditLog(id));
+    } catch (err) {
+      setAuditLogError(err instanceof ApiError ? err.message : "Could not load the audit log.");
     }
   }
 
@@ -255,41 +319,93 @@ export function AssessmentDetailPage({ id }: { id: number }) {
       </section>
 
       <section className="card">
-        <h2>Fixed five tasks</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Task</th>
-              <th>Status</th>
-              <th>Evidence used</th>
-              <th>Evidence items (integrity)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assessment.tasks.map((task) => (
-              <tr key={task.task_code}>
-                <td>{task.task_code}</td>
-                <td>
-                  <span className={`status status-${task.status}`}>{task.status}</span>
-                </td>
-                <td>
-                  {formatBytes(task.bytes_used)} / {formatBytes(task.budget_bytes)}
-                </td>
-                <td>
-                  {task.evidence.length === 0 ? (
-                    <em>No evidence uploaded yet</em>
-                  ) : (
-                    <ul className="evidence-list">
-                      {task.evidence.map((e) => (
-                        <EvidencePreview key={e.id} assessmentId={assessment.id} evidence={e} />
-                      ))}
-                    </ul>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <h2>Declaration &amp; QP match</h2>
+        {assessment.declared_match_result ? (
+          <dl>
+            <dt>Match result</dt>
+            <dd>
+              <span className={`status status-${assessment.declared_match_result.toLowerCase()}`}>
+                {assessment.declared_match_result}
+              </span>
+              {assessment.declared_coverage_fraction && (
+                <> — {(Number(assessment.declared_coverage_fraction) * 100).toFixed(0)}% NOS coverage</>
+              )}
+            </dd>
+            {assessment.declared_gap_task_codes && assessment.declared_gap_task_codes.length > 0 && (
+              <>
+                <dt>Gap tasks (extra evidence needed)</dt>
+                <dd>{assessment.declared_gap_task_codes.join(", ")}</dd>
+              </>
+            )}
+          </dl>
+        ) : (
+          <p className="hint">No match summary has synced from the phone yet.</p>
+        )}
+        <p className="disclaimer">
+          This is a summary snapshot synced from the device at seal time, not the worker's full declaration
+          answers or the on-device "because" explanation text -- those are not transmitted to the server (an
+          inherited P3/P4 scope boundary, not a P6 regression). The match itself was computed entirely on-device
+          by the deterministic Kotlin/Python matcher, never by this server.
+        </p>
+      </section>
+
+      <section className="card">
+        <h2>Sync &amp; package integrity</h2>
+        {!assessment.current_revision_id && <p className="hint">This device has not started syncing yet.</p>}
+        {syncStatusError && <p className="error">{syncStatusError}</p>}
+        {syncStatus && (
+          <dl>
+            <dt>Revision</dt>
+            <dd>
+              <code>{syncStatus.revision_id}</code>
+            </dd>
+            <dt>Manifest</dt>
+            <dd>
+              <span className={`status status-${syncStatus.manifest_state}`}>{syncStatus.manifest_state}</span>
+              {syncStatus.manifest_rejection_reason && <span className="error"> — {syncStatus.manifest_rejection_reason}</span>}
+            </dd>
+            <dt>Items verified</dt>
+            <dd>
+              {syncStatus.items.filter((i) => i.state === "verified").length} / {syncStatus.items.length}
+              {syncStatus.all_items_verified && <span className="badge-ok"> package complete</span>}
+            </dd>
+          </dl>
+        )}
+      </section>
+
+      <section className="card">
+        <h2>Evidence by task</h2>
+        <div className="tab-bar">
+          {assessment.tasks.map((task) => (
+            <button
+              key={task.task_code}
+              className={`tab-button${activeTaskTab === task.task_code ? " tab-button-active" : ""}`}
+              onClick={() => setActiveTaskTab(task.task_code)}
+            >
+              {task.task_code}
+              {task.evidence.length > 0 && ` (${task.evidence.length})`}
+            </button>
+          ))}
+        </div>
+        {assessment.tasks
+          .filter((task) => task.task_code === activeTaskTab)
+          .map((task) => (
+            <div key={task.task_code}>
+              <p className="hint">
+                <span className={`status status-${task.status}`}>{task.status}</span> ·{" "}
+                {formatBytes(task.bytes_used)} / {formatBytes(task.budget_bytes)} used
+              </p>
+              {task.evidence.length === 0 ? (
+                <em>No evidence uploaded yet</em>
+              ) : (
+                <ul className="evidence-list evidence-gallery">
+                  {task.evidence.map((e) => (
+                    <EvidencePreview key={e.id} assessmentId={assessment.id} evidence={e} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
       </section>
 
       <section className="card">
@@ -577,6 +693,41 @@ export function AssessmentDetailPage({ id }: { id: number }) {
           </div>
         )}
         {actionError && <p className="error">{actionError}</p>}
+      </section>
+
+      <section className="card">
+        <h2>Audit log</h2>
+        <p className="hint">Append-only accountability trail -- who did what, and when. Nothing here is ever edited or removed.</p>
+        {auditLog === null && <button onClick={loadAuditLog}>Load audit log</button>}
+        {auditLogError && <p className="error">{auditLogError}</p>}
+        {auditLog !== null && (
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditLog.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{new Date(entry.created_at).toLocaleString()}</td>
+                    <td>
+                      {entry.actor_name ?? entry.actor_role} ({entry.actor_role})
+                    </td>
+                    <td>{entry.action}</td>
+                    <td>
+                      <code className="audit-details">{JSON.stringify(entry.details)}</code>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

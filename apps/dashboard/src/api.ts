@@ -1,6 +1,7 @@
 import {
   ApiError,
   type AssessmentOut,
+  type AuditLogEntryOut,
   type CompetencyProfileOut,
   type CriterionReviewItemOut,
   type CriterionScoreIn,
@@ -10,6 +11,7 @@ import {
   type ReportVerifyOut,
   type RubricItemOut,
   type SignedReportOut,
+  type SyncStatusOut,
   type TokenOut,
   type WorkerTokenOut,
 } from "./types";
@@ -131,4 +133,27 @@ export function revokeWorkerToken(id: number): Promise<WorkerTokenOut> {
 
 export function healthCheck(): Promise<{ status: string; database: string; storage: string }> {
   return request("/health");
+}
+
+// ---- P6: sync status + audit log ----
+
+export function getSyncStatus(id: number, revisionId?: string | null): Promise<SyncStatusOut> {
+  const query = revisionId ? `?revision_id=${encodeURIComponent(revisionId)}` : "";
+  return request<SyncStatusOut>(`/assessments/${id}/sync-status${query}`);
+}
+
+export function getAuditLog(id: number): Promise<AuditLogEntryOut[]> {
+  return request<AuditLogEntryOut[]>(`/assessments/${id}/audit-log`);
+}
+
+/** Protected evidence content/thumbnail URLs -- the browser's own cookie-based session
+ * (credentials: "include" is the dashboard's default fetch behaviour, and <img>/<video> tags
+ * send cookies for same-origin/CORS-with-credentials requests the same way) authorises these
+ * directly; no separate token needs to be embedded in the URL. */
+export function evidenceContentUrl(assessmentId: number, evidenceId: number): string {
+  return `${BASE_URL}/assessments/${assessmentId}/evidence/${evidenceId}/content`;
+}
+
+export function evidenceThumbnailUrl(assessmentId: number, evidenceId: number): string {
+  return `${BASE_URL}/assessments/${assessmentId}/evidence/${evidenceId}/thumbnail`;
 }

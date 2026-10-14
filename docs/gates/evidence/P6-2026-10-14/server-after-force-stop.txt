@@ -1,0 +1,17 @@
+ id |         client_assessment_id         |  status   |         current_revision_id          |          created_at           
+----+--------------------------------------+-----------+--------------------------------------+-------------------------------
+ 10 | 430713ef-a547-4d8e-a164-c2dd3b60482b | draft     | fa273812-886c-40fe-ae96-1ede2e4f2f86 | 2026-10-14 07:11:39.065607+00
+  9 | 42790612-ffcb-47c5-a335-d6e0abcc46c5 | submitted | 0ea91f0f-5099-4d89-a851-b6e8448d4f8a | 2026-10-13 20:30:44.079926+00
+(2 rows)
+
+ id | assessment_id |  target  |  status   | received_bytes | claimed_size_bytes | next_chunk_index 
+----+---------------+----------+-----------+----------------+--------------------+------------------
+ 14 |            10 | manifest | completed |           2087 |               2087 |                1
+ 15 |            10 | evidence | open      |        1048576 |           15379488 |                1
+(2 rows)
+
+ upload_session_id | chunk_index | size_bytes 
+-------------------+-------------+------------
+                14 |           0 |       2087
+                15 |           0 |    1048576
+(2 rows)

@@ -175,6 +175,24 @@
     <string name="submitted_worker_id">Worker ID: %1$s</string>
     <string name="action_view_preview_again">View sealed evidence</string>
 
+    <!-- P6: resumable sync status -->
+    <string name="sync_section_title">Sync status</string>
+    <string name="sync_overall_synced">Synced and submitted for assessor review.</string>
+    <string name="sync_overall_in_progress">Syncing with server… (%1$d of %2$d items done)</string>
+    <string name="sync_overall_not_started">Not yet synced — waiting for network, or tap Sync now.</string>
+    <string name="sync_item_manifest_label">Manifest</string>
+    <string name="sync_state_queued">Queued</string>
+    <string name="sync_state_waiting_for_network">Waiting for network</string>
+    <string name="sync_state_uploading">Uploading (%1$s uploaded)</string>
+    <string name="sync_state_retrying">Retrying… (attempt %1$d)</string>
+    <string name="sync_state_verifying">Verifying with server…</string>
+    <string name="sync_state_synced">Synced</string>
+    <string name="sync_state_failed_action_required">Could not sync — rejected by the server. Discard and re-seal to try again.</string>
+    <string name="sync_action_sync_now">Sync now</string>
+    <string name="p6_test_only_sync_url_label">P6_TEST_ONLY sync server URL (debug builds only)</string>
+    <string name="p6_test_only_sync_url_hint">e.g. http://192.168.1.23:8000</string>
+    <string name="p6_test_only_sync_url_save">Save</string>
+
     <!-- Common -->
     <string name="content_desc_back">Back</string>
     <string name="content_desc_language_switch">Change language</string>

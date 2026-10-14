@@ -1,0 +1,34 @@
+{"utc": "2026-10-14T07:11:36Z", "epoch": 1791961896.0538073, "action": "tunnel-state", "online": true}
+{"utc": "2026-10-14T07:11:36Z", "epoch": 1791961896.0695987, "action": "sync-now-tap"}
+{"utc": "2026-10-14T07:11:36Z", "epoch": 1791961896.3251154, "action": "airplane-mode", "enabled": false, "actual": "0"}
+{"utc": "2026-10-14T07:11:41Z", "epoch": 1791961901.9493024, "action": "first-video-chunk-committed"}
+{"utc": "2026-10-14T07:11:41Z", "epoch": 1791961901.9497867, "action": "tunnel-state", "online": false}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.1000936, "action": "airplane-mode", "enabled": true, "actual": "1"}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.1005561, "action": "tunnel-state", "online": true}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.225214, "action": "airplane-mode", "enabled": false, "actual": "0"}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.5260575, "action": "tunnel-state", "online": false}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.629752, "action": "airplane-mode", "enabled": true, "actual": "1"}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.9302437, "action": "rapid-cycle-complete", "cycle": 1}
+{"utc": "2026-10-14T07:11:42Z", "epoch": 1791961902.9309833, "action": "tunnel-state", "online": true}
+{"utc": "2026-10-14T07:11:43Z", "epoch": 1791961903.0396883, "action": "airplane-mode", "enabled": false, "actual": "0"}
+{"utc": "2026-10-14T07:11:43Z", "epoch": 1791961903.3404875, "action": "tunnel-state", "online": false}
+{"utc": "2026-10-14T07:11:43Z", "epoch": 1791961903.448617, "action": "airplane-mode", "enabled": true, "actual": "1"}
+{"utc": "2026-10-14T07:11:43Z", "epoch": 1791961903.7490196, "action": "rapid-cycle-complete", "cycle": 2}
+{"utc": "2026-10-14T07:11:43Z", "epoch": 1791961903.7493272, "action": "tunnel-state", "online": true}
+{"utc": "2026-10-14T07:11:43Z", "epoch": 1791961903.9042442, "action": "airplane-mode", "enabled": false, "actual": "0"}
+{"utc": "2026-10-14T07:11:44Z", "epoch": 1791961904.2050805, "action": "tunnel-state", "online": false}
+{"utc": "2026-10-14T07:11:44Z", "epoch": 1791961904.3020406, "action": "airplane-mode", "enabled": true, "actual": "1"}
+{"utc": "2026-10-14T07:11:44Z", "epoch": 1791961904.6024833, "action": "rapid-cycle-complete", "cycle": 3}
+{"utc": "2026-10-14T07:11:44Z", "epoch": 1791961904.6031919, "action": "tunnel-state", "online": true}
+{"utc": "2026-10-14T07:11:44Z", "epoch": 1791961904.7815993, "action": "airplane-mode", "enabled": false, "actual": "0"}
+{"utc": "2026-10-14T07:11:45Z", "epoch": 1791961905.0825164, "action": "tunnel-state", "online": false}
+{"utc": "2026-10-14T07:11:45Z", "epoch": 1791961905.1839044, "action": "airplane-mode", "enabled": true, "actual": "1"}
+{"utc": "2026-10-14T07:11:45Z", "epoch": 1791961905.4843404, "action": "rapid-cycle-complete", "cycle": 4}
+{"utc": "2026-10-14T07:11:45Z", "epoch": 1791961905.4850519, "action": "tunnel-state", "online": true}
+{"utc": "2026-10-14T07:11:45Z", "epoch": 1791961905.651557, "action": "airplane-mode", "enabled": false, "actual": "0"}
+{"utc": "2026-10-14T07:11:45Z", "epoch": 1791961905.95266, "action": "tunnel-state", "online": false}
+{"utc": "2026-10-14T07:11:46Z", "epoch": 1791961906.1400697, "action": "airplane-mode", "enabled": true, "actual": "1"}
+{"utc": "2026-10-14T07:11:46Z", "epoch": 1791961906.4404914, "action": "rapid-cycle-complete", "cycle": 5}
+{"utc": "2026-10-14T07:11:49Z", "epoch": 1791961909.1695201, "action": "force-stop-request"}
+{"utc": "2026-10-14T07:11:49Z", "epoch": 1791961909.4839542, "action": "force-stop-complete", "airplane_mode": "1"}
+{"epoch": 1791962008.171038, "utc": "2026-10-14T07:13:28Z", "action": "resume-connectivity"}

@@ -29,14 +29,32 @@ too late to affect an already-built bundle.
 
 ## What it does
 
-- Login (assessor email/password → JWT, stored in `sessionStorage`,
-  cleared on logout — see `src/auth.ts` for why that's "good enough for a
-  demo" and not more).
+- Login (assessor email/password → HttpOnly cookie session + CSRF
+  double-submit token, cleared on logout — see `docs/gates/P2_2.md`
+  section 8; no token is ever held in JS-readable storage).
 - Protected queue (`GET /queue`) with loading/empty/error states.
-- Assessment detail: worker summary, QP, the fixed five tasks with
-  per-task budget/evidence-used, each evidence item's server-verified
-  SHA-256, and an on-demand rubric viewer. No scoring UI — rubric is
-  read-only reference (see `docs/evidence_status_model.md`).
+- Assessment detail (`AssessmentDetailPage.tsx`) — the full review
+  workspace:
+  - Worker summary, QP, status.
+  - **Declaration & QP match** (P6): the synced match-result/coverage/gap-
+    task summary — a bounded snapshot, not the worker's full declaration
+    (see `docs/gates/P6.md`'s stated limitation).
+  - **Sync & package integrity** (P6): per-revision manifest/item
+    verification state (`GET /assessments/{id}/sync-status`).
+  - **Evidence by task** (P6): real per-task tabs, a protected
+    gallery/player (playable `<video>`/`<img>` against the authenticated
+    evidence-content endpoint, with a safe fallback if the media or its
+    thumbnail job failed) and real extracted width/height/duration.
+  - Rubric (read-only reference), PC scoring (0–3 + evidence status +
+    remarks, optimistic-locked), competency profile (decision-support
+    only, never a pass/fail), recommendation/decision, reassessment,
+    signed-report generate/download/verify, worker-token rotate/revoke —
+    all P2.2, extended in presentation by P6, not reimplemented.
+  - **Audit log** (P6): the full append-only action trail
+    (`GET /assessments/{id}/audit-log`), including old/new values on a
+    rescore.
 
 No worker-facing functionality lives here, and no screen shows
-hard-coded/fake data — every page fetches from the real API.
+hard-coded/fake data — every page fetches from the real API. The dashboard
+never says the system "certified" or "passed" the worker — every
+recommendation is an explicit human assessor action.

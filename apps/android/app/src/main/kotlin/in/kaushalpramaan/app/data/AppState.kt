@@ -77,6 +77,11 @@ data class AppUiState(
     val sealState: SealState = SealState.DRAFT_EDITABLE,
     val attestationConfirmed: Boolean = false,
     val sealedAtMillis: Long? = null,
+    // P6: current revision id (needed to address the right WorkManager unique-work name) and
+    // final synced/submitted timestamp -- both mirrored live from the active AssessmentDraft,
+    // same "never a locally-faked flag" discipline as sealState/attestationConfirmed above.
+    val revisionId: String? = null,
+    val syncedAtMillis: Long? = null,
     /** True while a processEvidence()/seal() call is in flight, for disabling buttons --
      * distinct from [sealState] == PROCESSING, which can also be true on resume before the
      * worker has tapped anything this session. */

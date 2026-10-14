@@ -8,9 +8,12 @@ import `in`.kaushalpramaan.app.data.draft.EvidenceFileManager
 import `in`.kaushalpramaan.app.data.draft.EvidenceRepository
 import `in`.kaushalpramaan.app.data.draft.FinalizeResult
 import `in`.kaushalpramaan.app.data.draft.OutboxItemEntity
+import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.app.data.seal.ProcessOutcome
 import `in`.kaushalpramaan.app.data.seal.SealOrchestrator
 import `in`.kaushalpramaan.app.data.seal.SealOutcome
+import `in`.kaushalpramaan.app.data.sync.SyncWorker
+import `in`.kaushalpramaan.app.data.sync.provideSyncEndpointConfig
 import `in`.kaushalpramaan.core.mapping.Matcher
 import `in`.kaushalpramaan.core.mapping.Rules
 import `in`.kaushalpramaan.core.mapping.RulesLoader
@@ -64,6 +67,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val debugExportHooks: `in`.kaushalpramaan.app.debug.DebugExportHooks by lazy {
         `in`.kaushalpramaan.app.debug.provideDebugExportHooks(database, fileManager, VaultKeysetProvider(application))
     }
+    val syncEndpointConfig by lazy { provideSyncEndpointConfig(application) }
 
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState
@@ -193,11 +197,35 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             sealState = assessment.sealState,
                             attestationConfirmed = assessment.attestationConfirmed,
                             sealedAtMillis = assessment.sealedAtMillis,
+                            revisionId = assessment.revisionId,
+                            syncedAtMillis = assessment.syncedAtMillis,
                         )
+                    }
+                    // P6: react to the package becoming ready (just sealed, or resumed already
+                    // READY_TO_SYNC from a prior session) by enqueueing sync -- enqueueUniqueWork
+                    // with ExistingWorkPolicy.KEEP (see SyncWorker.enqueue) makes this safe to
+                    // call on every single emission, not just a detected transition.
+                    if (assessment.sealState == SealState.READY_TO_SYNC &&
+                        assessment.syncedAtMillis == null &&
+                        assessment.revisionId != null
+                    ) {
+                        SyncWorker.enqueue(getApplication(), assessment.id, assessment.revisionId)
                     }
                 }
             }
         }
+    }
+
+    /** Manual "Sync now" -- safe to tap repeatedly (see SyncWorker.enqueue's doc comment); a
+     * no-op while a sync attempt is already pending/running, and a genuine fresh retry once a
+     * previous attempt has actually finished (succeeded, or failed and the worker fixed the
+     * underlying problem with a new seal). */
+    fun syncNow() {
+        val state = _uiState.value
+        val assessmentId = state.assessmentDraftId ?: return
+        val revisionId = state.revisionId ?: return
+        if (state.sealState != SealState.READY_TO_SYNC || state.syncedAtMillis != null) return
+        SyncWorker.enqueue(getApplication(), assessmentId, revisionId)
     }
 
     private fun currentAssessmentId(): String =
@@ -277,7 +305,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * then removes the local seal entirely. Requires explicit confirmation in the UI before
      * calling this; never invoked silently. */
     suspend fun discardSealAndReopen() {
-        sealOrchestrator.discardAndReopen(currentAssessmentId())
+        val assessmentId = currentAssessmentId()
+        // Capture the revision being abandoned BEFORE discarding -- discardAndReopen assigns a
+        // fresh one, and a live sync attempt for the OLD revision must be stopped immediately
+        // rather than waiting for its next network round-trip to notice (see SyncWorker.cancel
+        // and SyncRepository.syncAssessment's own sealState/revisionId no-op check).
+        val oldRevisionId = _uiState.value.revisionId
+        sealOrchestrator.discardAndReopen(assessmentId)
+        if (oldRevisionId != null) {
+            SyncWorker.cancel(getApplication(), assessmentId, oldRevisionId)
+        }
     }
 
     fun observeOutbox(assessmentId: String) = database.outboxDao().observeForAssessment(assessmentId)

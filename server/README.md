@@ -1,14 +1,21 @@
-# server/ — backend (P2 + P2.1)
+# server/ — backend (P2 / P2.1 / P2.2 / P6)
 
 FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL. Covers: pack import,
-assessor/admin auth (argon2 + JWT), worker capability tokens, assessment +
-evidence metadata, a real resumable evidence upload protocol (chunked,
-server-verified SHA-256), a durable PostgreSQL-backed job queue + worker,
-and a seeded assessor queue.
+assessor/admin auth (argon2 + JWT + cookie/CSRF), worker capability tokens
+(rotate/revoke), assessment lifecycle + append-only audit log, a real
+resumable evidence upload protocol (chunked, server-verified SHA-256) that
+also carries and cryptographically verifies a P5 Android-sealed manifest
+(ECDSA signature, TOFU device-key pinning, revision/idempotency binding —
+see `server/app/manifest_verify.py`), a durable PostgreSQL-backed job queue
++ worker (evidence hash re-verification, video thumbnail extraction, real
+ffprobe-based width/height/duration metadata), human PC scoring with
+optimistic locking, decisions/reassessment, Ed25519-signed tamper-evident
+reports, protected evidence content/thumbnail serving, and a seeded
+assessor queue.
 
-See `docs/gates/P2_1.md` for the full acceptance checklist and
-`docs/worker_capability_tokens.md` / `docs/evidence_status_model.md` for
-the two design docs this phase leans on most.
+See `docs/gates/P2_1.md`, `docs/gates/P2_2.md`, `docs/gates/P6.md` for the
+full acceptance checklists and `docs/worker_capability_tokens.md` /
+`docs/evidence_status_model.md` for the two design docs P2.1 leans on most.
 
 ## Setup
 
@@ -83,12 +90,11 @@ python tools/export_openapi.py          # regenerate contracts/openapi.json
 python tools/export_openapi.py --check  # CI: fail if it's stale
 ```
 
-## What's still explicitly out of scope (later phases, not this branch)
+## What's still explicitly out of scope
 
-- Evidence bytes read-back (no "download this evidence" endpoint — write
-  path only, by design, see `docs/safety.md`).
-- Android sync.
-- Scoring, reports, reassessment (P6/P7).
-- CV/AI inference, thumbnailing (the worker's `verify_evidence` job
-  re-checks a stored file's SHA-256, nothing more).
+- CV/AI quality inference (`EvidenceItem.quality_check_status` is a
+  documented, unused contract for a future phase — see
+  `docs/evidence_quality_result.md`).
 - Polished dashboard UX (`apps/dashboard` is intentionally basic/functional).
+- Any worker password login or an assessor mobile-app role (see
+  `docs/worker_capability_tokens.md` — by design, not a gap).

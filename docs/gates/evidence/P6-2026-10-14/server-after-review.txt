@@ -1,0 +1,30 @@
+ id |         client_assessment_id         |  status   | assessor_id |         submitted_at          
+----+--------------------------------------+-----------+-------------+-------------------------------
+ 10 | 430713ef-a547-4d8e-a164-c2dd3b60482b | in_review |           1 | 2026-10-14 07:22:26.812446+00
+(1 row)
+
+ evidence_status | saved_criteria 
+-----------------+----------------
+ NOT_OBSERVABLE  |             71
+(1 row)
+
+        action         | actor_role | entries 
+-----------------------+------------+---------
+ created               | system     |       1
+ manifest_received     | system     |       1
+ review_started        | assessor   |       1
+ scored                | assessor   |      71
+ submitted             | worker     |       1
+ sync_package_complete | system     |       1
+(6 rows)
+
+ remarked_criteria 
+-------------------
+                71
+(1 row)
+
+NAME                             IMAGE                          COMMAND                  SERVICE     CREATED          STATUS                    PORTS
+kaushalpramaan-mvp-api-1         kaushalpramaan-mvp-api         "uvicorn app.main:ap…"   api         9 minutes ago    Up 9 minutes (healthy)    0.0.0.0:18000->8000/tcp, [::]:18000->8000/tcp
+kaushalpramaan-mvp-dashboard-1   kaushalpramaan-mvp-dashboard   "/docker-entrypoint.…"   dashboard   9 minutes ago    Up 9 minutes (healthy)    0.0.0.0:5173->80/tcp, [::]:5173->80/tcp
+kaushalpramaan-mvp-db-1          postgres:16-alpine             "docker-entrypoint.s…"   db          22 hours ago     Up 17 minutes (healthy)   5432/tcp
+kaushalpramaan-mvp-worker-1      kaushalpramaan-mvp-worker      "python -m app.worker"   worker      16 minutes ago   Up 16 minutes
