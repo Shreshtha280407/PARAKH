@@ -399,3 +399,277 @@ PASS.
 | Video analysis ≤5s/video-minute on entry phone | **FAIL** | 43.17s/video-minute measured clean on flagship hardware; architecturally not reachable without reduced sampling/resolution or a different model |
 | Hands inference ≤60ms/frame on mid phone | **NOT VERIFIED** (informative data point only) | CPU mean 111.9ms exceeds it on **flagship** hardware; GPU delegate mean 45-53ms would satisfy it, but only tested on flagship and not shipped as default |
 | Physical device correctness (7 instrumented tests) | **PASS** | First real-device confirmation this session of every Phase B/D code change (`QualityVerdict`, `YuvToRgb`, hands caching) |
+
+## Addendum 2: decoder root-cause fixes and Q3 temporal smoothing — 2026-10-15 (continued)
+
+This second addendum follows a direct instruction to keep pushing Q3 agreement and video
+throughput toward the original IC-2 bars. It supersedes none of the evidence above; the prior
+addendum's findings (GPU delegate measured/not shipped, confidence sweep plateau, seek
+capability built/inert at 1fps) all remain valid and are carried forward unchanged. What
+follows are two genuine root-cause bug fixes in the video decoder (not configuration tuning)
+plus a proper, parity-checked Q3 temporal-smoothing feature, all verified on the same connected
+OnePlus 13R (CPH2691).
+
+### A2. Root causes found (video decode)
+
+Diagnostic instrumentation (`DecodeProfiling`, a process-wide counter pair tracking cumulative
+YUV→RGB `convert()` time and intermediate-frame count — exposed only through the benchmark
+harness's JSON, never part of the stable `:assist-quality`/`:assist-hands` result types) revealed
+two concrete, previously undiagnosed defects in `SequentialVideoDecoder`:
+
+1. **Speculative over-conversion.** The frame-selection rule is "first frame at/after the
+   request, or an EOS fallback candidate ≤100ms before it." The old code converted *every*
+   frame as soon as it entered that 100ms window, discarding all but the last — meaning for
+   ~30fps source video, up to 3 full YUV→RGB conversions were performed and thrown away for
+   every 1 that was actually kept (confirmed by direct calculation: 100ms ÷ 33ms/frame ≈ 3 wasted
+   + 1 kept = ~4× the necessary conversion work). **Fix**: only the *native output buffer index*
+   of the latest in-window frame is now held (never converted) until it is known to be needed —
+   converted immediately if superseded by a `>=target` frame (the common case, now free), or
+   converted exactly once, right before returning, if end-of-stream proves the held frame was
+   the real answer (the rare, true fallback case). Frame *selection* semantics are byte-for-byte
+   unchanged; only *when* conversion happens changed.
+2. **Per-pixel bounds-checked buffer reads.** `convert()` read each of the 3 YUV planes via
+   `ByteBuffer.get(index)` once per output pixel (2–3 such calls per pixel; ~230,400 pixels for a
+   640px hands frame). **Fix**: each plane is bulk-copied once per frame (`ByteBuffer.get(byte[])`,
+   a single efficient copy) into a plain `ByteArray`, then indexed directly — eliminating repeated
+   per-element `java.nio.Buffer` dispatch overhead. Pixel-selection arithmetic is unchanged.
+
+Both fixes are proven bit-exact, not merely "probably fine": `YuvToRgbTest` already covered the
+arithmetic; the deferred-conversion and bulk-copy changes touch only *when*/*how bytes are
+fetched*, never the arithmetic itself, and this was independently confirmed by an unchanged
+Android/reference parity check (`eval.py` recomputes every per-sample flag from Android's
+reported metrics and refuses to proceed on any mismatch) and 7/7 unchanged physical instrumented
+test results after each change.
+
+A third, smaller, already-known-but-newly-wired lever (seek-based decoding, built in the first
+addendum) was kept as-is: it is gated to never trigger at the current 1fps/~1s-GOP cadence and
+remains measurably neutral.
+
+A fourth candidate — the harness's own `File.appendText()` I/O pattern (3 file-open/write/close
+cycles per item) — was replaced with one stream kept open for the whole run, flushed per line.
+This is a real, shipped improvement in the harness, but **measurement showed it did not change
+the reported numbers** (overhead stayed at ~22.8%, same as before the fix): the actual cost in
+that bucket is JSON *construction* (building the detailed per-sample `JSONObject`/`JSONArray`
+diagnostic structures), not file I/O. This is harness-only overhead, counted by design in the
+`..._including_init_and_result_writes` field name, and not representative of what a production
+Q4/P8 consumer would necessarily pay (a real integration would persist far less verbose
+per-sample detail). Reported honestly, not treated as a bug to chase further.
+
+### B2. Q3 temporal smoothing (gap-fill)
+
+A new, explicitly scoped post-processing step, `HandSmoothing.gapFilled()` (Kotlin,
+`HandsAnalyzer.kt`) with an exact Python mirror (`gap_filled()`, `ml/hands/eval.py`, parity-
+checked against Android's own reported aggregate the same way `verify_aggregation` already
+checks the raw ratio/intervals): an ANALYSED "no hand" sample is reinterpreted as present
+**only** when both its immediate 1-second neighbours were themselves ANALYSED and present. It
+is structurally incapable of bridging a real multi-second absence — the check only ever looks
+exactly one sample in each direction, so a run of 2 or more consecutive misses can never be
+filled (proved by construction, not just tested: `v is not False` guards the fill, and a 2-miss
+run means neither miss has a `True` immediate neighbour on its missing side). It never fills a
+failed/unjudgeable (`None`) sample, and never fills across one. This is additive: the raw
+`HandsSummary.visibleRatio`/`handsNotVisibleIntervals` fields are completely unchanged; the
+gap-filled view is new, separate fields (`visibleRatioGapFilled`/`handsNotVisibleIntervalsGapFilled`
+in Kotlin; `--smoothing gap_filled` in `eval.py`, default remains `raw`).
+
+**Verification that it does not create misleading predictions** (per explicit instruction):
+- Structural guarantee above (cannot bridge ≥2-sample gaps; cannot fill from/through a failed sample).
+- Unit tests, both languages: `isolatedSingleSampleMissBracketedByDetectionsIsGapFilled`,
+  `sustainedTwoSampleMissIsNotGapFilled`, `gapFillNeverFillsAcrossAFailedOrUnjudgeableNeighbour`,
+  `gapFillNeverFillsAtAClipBoundaryWithNoNeighbourOnOneSide` (Kotlin, `HandsSamplerTest.kt`);
+  `test_gap_filled_fills_isolated_miss_but_not_a_sustained_absence`,
+  `test_gap_filled_never_fills_across_a_failed_or_unjudgeable_neighbour`,
+  `test_incorrect_actual_android_gap_filled_ratio_is_rejected` (Python, `test_hand_evaluation.py`).
+- Real-data confirmation: specificity stayed **exactly 100% (0 false positives) before and after**
+  gap-fill (TN=97 both ways) — every recovered sample was a genuine true positive the raw detector
+  already judged correctly at a neighbouring second, never a fabricated "present" against truth.
+  No single clip's agreement jumped by more than 25 percentage points, and the largest jumps
+  (`m-60e52dc7f0bd` +25pp, `m-aaf1bcfac0f0` +25pp, `m-cb0067b62af2` +17pp, `m-4619a5231e7f` +15pp)
+  are all small clips (12–13 judgeable samples) where filling one or two isolated 1-second gaps
+  naturally moves agreement by a large percentage.
+
+### C2. Q3 accuracy — full confusion matrix, unchanged ground truth
+
+Ground truth file `ml/hands/data/sample_labels.csv` SHA-256
+`22fb75ec4a6ab824f4ca93a8a5cfc621d8589311829f4f5fbf353061da229884` — confirmed via `git diff`
+to be byte-identical to session start (untracked, never written to this session) and matching
+every prior report's recorded `hand_labels_sha256`. No label was added, removed, or reinterpreted.
+
+| | Raw (no smoothing) | Gap-filled (shipped) |
+|---|---|---|
+| TP / FP / FN / TN | 239 / 0 / 139 / 97 | 263 / 0 / 115 / 97 |
+| Agreement | 70.7% | **75.8%** |
+| Sensitivity (recall on present) | 63.2% | 69.6% |
+| Specificity (recall on absent) | 100% | 100% (unchanged) |
+| Judgeable timestamp samples | 475 | 475 (unchanged) |
+| Excluded unjudgeable truth samples | 22 | 22 (unchanged) |
+| Coverage (judgeable/Android-requested) | 95.4% | 95.4% (unchanged) |
+
+Reports: [`hands-proxy-v3-final-raw.json`](../../ml/hands/reports/hands-proxy-v3-final-raw.json),
+[`hands-proxy-v3-final-gapfilled.json`](../../ml/hands/reports/hands-proxy-v3-final-gapfilled.json).
+Both evaluated against the identical final Android export (`bulkcopy_perf_4`, source stamp
+`15da5d18dd07022ad2d72a2cbe73729c20e1ffbf+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a`).
+**Combined with the earlier confidence-tuning gain (65.5%→70.7% raw), total Q3 improvement this
+engagement is 65.5%→75.8%, +10.3 percentage points, with sensitivity gaining +13pp and
+specificity never dropping below 100%.** Still short of the original ≥90% bar — see Section G/the
+first addendum for the root-cause ceiling (partial/cropped-hand ground truth the detector never
+proposes a candidate region for).
+
+### D2. Q2 accuracy and Kotlin/Python parity — confirmed unchanged
+
+Re-verified against the final decoder-fixed, final-config Android export: aggregate confusion
+**TP99/FP8/FN8/TN72, precision 92.5%, recall 92.5%** — byte-identical to every prior measurement
+this session, including before either decoder fix. `ml/quality/eval.py`'s strict parity check
+(independently recomputes every per-sample DARK/BLURRY/CAMERA_MOTION flag from Android's raw
+reported metrics and refuses to proceed on any mismatch) passed on this run exactly as before.
+This is the strongest possible evidence that both decoder fixes are pixel-level no-ops for
+correctness: the flags/metrics Android derives from decoded pixels did not move by even one
+classification, across 187 judged captures, despite ~49% less time being spent producing them.
+
+### E2. Performance — complete before/after, 3 repeated Android runs
+
+All measurements: OnePlus 13R, CPH2691, API 36, arm64-v8a, airplane mode, full 188-item dataset,
+same evaluation methodology as every prior benchmark in this project.
+
+| Run | Starting CPU temp | Quality s/video-min | Hands s/video-min | **Combined s/video-min** |
+|---|---|---|---|---|
+| Original baseline (prior session) | — | 12.72 | 29.47 | 42.22 |
+| This session, after Q2 aggregation fix only (addendum 1) | ~cool | 12.87 | 30.26 | 43.17 |
+| After both decoder fixes, run 1 | ~42°C (cooler) | 7.20 | 16.10 | 17.91 *(see note)* |
+| After both decoder fixes, run 2 (force-stopped cold start) | ~47-52°C (warmer) | 7.00 | 14.48 | 21.50 |
+| After both decoder fixes, run 3 (force-stopped cold start) | ~47-52°C | 7.10 | 14.56 | 21.69 |
+| After both decoder fixes, run 4 (force-stopped, re-cooled to match run 1) | ~42°C | 7.03 | 14.55 | **21.60** |
+| + harness I/O fix (no change expected/found) | ~cool | 7.16 | 14.68 | 21.86 |
+| + GPU delegate stacked (not shipped) | ~cool | 7.09 | 12.25 | 19.37 |
+
+**Note on run 1's 17.91s**: this was the first measurement taken, immediately after an
+`onNewIntent`-reused (not force-stopped) activity instance at the coolest recorded temperature.
+Runs 2–4 all used `am force-stop` before launch for a true cold start and agree with each other
+within 1% (21.50/21.69/21.60) regardless of starting temperature (42°C vs 47-52°C) — strong
+evidence that **21.6s/video-minute is the real, reproducible number**, and run 1 benefited from
+some combination of JIT-warm reuse and/or thermal luck not representative of a fresh launch.
+Reporting the reproducible cold-start figure, not the single best-looking number.
+
+**Shipped result: 42.22s → 21.60s/video-minute, a reproducible 48.8% reduction**, achieved
+entirely through bit-exact-verified decoder bug fixes — zero accuracy cost, zero sampling-rate
+or resolution change, zero architecture deviation from the documented 1fps/125ms-partner spec.
+
+Peak observed PSS: 191.0 MiB (run 4) vs. 199.5 MiB (run 1) vs. 194.6 MiB (original prior-session
+baseline) — no memory regression; all three are within normal run-to-run sampling variance of
+the `Debug.getMemoryInfo` ~100ms-interval observed-peak method this project has always used.
+
+**Not shipped, measured for the record only:**
+- GPU delegate: 19.37s/video-minute combined (a further ~10% on top of the CPU fixes), but
+  measured Q3 agreement 73.9% vs CPU's 75.8% (GPU is a genuinely different floating-point
+  inference path, confirmed non-bit-exact unlike the decoder fixes) — not defaulted to, for the
+  same cross-device-risk reason as the first addendum (no entry/mid device ever available to
+  verify GPU driver behaviour there).
+- Decode-sharing between `:assist-quality`/`:assist-hands`: investigated, not implemented per
+  explicit instruction this round. Updated estimate (given the two decoder fixes already removed
+  most of what it would have saved): ~10% further combined reduction, requiring a restructure of
+  both analyzers' internals that risks their independently-usable contract for a shrinking
+  payoff. Left as a documented, not-pursued opportunity.
+- Reduced sampling rate / reduced resolution: investigated analytically (GOP-size math), explicit
+  instruction this round was **not** to pursue either. Not implemented, not measured further.
+
+### F2. Why 5s/video-minute remains out of reach (updated)
+
+With both decoder bugs fixed, hands' own 14.5s/video-minute breaks down as: inference ~35-41% of
+wall time, decode-walk (unavoidable intermediate-frame hardware decode, ~27-30 frames/sample at
+30fps source vs 1fps sampling) ~29-35%, conversion (now fixed) ~18-21%, initialization ~3%. None
+of these remaining components are a bug — they are the real, now-accurately-measured cost of
+MediaPipe inference plus mandatory video decoding at this sampling density. Closing the remaining
+~4.3× gap to 5s/video-minute would require sampling or resolution changes outside this round's
+explicit instruction, or GPU delegate's own device-coverage risk, or a fundamentally different
+(out-of-scope) model.
+
+### G2. Files changed this addendum
+
+| File | Change |
+|---|---|
+| `apps/android/assist-quality/.../SequentialVideoDecoder.kt` | Deferred in-window conversion (hold native buffer index, not a converted Bitmap, until known-needed); bulk per-plane buffer copy in `convert()`; `DecodeProfiling` diagnostic counters (new, harness-only) |
+| `apps/android/assist-hands/.../HandsAnalyzer.kt` | `HandSmoothing.gapFilled()` (new); `HandsSummary` extended with `visibleRatioGapFilled`/`handsNotVisibleIntervalsGapFilled` (raw fields unchanged); `min_detection_confidence` 0.5→0.1 in bundled config (carried from addendum 1) |
+| `apps/android/assist-hands/src/main/assets/hands/model.json` | `min_detection_confidence: 0.1` (shipped); `delegate: "CPU"` (shipped; GPU tested, not defaulted) |
+| `apps/android/assist-benchmark/.../BenchmarkActivity.kt` | Single kept-open, per-line-flushed writer instead of `File.appendText()` per call; `decode_profile` diagnostic field added to exported JSON |
+| `apps/android/assist-benchmark/.../ResultJson.kt` | Export `visible_ratio_gap_filled`/`hands_not_visible_intervals_gap_filled` |
+| `ml/hands/eval.py` | `gap_filled()`/`verify_gap_filled_aggregation()` (new, parity-checked against Android); `--smoothing {raw,gap_filled}` flag, default `raw` (fully backward compatible) |
+| New Kotlin tests | 2 in `YuvToRgbTest.kt` (unchanged, re-verified), 4 new gap-fill cases in `HandsSamplerTest.kt` (9 total, up from 5 after addendum 1) |
+| New Python tests | 3 new in `test_hand_evaluation.py` (7 total, up from 4) |
+| New reports | `ml/hands/reports/hands-proxy-v3-final-raw.json`, `hands-proxy-v3-final-gapfilled.json` |
+
+### H2. Full regression (this addendum)
+
+| Suite | Count | Result |
+|---|---|---|
+| Python (`ml/assistance` + `ml/hands`) | 21 | **21/21 PASS** |
+| Kotlin unit tests (`:assist-quality` + `:assist-hands`) | 32 | **32/32 PASS** |
+| `./gradlew :assist-quality:testDebugUnitTest :assist-hands:testDebugUnitTest :assist-benchmark:assembleDebug :assist-benchmark:assembleRelease :assist-benchmark:assembleDebugAndroidTest --offline` | — | **BUILD SUCCESSFUL** |
+| Physical instrumented tests (real OnePlus 13R) | 7 | **7/7 PASS**, re-confirmed after every single decoder edit (4 separate deployments this addendum) |
+| `tools/verify_assistance_assets.py --require-calibrated` | — | **PASS** |
+| Q2 Android/reference parity (strict, independently recomputed) | — | **PASS**, byte-identical before/after both decoder fixes |
+
+### I2. Provenance (this addendum)
+
+- `SequentialVideoDecoder.kt` SHA-256: `1c0beb1f039015b5852bfc1818f8d3a74c79dfad8b8e74d11d229833e5e924ca`
+- `HandsAnalyzer.kt` SHA-256: `249f72885ca2f29dcc15057b72f70b17bb850738f79684f3f7babf783fa2ac85`
+- `model.json` SHA-256: `4ac20d6b540dddcf1a92f66861f84d56a903a1914406766adf8b25a838183a1f` (`min_detection_confidence: 0.1`, `delegate: "CPU"`)
+- `BenchmarkActivity.kt` SHA-256: `8b567525a622e3284526dc4fb7f684bccc10d7bd3373dea9346bc207bfbe45d1`
+- `ml/hands/eval.py` SHA-256: `ca1df0c34763692b398519aee7bfafe55b7e9bc9e31d351d5bd2bd08ecab1d75`
+- `thresholds.json` (Q2, unchanged from addendum 1): `ba22f4bd6654691ed8c41c7a315ae74084bb88c2cd5b5bcd2c57738af42f3e77`
+- Device source stamp for every measurement in this addendum: `15da5d18dd07022ad2d72a2cbe73729c20e1ffbf+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a`
+- Device: OnePlus 13R, CPH2691, API 36, arm64-v8a — same flagship device as every measurement in this project; no entry/mid-range device has ever been available.
+
+### J2. Updated gate table (supersedes addendum 1's equivalent rows)
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Q2 bad-capture precision ≥85% / recall ≥80% | **PASS** | Unchanged: 92.5%/92.5%, Android/reference-parity-verified |
+| Q3 hands agreement ≥90% | **FAIL** | 75.8% (up from 65.5% at session start); root cause remains model-capability (partial/cropped-hand ground truth), not configuration |
+| Video analysis ≤5s/video-minute on entry phone | **FAIL** | 21.60s/video-minute measured clean on flagship hardware (down from 42.22s, a verified 48.8% reduction); remaining gap is architectural (decode-walk + inference cost at 1fps/640px), not a further bug |
+| Hands inference ≤60ms/frame on mid phone | **NOT VERIFIED** | No mid-range device ever available; flagship CPU mean now faster post-fix but not independently re-measured per-frame this addendum |
+| Physical device correctness (7 instrumented tests) | **PASS** | Re-confirmed after every one of 4 decoder edits this addendum |
+| Memory (no regression) | **PASS** | 191-199 MiB peak PSS, consistent with the original 194.6 MiB baseline |
+
+### K2. IC-2 / P8 readiness decision
+
+**IC-2 formal acceptance: NOT MET.** Q3 agreement (75.8%) and video throughput (21.60s/video-
+minute) both fall short of the original ≥90% / ≤5s-on-entry-phone bars, despite substantial,
+real, verified improvement on both (+10.3pp agreement, -48.8% time). Neither gap is attributable
+to an undiscovered bug at this point — both are now understood, quantified, and bounded by
+real architectural/model-capability ceilings documented above and in the first addendum.
+
+**Functional completion: the modules are more capable, faster, and better-tested than before this
+engagement, on the same honest evidence standard used throughout this project (calibration/
+resubstitution, one conservative collection, flagship-only hardware).** `:assist-quality` and
+`:assist-hands` remain independently usable (no shared-decode merge was implemented); the
+`QualityResult.badCapture`/`HandsSummary.visibleRatioGapFilled` additions are purely additive
+fields alongside unchanged raw outputs, so existing Q4/P8 integration contracts are unaffected.
+
+**What remains necessary for IC-2 acceptance** (unchanged from the first addendum, restated for
+completeness): an independent holdout collection on entry/mid/flagship device tiers (the project
+has never had access to non-flagship hardware), and either a different/retrained hand-detection
+model or an owner decision to relabel/rescope what counts as "hands visible" for severely
+partial/cropped frames — both explicitly out of this session's scope.
+
+### Reproduce this addendum
+
+```sh
+# Q3: raw vs gap-filled evaluation against the final device export
+python3 ml/hands/eval.py --protocol ml/hands/data/splits.json \
+  --android-results <FINAL_RUN>.jsonl --partition proxy --smoothing raw --out raw.json
+python3 ml/hands/eval.py --protocol ml/hands/data/splits.json \
+  --android-results <FINAL_RUN>.jsonl --partition proxy --smoothing gap_filled --out gapfilled.json
+
+# Full regression
+python3 -m unittest discover -s ml/assistance -v
+cd apps/android && ./gradlew :assist-quality:testDebugUnitTest :assist-hands:testDebugUnitTest \
+  :assist-benchmark:assembleDebug :assist-benchmark:assembleRelease :assist-benchmark:assembleDebugAndroidTest --offline
+
+# Physical device (requires a connected, explicitly-expected device)
+python3 tools/assistance_device.py instrument --serial SERIAL --expect-model MODEL --output /tmp/run
+
+# Full performance remeasurement (requires a connected device; repeat with am force-stop
+# between runs for a true cold start, as this addendum's own repeated-run comparison required)
+adb -s SERIAL shell am force-stop in.kaushalpramaan.assist.benchmark
+python3 tools/assistance_device.py run --serial SERIAL --expect-model MODEL \
+  --output /tmp/run --run-id NEW_ID --airplane
+```

@@ -183,6 +183,23 @@ project has never had access to non-flagship hardware to verify GPU driver behav
 sweep table, exact confusion matrices and the GPU comparison are in
 [the recovery-iteration addendum](gates/Q2_Q3_recovery_iteration.md#addendum-device-verified-2026-10-15).
 
+**2026-10-15, decoder bug-fix update (same day, continued)**: two genuine root-cause bugs were
+found and fixed in `SequentialVideoDecoder`, not configuration tuning — it was speculatively
+running the full YUV→RGB conversion on up to 4 frames per sample instead of 1 (fixed: defer
+conversion until the matching frame is confirmed), and it read pixel buffers one bounds-checked
+element at a time instead of bulk-copying each plane once per frame (fixed). Both proven
+bit-exact (Q2/Q3 Android/reference parity and all 7 physical tests unchanged before/after).
+Result: combined video-minute time dropped **42.22s → 21.60s (48.8% reduction)**, reproduced
+across 3 cold-start runs. `:assist-hands` also gained `HandSample`-level gap-fill temporal
+smoothing (`HandsSummary.visibleRatioGapFilled`/`handsNotVisibleIntervalsGapFilled`, additive —
+raw fields unchanged): an isolated single-sample miss bracketed by detections on both sides is
+reinterpreted as present, structurally incapable of bridging a real ≥2-sample absence. Hands
+agreement improved **70.7% → 75.8%** (specificity unchanged at 100%, no false positives
+introduced). Full root-cause detail, per-run performance table, and updated gate statuses are
+in [addendum 2](gates/Q2_Q3_recovery_iteration.md#addendum-2-decoder-root-cause-fixes-and-q3-temporal-smoothing--2026-10-15-continued).
+Neither the original ≥90% Q3 bar nor the ≤5s/video-minute bar is met; both gaps are now
+architectural/model-capability, not further bugs.
+
 Final [Q2 report](../ml/quality/reports/quality-proxy-v2-final.json),
 [Q3 report](../ml/hands/reports/hands-proxy-final.json),
 [device benchmark](evidence/Q2_Q3/oneplus13r-benchmark-final.json) and

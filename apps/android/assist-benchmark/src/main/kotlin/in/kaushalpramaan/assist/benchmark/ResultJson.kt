@@ -36,6 +36,8 @@ internal fun handsJson(r: HandsResult) = obj("module" to "hands", "status" to r.
     "failed_samples" to r.summary.failedCount, "unjudgeable_samples" to r.summary.unjudgeableCount,
     "coverage_fraction" to r.summary.coverageFraction, "covered_duration_ms" to r.summary.coveredDurationMs,
     "hands_not_visible_intervals" to ranges(r.summary.handsNotVisibleIntervals),
+    "visible_ratio_gap_filled" to r.summary.visibleRatioGapFilled,
+    "hands_not_visible_intervals_gap_filled" to ranges(r.summary.handsNotVisibleIntervalsGapFilled),
     "samples" to JSONArray(r.samples.map { obj("timestamp_ms" to it.timestampMs, "state" to it.state.name,
         "width" to it.widthPx, "height" to it.heightPx,
         "hand_present" to it.handPresent, "hand_count" to it.handCount, "decode_ms" to it.decodeMs,

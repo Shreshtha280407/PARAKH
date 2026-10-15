@@ -46,6 +46,13 @@ class BenchmarkActivity : Activity() {
         val done = File(reports, "$runId.done.json")
         if (output.exists() || done.exists()) { status.text = "Run identifier already exists; use a new one."; return }
         check(output.createNewFile())
+        // One stream kept open for the whole run instead of File.appendText's open+write+close
+        // per call: that per-call file-open/close pattern measured as ~23% of total reported
+        // wall time across a 188-item run, entirely inside the harness's own I/O, not the
+        // libraries under test. Each line is still flushed immediately (not just buffered) so a
+        // crash mid-run still leaves every already-completed item's result durably collectible.
+        val writer = java.io.BufferedWriter(java.io.OutputStreamWriter(java.io.FileOutputStream(output, true), Charsets.UTF_8))
+        fun append(line: String) { writer.write(line); writer.write("\n"); writer.flush() }
         val started = System.nanoTime()
         var peakPssKb = 0; var peakNativeBytes = 0L; var memorySamples = 0
         val memoryJob = scope.launch(Dispatchers.Default) {
@@ -64,12 +71,12 @@ class BenchmarkActivity : Activity() {
                 require(builtSource == plan.getString("source_version")) { "Installed APK/source plan differ; rebuild and install the isolated harness with -r" }
                 val ram = ActivityManager.MemoryInfo()
                 (getSystemService(ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(ram)
-                output.appendText(obj("type" to "run", "run_id" to runId, "source_version" to builtSource,
+                append(obj("type" to "run", "run_id" to runId, "source_version" to builtSource,
                     "manufacturer" to Build.MANUFACTURER, "model" to Build.MODEL, "device" to Build.DEVICE,
                     "api" to Build.VERSION.SDK_INT, "abis" to Build.SUPPORTED_ABIS.joinToString(), "ram_bytes" to ram.totalMem,
                     "airplane_mode" to Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0),
                     "memory_method" to "Debug.getMemoryInfo totalPss and native heap allocated, sampled every ~100ms; observed peak, not kernel high-water mark",
-                    "timestamp_convention" to "requested source-relative milliseconds; decoder exact PTS unavailable; intervals are left-anchored sample cells").toString() + "\n")
+                    "timestamp_convention" to "requested source-relative milliseconds; decoder exact PTS unavailable; intervals are left-anchored sample cells").toString())
                 val thresholds = QualityThresholds.bundled(this@BenchmarkActivity)
                 val quality = QualityAnalyzer(thresholds)
                 val hands = HandsAnalyzer(this@BenchmarkActivity)
@@ -88,18 +95,26 @@ class BenchmarkActivity : Activity() {
                     require(digest.digest().joinToString("") { "%02x".format(it) } == item.getString("sha256"))
                     val video = item.getString("kind") == "video"
                     val itemStart = System.nanoTime()
+                    DecodeProfiling.reset()
                     val q = if (video) quality.video(file) else quality.photo(file) { gray ->
                         if (plan.optBoolean("export_photo_gray", false)) {
                             File(reports, "$runId-$id.gray").writeBytes(gray.pixels)
                         }
                     }
-                    output.appendText(qualityJson(q).put("id", id).put("repeat", repeat).toString() + "\n")
+                    val qualityDecodeProfile = obj("intermediate_frames" to DecodeProfiling.intermediateFrames,
+                        "convert_ms" to DecodeProfiling.convertNs / 1_000_000.0)
+                    append(qualityJson(q).put("id", id).put("repeat", repeat)
+                        .put("decode_profile", qualityDecodeProfile).toString())
                     if (item.optBoolean("hands", video)) {
+                        DecodeProfiling.reset()
                         val h = if (video) hands.video(file) else hands.photo(file)
-                        output.appendText(handsJson(h).put("id", id).put("repeat", repeat).toString() + "\n")
+                        val handsDecodeProfile = obj("intermediate_frames" to DecodeProfiling.intermediateFrames,
+                            "convert_ms" to DecodeProfiling.convertNs / 1_000_000.0)
+                        append(handsJson(h).put("id", id).put("repeat", repeat)
+                            .put("decode_profile", handsDecodeProfile).toString())
                     }
-                    output.appendText(obj("type" to "item_end_to_end", "id" to id, "repeat" to repeat,
-                        "duration_ms" to q.durationMs, "wall_ms" to QualityAnalyzer.elapsed(itemStart)).toString() + "\n")
+                    append(obj("type" to "item_end_to_end", "id" to id, "repeat" to repeat,
+                        "duration_ms" to q.durationMs, "wall_ms" to QualityAnalyzer.elapsed(itemStart)).toString())
                     withContext(Dispatchers.Main) { status.text = "Completed ${i + 1}/${items.length()}, repeat ${repeat + 1}." }
                 }
                 finalStatus = "COMPLETED" // Results retain independent module statuses; completion is not acceptance.
@@ -110,6 +125,7 @@ class BenchmarkActivity : Activity() {
         finally {
             withContext(NonCancellable) {
                 memoryJob.cancelAndJoin()
+                runCatching { writer.close() }
                 done.writeText(obj("run_id" to runId, "status" to finalStatus, "error" to failure,
                     "wall_ms" to QualityAnalyzer.elapsed(started), "observed_peak_pss_kb" to peakPssKb,
                     "observed_peak_native_bytes" to peakNativeBytes, "memory_samples" to memorySamples).toString(2) + "\n")

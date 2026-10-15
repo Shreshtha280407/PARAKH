@@ -42,7 +42,32 @@ data class HandSample(val timestampMs: Long, val state: HandSampleState, val han
 }
 data class HandsSummary(val visibleRatio: Double?, val analysedCount: Int, val failedCount: Int,
     val unjudgeableCount: Int, val coverageFraction: Double, val coveredDurationMs: Long,
-    val handsNotVisibleIntervals: List<TimeRange>)
+    val handsNotVisibleIntervals: List<TimeRange>,
+    /** Gap-filled reinterpretation of the same raw per-sample [HandSample.handPresent] values:
+     * an ANALYSED "no hand" sample is treated as present only when both its immediate
+     * 1-sample neighbours were themselves ANALYSED and present (an isolated single-sample miss
+     * bracketed by detections, not a sustained absence). Never fills a failed/unjudgeable
+     * sample — this reinterprets existing detections, it never invents one. Raw fields above
+     * are untouched; this is an additional, clearly separate derived view, exactly as
+     * [in.kaushalpramaan.assist.quality.QualityResult.badCapture] sits alongside raw quality
+     * flags rather than replacing them. */
+    val visibleRatioGapFilled: Double?, val handsNotVisibleIntervalsGapFilled: List<TimeRange>)
+
+object HandSmoothing {
+    /** `null` when the sample itself has no raw ANALYSED state at that time (failed/unjudgeable/
+     * missing); otherwise the gap-filled boolean. Looks up neighbours by exact timestamp, so it
+     * is correct regardless of gaps/irregular sampling in [samples]. */
+    fun gapFilled(samples: List<HandSample>): Map<Long, Boolean?> {
+        val raw = samples.associate { it.timestampMs to it.handPresent }
+        if (samples.size < 2) return raw
+        val interval = samples.zipWithNext().minOf { it.second.timestampMs - it.first.timestampMs }
+        return raw.mapValues { (time, current) ->
+            if (current != false) current
+            else if (raw[time - interval] == true && raw[time + interval] == true) true
+            else current
+        }
+    }
+}
 data class HandsResult(val status: AnalysisStatus, val moduleVersion: String, val modelVersion: String,
     val modelSha256: String, val configurationSha256: String, val delegate: String, val sampleIntervalMs: Long, val durationMs: Long?,
     val samples: List<HandSample>, val summary: HandsSummary, val initializationMs: Double,
@@ -59,9 +84,16 @@ object HandAggregation {
         val intervals = if (durationMs == null) emptyList() else SampleTimes.intervals(samples.map {
             it.timestampMs to it.handPresent?.not()
         }, durationMs, intervalMs)
+        val gapFilled = HandSmoothing.gapFilled(samples)
+        val gapFilledAnalysedCount = gapFilled.values.count { it != null }
+        val gapFilledIntervals = if (durationMs == null) emptyList() else SampleTimes.intervals(samples.map {
+            it.timestampMs to gapFilled[it.timestampMs]?.not()
+        }, durationMs, intervalMs)
         return HandsSummary(if (analysed == 0) null else samples.count { it.handPresent == true }.toDouble() / analysed,
             analysed, samples.size - analysed - unjudgeable, unjudgeable,
-            if (samples.isEmpty()) 0.0 else analysed.toDouble() / samples.size, covered, intervals)
+            if (samples.isEmpty()) 0.0 else analysed.toDouble() / samples.size, covered, intervals,
+            if (gapFilledAnalysedCount == 0) null else gapFilled.values.count { it == true }.toDouble() / gapFilledAnalysedCount,
+            gapFilledIntervals)
     }
 }
 

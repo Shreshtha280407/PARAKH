@@ -10,6 +10,38 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'assistance'))
 from protocol import REPO, confusion, digest, load_protocol, partition_ids, read_results
 
 
+def gap_filled(samples, interval):
+    """Mirrors Kotlin HandSmoothing.gapFilled exactly: an ANALYSED/no-hand sample is treated as
+    present only when both immediate interval-spaced neighbours were ANALYSED/present. Never
+    fills a failed/unjudgeable (None) sample or across one. Returns {timestamp_ms: bool|None}."""
+    raw = {s['timestamp_ms']: (s['hand_present'] if s['state'] == 'ANALYSED' else None) for s in samples}
+    if len(raw) < 2:
+        return raw
+    return {t: (v if v is not False else (True if raw.get(t - interval) is True and raw.get(t + interval) is True else v))
+            for t, v in raw.items()}
+
+
+def verify_gap_filled_aggregation(record, interval):
+    filled = gap_filled(record['samples'], interval)
+    valid = [v for v in filled.values() if v is not None]
+    expected_ratio = sum(valid) / len(valid) if valid else None
+    actual_ratio = record.get('visible_ratio_gap_filled')
+    if (expected_ratio is None) != (actual_ratio is None) or (expected_ratio is not None and abs(expected_ratio - actual_ratio) > 1e-9):
+        raise ValueError('Actual Android gap-filled visible-ratio aggregation parity failed')
+    cells = []
+    for s in record['samples']:
+        t = s['timestamp_ms']
+        if filled.get(t) is not False:
+            continue
+        start, end = t, min(t + interval, record['duration_ms'])
+        if cells and cells[-1]['end_ms'] == start:
+            cells[-1]['end_ms'] = end
+        else:
+            cells.append({'start_ms': start, 'end_ms': end})
+    if cells != record.get('hands_not_visible_intervals_gap_filled'):
+        raise ValueError('Actual Android gap-filled absence-interval aggregation parity failed')
+
+
 def verify_aggregation(record, interval):
     samples = record['samples']
     valid = [s for s in samples if s['state'] == 'ANALYSED']
@@ -60,6 +92,9 @@ def main():
     p.add_argument('--manifest', type=Path, default=REPO / 'ml/quality/data/manifest.jsonl')
     p.add_argument('--hand-labels', type=Path, default=REPO / 'ml/hands/data/sample_labels.csv')
     p.add_argument('--model-manifest', type=Path, default=REPO / 'apps/android/assist-hands/src/main/assets/hands/model.json')
+    p.add_argument('--smoothing', choices=['raw', 'gap_filled'], default='raw',
+        help='gap_filled reinterprets an isolated ANALYSED/no-hand sample bracketed by ANALYSED/present '
+             'neighbours as present (never fills a failed/unjudgeable sample); raw is the original per-sample value')
     p.add_argument('--out', type=Path, required=True); args = p.parse_args()
     if args.out.exists():
         raise ValueError('Preserve previous evaluation; choose a new report version')
@@ -105,6 +140,9 @@ def main():
         if len(predictions) != len(record['samples']):
             raise ValueError('Duplicate inference timestamps')
         verify_aggregation(record, model['sample_interval_ms'])
+        smoothed = gap_filled(record['samples'], model['sample_interval_ms']) if args.smoothing == 'gap_filled' else None
+        if smoothed is not None:
+            verify_gap_filled_aggregation(record, model['sample_interval_ms'])
         reviewed_times = {time for i, time in truth if i == identity}
         for time in sorted(set(predictions) - reviewed_times):
             unlabelled.append({'id': identity, 'timestamp_ms': time, 'reference_duration_ms': manifest[identity]['duration_ms'],
@@ -119,7 +157,7 @@ def main():
             if label not in ('present', 'absent'):
                 raise ValueError('Unknown hand truth status')
             sample = predictions.get(time)
-            prediction = sample['hand_present'] if sample and sample['state'] == 'ANALYSED' else None
+            prediction = smoothed.get(time) if smoothed is not None else (sample['hand_present'] if sample and sample['state'] == 'ANALYSED' else None)
             if prediction is None:
                 missing += 1
             else:
@@ -148,7 +186,7 @@ def main():
     result = confusion(pairs); matrix = result['confusion']; total = len(pairs)
     agreement = (matrix['tp'] + matrix['tn']) / total if total else None
     specificity_denominator = matrix['tn'] + matrix['fp'] + matrix['unavailable_negative']
-    report = {'partition': args.partition, 'protocol_version': protocol['version'], 'protocol_sha256': protocol_hash,
+    report = {'partition': args.partition, 'smoothing': args.smoothing, 'protocol_version': protocol['version'], 'protocol_sha256': protocol_hash,
         'android_results_sha256': digest(args.android_results), 'configuration_sha256': digest(args.model_manifest),
         'hand_labels_sha256': digest(labels_path),
         'model_sha256': model['sha256'], 'unique_clips': len(selected), 'judgeable_timestamp_samples': total,

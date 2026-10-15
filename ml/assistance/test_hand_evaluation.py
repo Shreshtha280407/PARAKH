@@ -36,6 +36,33 @@ class HandEvaluationTest(unittest.TestCase):
         self.assertEqual(1, result['matched_within_one_sampling_step'])
         self.assertEqual(1000, result['matched_boundary_mean_absolute_error_ms'])
 
+    def test_gap_filled_fills_isolated_miss_but_not_a_sustained_absence(self):
+        samples = [{'timestamp_ms': 0, 'state': 'ANALYSED', 'hand_present': True},
+                   {'timestamp_ms': 1000, 'state': 'ANALYSED', 'hand_present': False},
+                   {'timestamp_ms': 2000, 'state': 'ANALYSED', 'hand_present': True},
+                   {'timestamp_ms': 3000, 'state': 'ANALYSED', 'hand_present': False},
+                   {'timestamp_ms': 4000, 'state': 'ANALYSED', 'hand_present': False},
+                   {'timestamp_ms': 5000, 'state': 'ANALYSED', 'hand_present': True}]
+        filled = hand_eval.gap_filled(samples, 1000)
+        self.assertEqual({0: True, 1000: True, 2000: True, 3000: False, 4000: False, 5000: True}, filled)
+
+    def test_gap_filled_never_fills_across_a_failed_or_unjudgeable_neighbour(self):
+        samples = [{'timestamp_ms': 0, 'state': 'ANALYSED', 'hand_present': True},
+                   {'timestamp_ms': 1000, 'state': 'INFERENCE_FAILED', 'hand_present': None},
+                   {'timestamp_ms': 2000, 'state': 'ANALYSED', 'hand_present': False},
+                   {'timestamp_ms': 3000, 'state': 'ANALYSED', 'hand_present': True}]
+        filled = hand_eval.gap_filled(samples, 1000)
+        self.assertEqual({0: True, 1000: None, 2000: False, 3000: True}, filled)
+
+    def test_incorrect_actual_android_gap_filled_ratio_is_rejected(self):
+        record = {'duration_ms': 4000, 'visible_ratio_gap_filled': 0.0,
+            'samples': [{'timestamp_ms': 0, 'state': 'ANALYSED', 'hand_present': True},
+                        {'timestamp_ms': 1000, 'state': 'ANALYSED', 'hand_present': False},
+                        {'timestamp_ms': 2000, 'state': 'ANALYSED', 'hand_present': True}],
+            'hands_not_visible_intervals_gap_filled': []}
+        with self.assertRaisesRegex(ValueError, 'ratio'):
+            hand_eval.verify_gap_filled_aggregation(record, 1000)
+
 
 if __name__ == '__main__':
     unittest.main()
