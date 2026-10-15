@@ -199,11 +199,18 @@ jobs:
           python3 -m unittest discover -s ml/assistance -v
           python3 ml/quality/generate_vectors.py --check
           python3 tools/verify_assistance_assets.py --require-calibrated
-      - name: Replay recorded Android scalar outputs (no hardware execution or private pixels)
+      # This committed Android export predates the current v3 quality calibration and
+      # the v0.1 MediaPipe detection-confidence change. Replay it ONLY against its
+      # original, immutable v2 quality thresholds and v1 hands manifest. Keep strict
+      # hash/parity checks enabled; never reinterpret old output using new assets.
+      # Separately verify the current shipped assets and Kotlin builds below.
+      - name: Replay historical Android scalar outputs against matching frozen profiles
         run: |
           python3 ml/quality/eval.py --protocol ml/quality/data/splits.json --partition proxy \
+            --thresholds ml/quality/calibration/quality-proxy-v2.json \
             --android-results ml/assistance/reports/oneplus13r-functional-final-results.jsonl --out /tmp/quality-ci-replay.json
           python3 ml/hands/eval.py --protocol ml/hands/data/splits.json --partition proxy \
+            --model-manifest ml/hands/calibration/hands-proxy-v1-model.json \
             --android-results ml/assistance/reports/oneplus13r-functional-final-results.jsonl --out /tmp/hands-ci-replay.json
       - name: Q2/Q3 unit parity, builds, instrumentation compilation and offline harness permissions
         working-directory: apps/android
