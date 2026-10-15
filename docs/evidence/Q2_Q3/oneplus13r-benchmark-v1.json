@@ -1,0 +1,217 @@
+{
+  "scope": "owner-approved proxy functional verification; no independent holdout, field, entry/mid or IC-2 acceptance",
+  "physical_device": {
+    "manufacturer": "OnePlus",
+    "model": "CPH2691",
+    "api": 36,
+    "abis": "arm64-v8a",
+    "ram_bytes": 11758895104
+  },
+  "device_class": "OnePlus 13R flagship",
+  "measured_variant": "isolated debug harness; release built/packaged, not physically run",
+  "source_version": "36e0178405b5ad84f410de51d664bac9cab6c1b0+assistance-tree-sha256:f778be874a7fa0452a9d32f480e167598a90f6b7a5be90315be9d8a5f4e2e86e",
+  "run_id": "full_proxy_calibrated_v1",
+  "airplane_mode": 1,
+  "memory_method": "Debug.getMemoryInfo totalPss and native heap allocated, sampled every ~100ms; observed peak, not kernel high-water mark",
+  "completed_run": {
+    "run_id": "full_proxy_calibrated_v1",
+    "status": "COMPLETED",
+    "error": null,
+    "wall_ms": 381903.161885,
+    "observed_peak_pss_kb": 175876,
+    "observed_peak_native_bytes": 111919008,
+    "memory_samples": 2674
+  },
+  "input_evidence_sha256": {
+    "android_results": "d0cae6429ac69ca6911d01eca9267f1ed762fcb742a8ae88c92f70891f431011",
+    "done": "c1b662f46f8d3fea985e9ebb00e618e8486dc689226c473c7ff2733583a19815",
+    "instrumentation": "809be9807a0c2fb8e86f30b30b9ccbf4ebbdc031aeff305b33fc82cc2b0b7ad2"
+  },
+  "sample_timestamps": "requested source-relative milliseconds; decoder exact PTS unavailable; intervals are left-anchored sample cells",
+  "modules": {
+    "quality": {
+      "unique_captures": 188,
+      "analyses": 188,
+      "photos": 148,
+      "videos": 40,
+      "sampled_video_duration_ms": 480465,
+      "status_counts": {
+        "PARTIAL": 39,
+        "SUCCESS": 149
+      },
+      "video_module_ms_per_video_minute_including_initialization_and_close": 12671.584462302146,
+      "photo_module_wall_ms": {
+        "count": 148,
+        "mean": 69.13872743918918,
+        "p50": 83.41617149999999,
+        "p95_nearest_rank": 122.047656,
+        "max": 141.535781
+      },
+      "video_module_wall_ms": {
+        "count": 40,
+        "mean": 2536.77201195,
+        "p50": 2410.3168225,
+        "p95_nearest_rank": 3489.300832,
+        "max": 4680.068644
+      },
+      "video_frame_decode_ms": {
+        "count": 994,
+        "mean": 94.1069528973843,
+        "p50": 80.53604150000001,
+        "p95_nearest_rank": 170.158542,
+        "max": 277.720157
+      },
+      "video_sample_count": 994,
+      "video_calculation_ms": {
+        "count": 994,
+        "mean": 5.716291798792756,
+        "p50": 3.3625515,
+        "p95_nearest_rank": 9.918906,
+        "max": 38.073958
+      },
+      "observed_input_resolutions": [
+        "177x320",
+        "179x320",
+        "180x320",
+        "320x180",
+        "320x183"
+      ],
+      "motion_reliable_pairs": 309,
+      "motion_requested_pairs": 496,
+      "threshold_version": "quality-proxy-v1",
+      "threshold_sha256": "7a83b56a09b64358d7e59151e008de5cb215ca222e85d4cf2a31e60279e66ff2"
+    },
+    "hands": {
+      "unique_captures": 188,
+      "analyses": 188,
+      "photos": 148,
+      "videos": 40,
+      "sampled_video_duration_ms": 480465,
+      "status_counts": {
+        "SUCCESS": 188
+      },
+      "video_module_ms_per_video_minute_including_initialization_and_close": 29311.20858955387,
+      "photo_module_wall_ms": {
+        "count": 148,
+        "mean": 221.84002837162163,
+        "p50": 232.87820299999998,
+        "p95_nearest_rank": 303.820469,
+        "max": 338.659636
+      },
+      "video_module_wall_ms": {
+        "count": 40,
+        "mean": 5867.920764575,
+        "p50": 5774.2975755,
+        "p95_nearest_rank": 7399.636143,
+        "max": 9523.257184
+      },
+      "video_frame_decode_ms": {
+        "count": 498,
+        "mean": 361.3630321626506,
+        "p50": 364.303151,
+        "p95_nearest_rank": 467.428958,
+        "max": 514.894375
+      },
+      "video_sample_count": 498,
+      "initialization_ms_all_analyses": {
+        "count": 188,
+        "mean": 78.10852915425532,
+        "p50": 74.9710155,
+        "p95_nearest_rank": 104.178021,
+        "max": 132.292916
+      },
+      "first_video_inference_ms": {
+        "count": 40,
+        "mean": 61.7682487,
+        "p50": 64.97059949999999,
+        "p95_nearest_rank": 95.553282,
+        "max": 96.293906
+      },
+      "warm_video_inference_ms": {
+        "count": 458,
+        "mean": 99.10367908951964,
+        "p50": 91.7604945,
+        "p95_nearest_rank": 189.09526,
+        "max": 257.422396
+      },
+      "video_preprocessing_ms": {
+        "count": 498,
+        "mean": 0.0742293232931727,
+        "p50": 0.073568,
+        "p95_nearest_rank": 0.109427,
+        "max": 0.196094
+      },
+      "video_sample_decode_preprocess_inference_ms": {
+        "count": 498,
+        "mean": 457.5421108253012,
+        "p50": 463.5976555,
+        "p95_nearest_rank": 618.160103,
+        "max": 686.917187
+      },
+      "observed_input_resolutions": [
+        "355x640",
+        "359x640",
+        "360x640",
+        "640x360",
+        "640x367"
+      ],
+      "hand_count_samples": {
+        "0": 284,
+        "1": 153,
+        "2": 61
+      },
+      "delegate": "CPU",
+      "native_threads": "MediaPipe defaults; this dependency exposes no explicit CPU thread setting",
+      "configuration_sha256": "49f57abe43c482e9647b2d4b515cdd32159e47689239916cd84c12a72f27f291",
+      "model_sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1"
+    }
+  },
+  "combined_analysis_and_result_writes_ms_per_video_minute": 42011.82333514408,
+  "wall_time_scope": "Module wall includes reader/model close; combined includes both modules and result writes, excludes harness input-checksum validation; completed-run wall includes that validation too. am-start scheduling is never analysis time.",
+  "artifacts": {
+    "debug_apk": {
+      "bytes": 57446794,
+      "sha256": "cf2d273ad70fc2e13e429be69aa524c8a48b81cfe25f44f867dad7c4f1658180"
+    },
+    "release_unsigned_apk": {
+      "bytes": 56503591,
+      "sha256": "7cb51f9d25c6e6a912fd552169fe393eea1c17adfe1f79c467c8251b7e7d63ff"
+    },
+    "quality_release_aar": {
+      "bytes": 75294,
+      "sha256": "8b85840e29a904047b30e1537a95b6db380f25fe4791085fbed49b95e78cba02"
+    },
+    "hands_release_aar": {
+      "bytes": 5886975,
+      "sha256": "85d7f15eaad1d79edc32b64352a8f6b6ba71b390bf7f37c8bd9b768c28c5282d"
+    }
+  },
+  "packaged_model_and_native_entries": [
+    {
+      "entry": "lib/arm64-v8a/libmediapipe_tasks_jni.so",
+      "stored_bytes": 10533656,
+      "uncompressed_bytes": 10533656
+    },
+    {
+      "entry": "lib/armeabi-v7a/libmediapipe_tasks_jni.so",
+      "stored_bytes": 7405024,
+      "uncompressed_bytes": 7405024
+    },
+    {
+      "entry": "lib/x86/libmediapipe_tasks_jni.so",
+      "stored_bytes": 14961392,
+      "uncompressed_bytes": 14961392
+    },
+    {
+      "entry": "lib/x86_64/libmediapipe_tasks_jni.so",
+      "stored_bytes": 13032744,
+      "uncompressed_bytes": 13032744
+    },
+    {
+      "entry": "assets/hands/hand_landmarker.task",
+      "stored_bytes": 7819105,
+      "uncompressed_bytes": 7819105
+    }
+  ],
+  "size_scope": "Standalone four-ABI harness and AAR sizes; native/model entries are attributable components, not a measured incremental production-APK delta. Production app does not depend on assistance."
+}

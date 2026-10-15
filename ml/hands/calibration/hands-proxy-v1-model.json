@@ -1,0 +1,23 @@
+{
+  "module_version": "hands-presence-v1",
+  "model_version": "hand_landmarker-float16-1",
+  "asset": "hands/hand_landmarker.task",
+  "origin": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+  "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+  "bytes": 7819105,
+  "dependency": "com.google.mediapipe:tasks-vision:0.10.35",
+  "license": "Apache-2.0",
+  "license_evidence": "https://storage.googleapis.com/mediapipe-assets/Model%20Card%20Hand%20Tracking%20%28Lite_Full%29%20with%20Fairness%20Oct%202021.pdf",
+  "model_card_sha256": "43127ff8a92e22717f0d8c30dab3efef4641a29cbf50b15ae3de001be94ab76b",
+  "delegate": "CPU",
+  "threads": "MediaPipe native defaults; no explicit thread-count setter used",
+  "num_hands": 2,
+  "min_detection_confidence": 0.5,
+  "min_presence_confidence": 0.5,
+  "min_tracking_confidence": 0.5,
+  "sample_interval_ms": 1000,
+  "longest_edge_px": 640,
+  "coordinates": "oriented input pixels; landmarks not retained by this presence API",
+  "limits": "Hand presence alone does not establish interaction, identity, safety, task completion or competence.",
+  "video_preprocessing": "sequential MediaCodec SDR YUV420, nearest-neighbour selected-frame RGB conversion, source rotation exactly once; 640px longest edge; no upscale"
+}

@@ -1,0 +1,567 @@
+{
+  "version": "proxy-quality-review-v1",
+  "reviewed_on": "2026-10-14",
+  "manifest_sha256": "7ec33b6ad081b80d736243d489d19066657afce71ffbb1769ebf1b313ae2c60a",
+  "photo_review_sha256": "48cecdd635584d18ca0e64d8b5c3debe54bbd7dec2210777979de5abba0e0703",
+  "rubric": {
+    "DARK": "Visible substantial underexposure/shadow detail loss; ordinary directional lighting alone is not a defect.",
+    "BLURRY": "Visible lost edge detail, haze/softening or doubled/smeared edges across scene or visible evidence subject; physical cause not inferred.",
+    "CAMERA_MOTION": "Not judgeable from still photos. Temporal camera instability requires separate video-sequence review.",
+    "OVEREXPOSED": "Broad highlight detail loss, not an isolated lamp/reflection. No positive cases established in this photo review.",
+    "bad_capture": "At least one independently observed technical defect; semantic framing and hand presence never determine this label."
+  },
+  "video_rubric": "Persistent/substantial technical exposure or lost edge detail over the sampled sequence, or repeated visually attributable global camera instability. Ordinary local movement is not camera motion. Review is sampled, not proof that every instant is clear/stable.",
+  "temporal_review": "1s sequence plus 125ms pairs at start and midpoint for all seven original motion clips; original temporal sheets are private external review aids.",
+  "scope": "owner-approved single proxy collection; no independent validation/holdout or continuous quality-interval ground truth claimed",
+  "videos": [
+    {
+      "id": "m-3e019e88238b",
+      "sha256": "af7e80bec4bd3ceeb2c5add55cddf1b58fba5f8f232fcd43fab3ba24c1a3903e",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-88dac17b3b52",
+      "sha256": "523cce2cc90cb0e4e345d7928934c1d33c31e37063523561d50b54f2936ad787",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-4ded4bedd73f",
+      "sha256": "1583b179e3e98499d139bdf4d32dfc207dc502e12f92c817fc0b747287649a65",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-35346f8eb14e",
+      "sha256": "6f7cd1186d2f4b6cd69edf62655929b1b0ba19185e7f562585663fa3dca90d5e",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-5402cf0e33ec",
+      "sha256": "ad4092b2317b41f7f0d0ac51641accd4be8fa2af2ec89d53993e3fa873bd264e",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-ed1542a3e449",
+      "sha256": "bc7c47e9e346430c7d334c2bd652e7e61782ad1c46f83117585af35cf8f358c4",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-9588ef917fe7",
+      "sha256": "11b73bcee3418d907978564ef2a22170f8e955f54bd420418020851deca037f6",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-aaf1bcfac0f0",
+      "sha256": "1c628ed77e76cff783840d9ca010cd31f3121fe197001e37dd591652f472e4d7",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-955cad60a16b",
+      "sha256": "22b6a370f956b125f988448aa003417f21e68e8347e740febf19f006aeee3015",
+      "original_quality_label": "blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Persistent haze/softened scene/object edges across reviewed timestamps; camera instability cannot be confidently separated in this hazy sequence."
+    },
+    {
+      "id": "m-df196564d88d",
+      "sha256": "80b1d7d2075d7d0c4489d094aad2e093b403ad0ffa815a2b548c134ca3c993d7",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Original Dark annotation retained. Direct 1s review shows discernible scene/hand/object edges with moderate directional lighting; no substantial persistent exposure defect confirmed."
+    },
+    {
+      "id": "m-baa522a05a54",
+      "sha256": "67e7653fcfb3d5a3b90c809b0824ea8839eaf546251ea7cc91cc467a16334052",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [
+        "DARK",
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "review_status": "unjudgeable",
+      "bad_capture": "unjudgeable",
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Borderline backlighting/shadows on hands and variable motion: insufficient confidence in a binary overall technical-quality label. Retained and analysed; disclose exclusion from quality accuracy denominator."
+    },
+    {
+      "id": "m-b6f18b9db792",
+      "sha256": "4b6482a88272b303315d6c8d11f82e6dfa9c5c0409245758dd3e84ec7f62b1ea",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Original Dark annotation retained. Direct 1s review shows discernible scene/hand/object edges with moderate directional lighting; no substantial persistent exposure defect confirmed."
+    },
+    {
+      "id": "m-5dba026ae2fe",
+      "sha256": "7394033ef40e9faaf7340083e9c6c2362db08a47df6f17cdecea04cdb0c37d33",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Original Dark annotation retained. Direct 1s review shows discernible scene/hand/object edges with moderate directional lighting; no substantial persistent exposure defect confirmed."
+    },
+    {
+      "id": "m-d698f3c6bbe1",
+      "sha256": "e8548b0a0840b75c0ede676e12c0a17d4451ec85fb369a293f15b5b97ad6f35a",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Original Dark annotation retained. Direct 1s review shows discernible scene/hand/object edges with moderate directional lighting; no substantial persistent exposure defect confirmed."
+    },
+    {
+      "id": "m-33928a4eb54e",
+      "sha256": "3bfa6826bf7dc7f4488dba7c37fee5707386af532fd576fa75175536dc1a7101",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Original Dark annotation retained. Direct 1s review shows discernible scene/hand/object edges with moderate directional lighting; no substantial persistent exposure defect confirmed."
+    },
+    {
+      "id": "m-ef0dfc7e9e3a",
+      "sha256": "2bc2fb866a12b675763070c6da959dea46c131b17dcb9a191ebad3f48ca20159",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Original Dark annotation retained. Direct 1s review shows discernible scene/hand/object edges with moderate directional lighting; no substantial persistent exposure defect confirmed."
+    },
+    {
+      "id": "m-21964c7ab06c",
+      "sha256": "9e2323ce7e4f74d58b432343cd9a4896327ea55238a43cdf72ba6deb3a40e771",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Severely shadowed hand/scene details across the clip; cannot reliably separate blur or judge camera stability in darkness."
+    },
+    {
+      "id": "m-f3512800d5f5",
+      "sha256": "a01ad40e05df21beaca82ff52aaa7a258a298a401dcae33968db37ffb50f5a1e",
+      "original_quality_label": "dark",
+      "verified_quality_labels": [
+        "DARK"
+      ],
+      "unjudgeable_conditions": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Severely shadowed hand/scene details across the clip; cannot reliably separate blur or judge camera stability in darkness."
+    },
+    {
+      "id": "m-60e52dc7f0bd",
+      "sha256": "b531d61e8c3f916e4f0f8ede59591514600677fd151f1cdfdec0b8d41493fa6f",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-f0d3e8f0f933",
+      "sha256": "7ae3e41e4e854bebbf2f41512e336ee64a88ace535d9b44322f71b61e1107999",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-4619a5231e7f",
+      "sha256": "64a8093ac503a0824efc16585d199008a1fa67d798d9d8da19b8f0f22ffda9c6",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-c27f1b9e4dad",
+      "sha256": "2ac81475f92a9c94b878e41e50d79d641e574c6ebd335f776c05f1449e6cd780",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-106f1c886efc",
+      "sha256": "1ad9a7586a321739ac4503e9275e5ad0b5503f3dd69db004d937484731257a94",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-6be3467f2f4a",
+      "sha256": "43bf22a79b8513cf309633910f576de6055521527019ee8adff821bfc029ed09",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-4f0c05cc1ce2",
+      "sha256": "459d6b9905f6448ab32ace0e5610cbca1fed7a322ee9ae3216b8d9fcc8a1b0ab",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-51d3f3decff0",
+      "sha256": "82ad45f76edf49a87c60c634eef92f4152776541321ea317fd0050243af882d9",
+      "original_quality_label": "good",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-e5b558115551",
+      "sha256": "23080564ab95ad299ab528aac788e7a686e5533a2705242603e429067d53c070",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Repeated global scene/ink/edge displacement and smear in 1s sequence and 125ms follow-up pairs; not inferred merely from moving hands."
+    },
+    {
+      "id": "m-6dee09433e51",
+      "sha256": "90f93e01b79f06a67c3f90b308bd7fcb6e0d5a055ee4444b3113e1a64deabfb5",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Repeated global scene/ink/edge displacement and smear in 1s sequence and 125ms follow-up pairs; not inferred merely from moving hands."
+    },
+    {
+      "id": "m-cb0067b62af2",
+      "sha256": "212fa88870976f007b230ce1aaec64c6438bf5d73a4c780fdb8cd830a48383ea",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Smear is visible; moving foreground dominates and stationary background is insufficient to confidently distinguish camera motion from object movement."
+    },
+    {
+      "id": "m-50b88b3b07d7",
+      "sha256": "9c22d1b117182ac82149c3d2b085cace73ed01dd3adafbb9cdcdf0b4c56cf344",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Repeated global scene/ink/edge displacement and smear in 1s sequence and 125ms follow-up pairs; not inferred merely from moving hands."
+    },
+    {
+      "id": "m-7d4e9992b88a",
+      "sha256": "ebac356dc8d625da59d22bfd2cb72e231b391d3bebd3aa8918dab0894337eb79",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Repeated global scene/ink/edge displacement and smear in 1s sequence and 125ms follow-up pairs; not inferred merely from moving hands."
+    },
+    {
+      "id": "m-198bc62c25b7",
+      "sha256": "55bde1047624f85461a1b1726841d65a1aca3e28b6d69e7b479632a618433316",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY"
+      ],
+      "unjudgeable_conditions": [
+        "CAMERA_MOTION"
+      ],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Smear is visible; moving foreground dominates and stationary background is insufficient to confidently distinguish camera motion from object movement."
+    },
+    {
+      "id": "m-7dd2cb5b1de0",
+      "sha256": "be4d5345886a63598ce53b9b3c6070c468f6d2973848db8200ebe9adfb375299",
+      "original_quality_label": "motion_blurry",
+      "verified_quality_labels": [
+        "BLURRY",
+        "CAMERA_MOTION"
+      ],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": true,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Repeated global scene/ink/edge displacement and smear in 1s sequence and 125ms follow-up pairs; not inferred merely from moving hands."
+    },
+    {
+      "id": "m-8361be4b6c24",
+      "sha256": "d048a85f0970e5dc07b5f4fb33145761216694453d766c497d5af19e958a51da",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-86a1c32e1126",
+      "sha256": "6b81e80aa403b908c71e9ba81dd4c716d84cb4ef96c027a299b7ec5085c565f7",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-a101adbc89ae",
+      "sha256": "98e573061df600db2f58d0efa482de8bdd2b3a4ae94bc47c44b47d5308567605",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-a8771f41c703",
+      "sha256": "ce3ef2fb7b92f67d8576f9a137aeb210b036ffea5dacf3a8cecf9e89c7d6a592",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-ae2b04a78ade",
+      "sha256": "b94b0b87d0534a73a06447189f68d01b2ffc3021d53298a550a2795ccd969db8",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-d9ecc547d24a",
+      "sha256": "dbe0e11fdab5c963dfc17f61f75cc6bbaf26e228476791e92e1777151ca038e8",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    },
+    {
+      "id": "m-a3c4cb68526b",
+      "sha256": "a0c5152d1336da75dec327bfb5ac0ee3b7ee0062927237fd01d1c1399dfde985",
+      "original_quality_label": "out_of_frame",
+      "verified_quality_labels": [],
+      "unjudgeable_conditions": [],
+      "review_status": "verified",
+      "bad_capture": false,
+      "reviewer": "Codex direct visual review",
+      "provenance": "complete 1s timestamp contact sheets reviewed independently; all seven original motion clips have additional 125ms pairs; no metric scores or model predictions used",
+      "review_note": "Exposure/detail support visual review over sampled clip; brief ordinary hand/object movement is not camera shake. Semantic target visibility is not scored."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "review_version": "proxy-hands-review-v1",
+  "review_sha256": "7681d8184502a9eef19f9ae3f9734dab4aff8c672967a05942db9aeba3c48cfd",
+  "manifest_sha256": "7ec33b6ad081b80d736243d489d19066657afce71ffbb1769ebf1b313ae2c60a",
+  "visually_reviewed_unique_clips": 40,
+  "timestamp_samples": 497,
+  "class_counts": {
+    "absent": 97,
+    "present": 378,
+    "unjudgeable": 22
+  },
+  "judgeable_coverage": 0.9557344064386318,
+  "clips_with_present_samples": 36,
+  "clips_with_absent_samples": 16,
+  "all_absent_clips": [
+    "m-3e019e88238b",
+    "m-8361be4b6c24",
+    "m-86a1c32e1126",
+    "m-a101adbc89ae"
+  ],
+  "original_not_visible_clips_with_present_samples": [
+    "m-88dac17b3b52",
+    "m-4ded4bedd73f",
+    "m-35346f8eb14e",
+    "m-df196564d88d",
+    "m-baa522a05a54",
+    "m-b6f18b9db792",
+    "m-5dba026ae2fe",
+    "m-60e52dc7f0bd",
+    "m-f0d3e8f0f933",
+    "m-4619a5231e7f",
+    "m-c27f1b9e4dad",
+    "m-e5b558115551",
+    "m-6dee09433e51",
+    "m-cb0067b62af2",
+    "m-50b88b3b07d7"
+  ],
+  "evaluation": "not performed; these are ground-truth counts, not prediction agreement",
+  "split_status": "not frozen; original collection reserved for development/calibration pending two owner-supplied independent sets"
+}

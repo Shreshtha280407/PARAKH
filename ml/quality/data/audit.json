@@ -1,0 +1,57 @@
+{
+  "accepted_unique_media": null,
+  "archive_sha256": "737226d9b97bddb32270dd98359d3accfc38109ef6191c2d638855196a2b15b0",
+  "decode_valid": 190,
+  "exact_duplicate_groups": [
+    [
+      "m-0ea431e40e0d",
+      "m-f1359a856d14"
+    ],
+    [
+      "m-4fcfe37c4939",
+      "m-3e019e88238b"
+    ]
+  ],
+  "exact_unique_hashes": 188,
+  "folder_counts": {
+    "photo/blurry/not_labelled": 30,
+    "photo/dark/not_labelled": 29,
+    "photo/good/not_labelled": 30,
+    "photo/motion_blurry/not_labelled": 30,
+    "photo/out_of_frame/not_labelled": 30,
+    "video/blurry/hands_not_visible": 3,
+    "video/blurry/hands_visible": 5,
+    "video/dark/hands_not_visible": 4,
+    "video/dark/hands_visible": 5,
+    "video/good/hands_not_visible": 4,
+    "video/good/hands_visible": 4,
+    "video/motion_blurry/hands_not_visible": 4,
+    "video/motion_blurry/hands_visible": 3,
+    "video/out_of_frame/hands_not_visible": 4,
+    "video/out_of_frame/hands_visible": 4,
+    "video/out_of_frame/not_labelled": 1
+  },
+  "labels_verified": false,
+  "limits": [
+    "Folder labels are unverified owner annotations.",
+    "Messaging filenames/dates do not prove capture dates, sessions, or phone count.",
+    "DHash similarity is a review aid, not proof of independent or duplicate captures.",
+    "No accepted sample count until visual review and conservative grouping."
+  ],
+  "manifest_sha256": "7ec33b6ad081b80d736243d489d19066657afce71ffbb1769ebf1b313ae2c60a",
+  "media_type_folder_mismatches": [
+    "m-4fcfe37c4939"
+  ],
+  "messaging_filename_hints": 137,
+  "metadata_device_missing": 155,
+  "near_duplicate_candidates": 95,
+  "near_duplicate_rule": "minimum dHash64 distance <=12 across 4 rotations and review timestamps; review candidates only",
+  "protocol": "proxy-intake-v2",
+  "raw_media": 190,
+  "raw_photos": 149,
+  "raw_videos": 41,
+  "source_devices_confirmed_by_metadata": [
+    "OnePlus OnePlus 13R"
+  ],
+  "splits_frozen": false
+}
