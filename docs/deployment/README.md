@@ -62,26 +62,44 @@ history, `server/tests/`, or any real private evidence.
 
 ```sh
 docker load -i parakh-offline-images.tar
-docker compose -f infra/docker-compose.yml --project-name kaushalpramaan-mvp up -d --no-build
+docker compose -f infra/docker-compose.yml --project-name kaushalpramaan-mvp \
+  up -d --no-build --pull never
 ```
 
-`--no-build` is the important flag: Compose will refuse to build anything
-and uses only the images `docker load` just restored. If an image is
-missing, this fails loudly instead of silently trying to reach the
-network.
+`--no-build` makes Compose refuse to build anything and use only the
+images `docker load` just restored. `--pull never` closes a narrower but
+real gap: `--no-build` alone only forbids *building* -- it says nothing
+about the `db` service, which has no build step at all (`image:
+postgres:16-alpine` directly) and could, in principle, still have its
+image availability checked against the registry under some pull policies.
+`--pull never` makes every service, built or not, hard-fail immediately
+if it would need the network, rather than possibly succeeding by quietly
+reaching it.
 
-**This was verified for real during P10**: the four built images (and
-`postgres:16-alpine`, confirmed present in the exported tar's
-`manifest.json`) were deleted from the local Docker image store, reloaded
-from the exported tar alone, and started with `--no-build` -- the stack
-came up healthy (`/health` → `{"status":"ok","database":"ok","storage":"ok"}`,
-dashboard → HTTP 200) with no image anywhere that could have come from a
-network pull during that `up`. (`postgres:16-alpine` itself was not
-force-deleted in that run because other, unrelated local containers on the
-test machine were using it -- the tar's manifest was inspected directly
-instead to confirm it was genuinely bundled. On a real target laptop with
-nothing else running, the full delete-then-load proof applies to all five
-images.)
+Or run the equivalent automatically, including a health check and
+teardown:
+
+```sh
+python3 tools/offline_bundle.py verify --tar parakh-offline-images.tar --teardown
+```
+
+This also validates the tar's own `manifest.json` lists every required
+image *before* touching Docker at all, so a short/corrupt export is caught
+with a clear message instead of an obscure failure partway through `up`.
+
+**This was verified for real during P10**, both by hand and via the
+`verify` subcommand above: the four built images were deleted from the
+local Docker image store, reloaded from the exported tar alone, and
+started with `--no-build --pull never` -- the stack came up healthy
+(`/health` → `{"status":"ok","database":"ok","storage":"ok"}`, dashboard
+→ HTTP 200) with Docker refusing, not just happening to avoid, any
+network pull during that `up`. `postgres:16-alpine` was confirmed present
+in the exported tar's `manifest.json` by both the by-hand run and
+`verify`'s own pre-flight check; it was not force-deleted during manual
+testing because other, unrelated local containers on the test machine
+were using it. On a real target laptop with nothing else running, the
+full delete-then-load proof applies to all five images without that
+caveat.
 
 ### 3.4 Reach it from an Android device on the same LAN
 

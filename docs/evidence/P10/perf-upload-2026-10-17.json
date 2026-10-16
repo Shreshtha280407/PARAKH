@@ -1,0 +1,48 @@
+{
+  "provenance": {
+    "source_commit": "fff3ae787856a0a8b58216633f4529381aea8ef4",
+    "base_url": "http://127.0.0.1:18400",
+    "photo_bytes": 2097152,
+    "video_bytes": 8388608,
+    "chunk_bytes": 1048576,
+    "measurement_kind": "real chunked upload through the real P6 /uploads protocol with a real ECDSA-signed manifest and real (os.urandom) media bytes; not synthetic, not mocked"
+  },
+  "results": [
+    {
+      "scenario": "manifest_verification",
+      "status": "ok",
+      "observations": 5,
+      "failures": 0,
+      "median_ms": 53.0,
+      "p95_ms": 148.94,
+      "min_ms": 37.91,
+      "max_ms": 120.49,
+      "sample_errors": [],
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    },
+    {
+      "scenario": "evidence_upload_verify_photo",
+      "status": "ok",
+      "observations": 5,
+      "failures": 0,
+      "median_ms": 99.55,
+      "p95_ms": 118.88,
+      "min_ms": 81.8,
+      "max_ms": 118.0,
+      "sample_errors": [],
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    },
+    {
+      "scenario": "evidence_upload_verify_video",
+      "status": "ok",
+      "observations": 5,
+      "failures": 0,
+      "median_ms": 275.64,
+      "p95_ms": 323.83,
+      "min_ms": 226.03,
+      "max_ms": 315.88,
+      "sample_errors": [],
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    }
+  ]
+}
