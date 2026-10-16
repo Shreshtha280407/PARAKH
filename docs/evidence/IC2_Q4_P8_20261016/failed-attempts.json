@@ -1,0 +1,38 @@
+[
+  {
+    "attempt": "shrunk cross-APK Compose intake",
+    "verdict": "FAIL",
+    "reason": "Shared Kotlin/coroutine API removed by R8 before UI execution",
+    "resolution": "Use unshrunk UI harness and separately shrunk real runtime; do not keep the test framework API broadly"
+  },
+  {
+    "attempt": "R8 SQLCipher startup",
+    "verdict": "FAIL",
+    "reason": "JNI method registration aborted after name removal",
+    "resolution": "Preserve SQLCipher native API; final real encrypted open passes"
+  },
+  {
+    "attempt": "R8 hands model initialization",
+    "verdict": "FAIL",
+    "reason": "Protobuf SystemInfo reflected field removed; partial status had zero hands samples",
+    "resolution": "Preserve protobuf fields and narrow native callbacks; recovered real video has 46 hands samples; final model probe passes"
+  },
+  {
+    "attempt": "v1 worker seal UI invocation",
+    "verdict": "FAIL",
+    "reason": "NavHost teardown lifecycle failed after actual sealed package persisted",
+    "resolution": "Main-dispatcher submission navigation and settle transitions; fresh v2 seal passes"
+  },
+  {
+    "attempt": "initial CameraX browser marker run",
+    "verdict": "FAIL",
+    "reason": "1.356 ms signed/browser duration difference disabled an overlapping interval and harness counted only valid buttons",
+    "resolution": "Preserve signed times, explicitly intersect visual range with playback; verify disabled wholly out-of-range starts; actual camera browser rerun passes"
+  },
+  {
+    "attempt": "offline revision preflight before teardown",
+    "verdict": "FAIL",
+    "reason": "An INTERNET-capable network still existed immediately after settings toggle",
+    "resolution": "Wait for actual zero-network state with a bounded timeout; no assertion disabled"
+  }
+]

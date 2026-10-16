@@ -1,0 +1,20 @@
+{
+  "originalPackage": "in.kaushalpramaan.app",
+  "preExistingInventoryFiles": 292,
+  "finalOriginalFileHashComparison": "NOT VERIFIED",
+  "reason": "Owner explicitly confirmed removing the original app outside the validation run. Android no longer registered it at final comparison.",
+  "agentUninstallOrDataClearCommands": 0,
+  "ownerRequestedReinstallation": true,
+  "reinstalledApk": "final-normal-debug.apk",
+  "reinstalledApkSha256": "011051a52c6bc3e5fc54967e707ca7a239276185ca3c115334e9b66270c73e7e",
+  "qaPackage": "in.kaushalpramaan.app.p8validation",
+  "qaDatabaseAndSignedSnapshotsUnchangedAfterFinalR8Update": true,
+  "connectivityRestored": {
+    "airplane": 0,
+    "wifi": 0,
+    "mobileData": 1
+  },
+  "temporaryAdbReverseRulesRemaining": 0,
+  "localRateProxyRunning": false,
+  "priorOct15OriginalFilePreservationRecord": "../IC2_Q4_P8/preservation.json"
+}

@@ -34,10 +34,10 @@ import kotlinx.coroutines.launch
 
 /**
  * Single source of truth for the whole worker flow. Declaration/consent/registration/match
- * stay in-memory and ViewModel-scoped (P-3 behaviour, unchanged). Evidence capture
+ * drive the worker UI; the existing P7 declaration/match snapshot is also persisted. Evidence capture
  * (taskDrafts/evidenceByTask) is backed by [EvidenceRepository] -- Room, SQLCipher-encrypted,
- * app-private files on disk (P4) -- and survives process death/reboot. No network calls
- * anywhere in this class or anything it owns.
+ * app-private files on disk (P4) -- and survives process death/reboot. Assistance runs
+ * offline in background work; the existing P6/P7 repositories own sync and update requests.
  */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -45,6 +45,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database by lazy { AppDatabase.getInstance(application) }
     private val fileManager by lazy { EvidenceFileManager(application) }
+    private val assistance by lazy { `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator(application, database, fileManager) }
     val repository: EvidenceRepository by lazy {
         EvidenceRepository(
             assessmentDraftDao = database.assessmentDraftDao(),
@@ -52,6 +53,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             evidenceDraftDao = database.evidenceDraftDao(),
             fileManager = fileManager,
             rules = rules,
+            assistance = assistance,
         )
     }
     private val sealOrchestrator: SealOrchestrator by lazy {
@@ -65,6 +67,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             videoOptimizer = VideoOptimizer(application),
             vaultKeysetProvider = VaultKeysetProvider(application),
             appVersion = BuildConfig.VERSION_NAME,
+            assistance = assistance,
         )
     }
     val debugExportHooks: `in`.kaushalpramaan.app.debug.DebugExportHooks by lazy {
@@ -187,6 +190,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun observeDraft(assessmentId: String) {
         viewModelScope.launch {
+            database.assistanceDao().observe(assessmentId).collect { records ->
+                _uiState.update { it.copy(assistanceByEvidence = records.associateBy { r -> r.evidenceId }) }
+            }
+        }
+        viewModelScope.launch {
             repository.observeTasks(assessmentId).collect { list ->
                 _uiState.update { it.copy(taskDrafts = list.associateBy { task -> task.taskId }) }
             }
@@ -293,7 +301,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun hasEnoughFreeSpace(): Boolean = repository.hasEnoughFreeSpace()
 
-    fun evidenceFile(evidence: EvidenceDraftEntity) = repository.resolveFile(evidence)
+    fun evidenceFile(evidence: EvidenceDraftEntity) = fileManager.resolveRelativePath(
+        `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator.inputPath(evidence))
+    fun retryAssistance(id: String) { viewModelScope.launch { assistance.schedule(id, retry = true) } }
+    fun cancelAssistance(id: String) { viewModelScope.launch { assistance.cancel(id) } }
 
     fun clearError() {
         _uiState.update { it.copy(lastErrorMessageRes = null) }
@@ -360,6 +371,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (oldRevisionId != null) {
             SyncWorker.cancel(getApplication(), assessmentId, oldRevisionId)
         }
+        assistance.recover(assessmentId)
     }
 
     fun observeOutbox(assessmentId: String) = database.outboxDao().observeForAssessment(assessmentId)

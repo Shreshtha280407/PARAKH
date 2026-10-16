@@ -36,6 +36,7 @@ body {
 
 .top-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1.5rem;
   padding: 0.75rem 1.5rem;
@@ -322,7 +323,7 @@ textarea {
    with controls, full photo), not just a small preview. */
 .evidence-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -382,3 +383,18 @@ textarea {
   font-size: 0.75rem;
   white-space: pre-wrap;
 }
+/* P8: each condition has a labelled lane; marker buttons remain touch/keyboard usable. */
+.assistance-summary { min-width: 0; max-width: 100%; padding: .75rem; border-top: 1px solid var(--border, #ccc); overflow-wrap: anywhere; }
+.assistance-summary p { margin: .45rem 0; }
+.assistance-condition { margin: .75rem 0; }
+.assistance-track { position: relative; height: .75rem; background: #e5e7eb; border: 1px solid #64748b; border-radius: .2rem; }
+.assistance-range { position: absolute; height: 100%; }
+.assistance-markers { display: flex; flex-wrap: wrap; gap: .4rem; max-height: 12rem; overflow-y: auto; padding: .3rem; }
+.assistance-marker { min-height: 44px; max-width: 100%; padding: .4rem .6rem; border: 2px solid currentColor; font-size: .8rem; }
+.assistance-dark { background: #334155; color: white; }
+.assistance-overexposed { background: #fef08a; color: #422006; }
+.assistance-blurry { background: #1e40af; color: white; }
+.assistance-camera_motion { background: #7e22ce; color: white; }
+.assistance-hands_not_detected { background: #9a3412; color: white; }
+.assistance-marker:focus-visible { outline: 3px solid #0891b2; outline-offset: 2px; }
+.assistance-marker:disabled { opacity: .6; cursor: default; }

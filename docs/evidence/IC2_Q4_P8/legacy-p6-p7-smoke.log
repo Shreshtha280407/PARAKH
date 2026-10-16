@@ -1,0 +1,24 @@
+1. login as assessor
+2. worker self-registration is idempotent
+3. resolve the pinned QP code/version to a server pack_id
+4. create the assessment (draft)
+5. build and upload a real ECDSA-signed manifest (2 items: T1 photo, T2 video)
+6. sync-status shows the manifest received, items still pending
+7. upload T1 photo evidence, cross-checked against the verified manifest
+8. a deliberately WRONG hash for T2 is rejected, local state would be retained (409)
+9. submit is correctly blocked until every declared item is verified
+10. now upload T2 with the CORRECT hash -- the manifest completes
+11. submit now succeeds -- the full package was verified complete
+12. the assessment records the device's pinned public key's revision
+13. assessor reviews: evidence is protected, playable, and scoreable
+14. audit log records the sync-specific actions, with old/new score on rescoring
+15b. score every T2 (CON/N0602) PC too, so reopening T2 below has real scores to flag needs_review on
+15. audit log is protected -- a worker token cannot read it
+16. assessor requests a targeted reassessment of T2 only, with a reason and capture instructions
+17. T1 (not reopened) is locked; T2 (reopened) accepts a fresh upload session
+18. v2 manifest re-declares T1 by reference (never re-uploaded) + a brand-new T2 item
+19. resubmit returns the assessment to 'submitted' and fulfils the reassessment request
+20. v1's T1 evidence and T1's original score remain exactly as they were (immutable)
+21. re-review T2's reopened PC (the T1 PC scored earlier needs no re-review); sign off
+22. public /verify/{report_id} confirms the v2 report; a tampered local copy fails offline verify
+ALL P6/P7 END-TO-END CHECKS PASSED

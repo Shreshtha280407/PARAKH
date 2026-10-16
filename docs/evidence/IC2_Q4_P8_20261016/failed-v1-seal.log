@@ -1,0 +1,90 @@
+INSTRUMENTATION_STATUS: class=in.kaushalpramaan.app.P8ValidationUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+in.kaushalpramaan.app.P8ValidationUiTest:
+INSTRUMENTATION_STATUS: test=production_ui_phase
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=in.kaushalpramaan.app.P8ValidationUiTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: State must be at least 'CREATED' to be moved to 'DESTROYED' in component NavBackStackEntry(9f563c62-53b8-4022-802f-e0155e609cf4) destination=Destination(0x3b3ab80e) route=submitted
+	at androidx.lifecycle.LifecycleRegistryKt.checkLifecycleStateTransition(LifecycleRegistry.kt:92)
+	at androidx.lifecycle.LifecycleRegistry.moveToState(LifecycleRegistry.jvm.kt:126)
+	at androidx.lifecycle.LifecycleRegistry.setCurrentState(LifecycleRegistry.jvm.kt:102)
+	at androidx.navigation.internal.NavBackStackEntryImpl.updateState$navigation_common_release(NavBackStackEntryImpl.kt:107)
+	at androidx.navigation.internal.NavBackStackEntryImpl.handleLifecycleEvent$navigation_common_release(NavBackStackEntryImpl.kt:92)
+	at androidx.navigation.NavBackStackEntry.handleLifecycleEvent(NavBackStackEntry.android.kt:116)
+	at androidx.navigation.internal.NavControllerImpl.lifecycleObserver$lambda$1(NavControllerImpl.kt:153)
+	at androidx.navigation.internal.NavControllerImpl$$ExternalSyntheticLambda3.onStateChanged(D8$$SyntheticClass:0)
+	at androidx.lifecycle.LifecycleRegistry$ObserverWithState.dispatchEvent(LifecycleRegistry.jvm.kt:313)
+	at androidx.lifecycle.LifecycleRegistry.backwardPass(LifecycleRegistry.jvm.kt:266)
+	at androidx.lifecycle.LifecycleRegistry.sync(LifecycleRegistry.jvm.kt:284)
+	at androidx.lifecycle.LifecycleRegistry.moveToState(LifecycleRegistry.jvm.kt:135)
+	at androidx.lifecycle.LifecycleRegistry.handleLifecycleEvent(LifecycleRegistry.jvm.kt:119)
+	at androidx.lifecycle.ReportFragment$Companion.dispatch$lifecycle_runtime_release(ReportFragment.android.kt:181)
+	at androidx.lifecycle.ReportFragment$LifecycleCallbacks.onActivityPreDestroyed(ReportFragment.android.kt:137)
+	at android.app.Activity.dispatchActivityPreDestroyed(Activity.java:1782)
+	at android.app.Activity.performDestroy(Activity.java:9719)
+	at android.app.Instrumentation.callActivityOnDestroy(Instrumentation.java:1576)
+	at androidx.test.runner.MonitoringInstrumentation.callActivityOnDestroy(MonitoringInstrumentation.java:753)
+	at android.app.ActivityThread.performDestroyActivity(ActivityThread.java:6780)
+	at android.app.ActivityThread.handleDestroyActivity(ActivityThread.java:6835)
+	at android.app.servertransaction.DestroyActivityItem.execute(DestroyActivityItem.java:52)
+	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:63)
+	at android.app.servertransaction.TransactionExecutor.executeLifecycleItem(TransactionExecutor.java:174)
+	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:106)
+	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:85)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:3130)
+	at android.os.Handler.dispatchMessage(Handler.java:116)
+	at android.os.Looper.loopOnce(Looper.java:306)
+	at android.os.Looper.loop(Looper.java:416)
+	at android.app.ActivityThread.main(ActivityThread.java:9999)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:613)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1074)
+
+INSTRUMENTATION_STATUS: stream=
+Process crashed while executing production_ui_phase(in.kaushalpramaan.app.P8ValidationUiTest):
+java.lang.IllegalStateException: State must be at least 'CREATED' to be moved to 'DESTROYED' in component NavBackStackEntry(9f563c62-53b8-4022-802f-e0155e609cf4) destination=Destination(0x3b3ab80e) route=submitted
+	at androidx.lifecycle.LifecycleRegistryKt.checkLifecycleStateTransition(LifecycleRegistry.kt:92)
+	at androidx.lifecycle.LifecycleRegistry.moveToState(LifecycleRegistry.jvm.kt:126)
+	at androidx.lifecycle.LifecycleRegistry.setCurrentState(LifecycleRegistry.jvm.kt:102)
+	at androidx.navigation.internal.NavBackStackEntryImpl.updateState$navigation_common_release(NavBackStackEntryImpl.kt:107)
+	at androidx.navigation.internal.NavBackStackEntryImpl.handleLifecycleEvent$navigation_common_release(NavBackStackEntryImpl.kt:92)
+	at androidx.navigation.NavBackStackEntry.handleLifecycleEvent(NavBackStackEntry.android.kt:116)
+	at androidx.navigation.internal.NavControllerImpl.lifecycleObserver$lambda$1(NavControllerImpl.kt:153)
+	at androidx.navigation.internal.NavControllerImpl$$ExternalSyntheticLambda3.onStateChanged(D8$$SyntheticClass:0)
+	at androidx.lifecycle.LifecycleRegistry$ObserverWithState.dispatchEvent(LifecycleRegistry.jvm.kt:313)
+	at androidx.lifecycle.LifecycleRegistry.backwardPass(LifecycleRegistry.jvm.kt:266)
+	at androidx.lifecycle.LifecycleRegistry.sync(LifecycleRegistry.jvm.kt:284)
+	at androidx.lifecycle.LifecycleRegistry.moveToState(LifecycleRegistry.jvm.kt:135)
+	at androidx.lifecycle.LifecycleRegistry.handleLifecycleEvent(LifecycleRegistry.jvm.kt:119)
+	at androidx.lifecycle.ReportFragment$Companion.dispatch$lifecycle_runtime_release(ReportFragment.android.kt:181)
+	at androidx.lifecycle.ReportFragment$LifecycleCallbacks.onActivityPreDestroyed(ReportFragment.android.kt:137)
+	at android.app.Activity.dispatchActivityPreDestroyed(Activity.java:1782)
+	at android.app.Activity.performDestroy(Activity.java:9719)
+	at android.app.Instrumentation.callActivityOnDestroy(Instrumentation.java:1576)
+	at androidx.test.runner.MonitoringInstrumentation.callActivityOnDestroy(MonitoringInstrumentation.java:753)
+	at android.app.ActivityThread.performDestroyActivity(ActivityThread.java:6780)
+	at android.app.ActivityThread.handleDestroyActivity(ActivityThread.java:6835)
+	at android.app.servertransaction.DestroyActivityItem.execute(DestroyActivityItem.java:52)
+	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:63)
+	at android.app.servertransaction.TransactionExecutor.executeLifecycleItem(TransactionExecutor.java:174)
+	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:106)
+	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:85)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:3130)
+	at android.os.Handler.dispatchMessage(Handler.java:116)
+	at android.os.Looper.loopOnce(Looper.java:306)
+	at android.os.Looper.loop(Looper.java:416)
+	at android.app.ActivityThread.main(ActivityThread.java:9999)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:613)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1074)
+
+INSTRUMENTATION_STATUS: test=production_ui_phase
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: shortMsg=Process crashed.
+INSTRUMENTATION_CODE: 0

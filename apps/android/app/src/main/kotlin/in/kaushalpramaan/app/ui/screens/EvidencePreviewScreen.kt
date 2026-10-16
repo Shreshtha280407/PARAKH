@@ -16,6 +16,8 @@ import android.net.Uri
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,7 +77,7 @@ fun EvidencePreviewScreen(
             return@KpScaffold
         }
 
-        Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             if (evidence.state == EvidenceDraftState.READY && evidence.finalState == FinalEvidenceState.SEALED) {
                 // Plaintext was deleted once sealing succeeded (spec G.5) -- only the
                 // encrypted vault copy remains; there is nothing left to preview in-app.
@@ -85,7 +87,7 @@ fun EvidencePreviewScreen(
                     modifier = Modifier.testTag("evidence_preview_sealed_notice"),
                 )
             } else if (evidence.state == EvidenceDraftState.READY) {
-                val file = remember(evidence.relativePath) { viewModel.evidenceFile(evidence) }
+                val file = remember(evidence.relativePath, evidence.finalRelativePath, evidence.finalState) { viewModel.evidenceFile(evidence) }
                 if (evidence.kind == EvidenceType.PHOTO) {
                     val bitmap = remember(file) { decodeSampledBitmap(file, 1024, 1024) }
                     bitmap?.let {
@@ -104,17 +106,23 @@ fun EvidencePreviewScreen(
                                 setOnPreparedListener { player -> player.start() }
                             }
                         },
+                        update = { video ->
+                            if (video.tag != file.absolutePath) {
+                                video.tag = file.absolutePath
+                                video.setVideoURI(Uri.fromFile(file))
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth().aspectRatio(3f / 4f).testTag("evidence_preview_video"),
                     )
                 }
             }
 
             Text(
-                stringResource(R.string.evidence_preview_size_label, formatMb(evidence.byteSize)),
+                stringResource(R.string.evidence_preview_size_label, formatMb(evidence.finalBytes ?: evidence.byteSize)),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 12.dp).testTag("evidence_preview_size"),
             )
-            evidence.durationMillis?.let {
+            (evidence.finalDurationMillis ?: evidence.durationMillis)?.let {
                 Text(
                     stringResource(R.string.evidence_preview_duration_label, formatDuration(it)),
                     style = MaterialTheme.typography.bodyMedium,
@@ -127,7 +135,16 @@ fun EvidencePreviewScreen(
                 )
             }
 
-            if (uiState.sealState.isEditable()) {
+            val canEdit = uiState.sealState.isEditable() && uiState.taskDrafts[evidence.taskId]?.locked != true && !evidence.fromPreviousRevision
+            `in`.kaushalpramaan.app.ui.components.AssistanceCard(
+                record = uiState.assistanceByEvidence[evidence.id]?.takeIf {
+                    evidence.finalState == FinalEvidenceState.SEALED || it.inputPath == `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator.inputPath(evidence)
+                },
+                sealed = evidence.finalState == FinalEvidenceState.SEALED,
+                onRetry = if (canEdit) ({ viewModel.retryAssistance(evidence.id) }) else null,
+                onCancel = if (canEdit) ({ viewModel.cancelAssistance(evidence.id) }) else null,
+            )
+            if (canEdit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 16.dp)) {
                     OutlinedButton(
                         onClick = { onRetake(evidence.taskId, evidence.id) },

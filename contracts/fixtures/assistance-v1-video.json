@@ -1,0 +1,89 @@
+{
+  "contractVersion": 1,
+  "source": "ON_DEVICE",
+  "assessmentId": "fixture-assessment",
+  "taskId": "T1",
+  "evidenceId": "fixture-video",
+  "revisionId": "fixture-revision",
+  "revisionNumber": 1,
+  "mediaSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "durationMs": 5000,
+  "status": "COMPLETED",
+  "quality": {
+    "status": "COMPLETED",
+    "provenance": {
+      "moduleVersion": "quality-technical-v1",
+      "profileVersion": "test-privacy-safe-v1",
+      "profileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "modelSha256": null,
+      "sampleIntervalMs": 1000
+    },
+    "coverage": {
+      "requestedSamples": 10,
+      "analysedSamples": 10,
+      "coveredDurationMs": 5000,
+      "motionRequestedPairs": 5,
+      "motionAnalysedPairs": 5
+    },
+    "reviewRecommended": true,
+    "visibleRatio": null,
+    "visibleRatioGapFilled": null
+  },
+  "hands": {
+    "status": "COMPLETED",
+    "provenance": {
+      "moduleVersion": "hands-presence-v1",
+      "profileVersion": "test-privacy-safe-v1",
+      "profileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "modelSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "sampleIntervalMs": 1000
+    },
+    "coverage": {
+      "requestedSamples": 5,
+      "analysedSamples": 5,
+      "coveredDurationMs": 5000,
+      "motionRequestedPairs": 0,
+      "motionAnalysedPairs": 0
+    },
+    "reviewRecommended": null,
+    "visibleRatio": 0.6,
+    "visibleRatioGapFilled": 0.8
+  },
+  "flags": [
+    {
+      "type": "DARK",
+      "startMs": 0,
+      "endMs": 1000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "BLURRY",
+      "startMs": 1000,
+      "endMs": 3000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "CAMERA_MOTION",
+      "startMs": 1000,
+      "endMs": 2000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "HANDS_NOT_DETECTED",
+      "startMs": 4000,
+      "endMs": 5000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    }
+  ],
+  "completedAtMillis": 1000,
+  "errorCategory": null,
+  "intervalsTruncated": false
+}

@@ -44,6 +44,45 @@ export interface EvidenceReceiptOut {
   // Device-reported, NOT independently verified -- never show this as if it
   // were a verified capture time (see models.EvidenceItem.device_captured_at).
   device_captured_at: string | null;
+  quality_check_status: string;
+  assistance: AssistanceSnapshot | null;
+}
+
+export type AssistanceStatus = "NOT_RUN" | "QUEUED" | "RUNNING" | "COMPLETED" | "PARTIAL" | "FAILED" | "UNAVAILABLE";
+export type AssistanceFlagType = "DARK" | "OVEREXPOSED" | "BLURRY" | "CAMERA_MOTION" | "HANDS_NOT_DETECTED";
+export interface AssistanceFlag {
+  type: AssistanceFlagType;
+  startMs: number;
+  endMs: number | null;
+  severity: "review";
+  observed: number | null;
+  threshold: number | null;
+}
+export interface AssistanceAnalysis {
+  status: AssistanceStatus;
+  provenance: { moduleVersion: string; profileVersion: string; profileSha256: string; modelSha256: string | null; sampleIntervalMs: 1000 } | null;
+  coverage: { requestedSamples: number; analysedSamples: number; coveredDurationMs: number; motionRequestedPairs: number; motionAnalysedPairs: number };
+  reviewRecommended: boolean | null;
+  visibleRatio: number | null;
+  visibleRatioGapFilled: number | null;
+}
+export interface AssistanceSnapshot {
+  contractVersion: 1;
+  source: "ON_DEVICE";
+  assessmentId: string;
+  taskId: string;
+  evidenceId: string;
+  revisionId: string;
+  revisionNumber: number;
+  mediaSha256: string;
+  durationMs: number | null;
+  status: AssistanceStatus;
+  quality: AssistanceAnalysis | null;
+  hands: AssistanceAnalysis | null;
+  flags: AssistanceFlag[];
+  completedAtMillis: number | null;
+  errorCategory: string | null;
+  intervalsTruncated: boolean;
 }
 
 export interface AssessmentTaskOut {

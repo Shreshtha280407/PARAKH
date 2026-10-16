@@ -1,0 +1,17 @@
+{
+  "runId": "p8-native-38926584918743",
+  "assessmentId": 16,
+  "historicalVideoEvidenceId": 33,
+  "currentVideoEvidenceId": 34,
+  "photoEvidenceId": 32,
+  "analysisWallMsByEvidence": {
+    "e90e8520-0552-4f7d-9a20-5747a48e9308": 69,
+    "dba3e2e8-4784-458a-9f56-5f5456996c42": 866,
+    "66a5f6c9-e26e-440f-9856-f9c46d62eb8c": 750
+  },
+  "verdict": "PASS",
+  "source": {
+    "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+    "integration_source_sha256": "a5727df00cc6124b78b81cb50495312a9faf0a8dd5531ab2af76ab9f781b5537"
+  }
+}

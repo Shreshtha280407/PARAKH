@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
+from .assistance import validate_snapshot
 
 # Matches apps/android/core/seal/.../ManifestSigner.kt's SIGNATURE_ALGORITHM.
 # A manifest declaring any other algorithm name is rejected outright -- this
@@ -99,7 +100,7 @@ def _load_ec_public_key(public_key_b64: str) -> ec.EllipticCurvePublicKey:
     return key
 
 
-def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) -> ParsedManifest:
+def _parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) -> ParsedManifest:
     """Parse a SignedManifestPackage JSON envelope, verify its ECDSA
     signature, then parse the canonical manifest bytes it wraps. Raises
     ManifestVerificationError on any failure -- the caller is responsible
@@ -114,7 +115,7 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
     if len(envelope_bytes) > MANIFEST_MAX_BYTES:
         raise ManifestVerificationError(f"manifest envelope exceeds the {MANIFEST_MAX_BYTES}-byte ceiling")
     try:
-        envelope = json.loads(envelope_bytes.decode("utf-8"))
+        envelope = json.loads(envelope_bytes.decode("utf-8"), object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ManifestVerificationError(f"manifest envelope is not valid UTF-8 JSON: {e}") from e
     if not isinstance(envelope, dict):
@@ -140,11 +141,14 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
     sha256_hex = hashlib.sha256(canonical_bytes).hexdigest()
 
     try:
-        manifest = json.loads(canonical_bytes.decode("utf-8"))
+        manifest = json.loads(canonical_bytes.decode("utf-8"), object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         raise ManifestVerificationError(f"signed manifest bytes are not valid UTF-8 JSON: {e}") from e
     if not isinstance(manifest, dict):
         raise ManifestVerificationError("signed manifest must be a JSON object")
+    version = manifest.get("schemaVersion", 1)  # pre-P6 test/legacy envelopes omitted it
+    if type(version) is not int or version not in (1, 2):
+        raise ManifestVerificationError("unsupported manifest schemaVersion")
 
     for field in ("assessmentId", "revisionId", "idempotencyKey", "evidence", "taskTotals", "assessmentFinalBytes"):
         if field not in manifest:
@@ -164,11 +168,16 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
         )
 
     items: list[dict] = []
+    seen_ids: set[str] = set()
     for raw in manifest["evidence"]:
         for field in ("evidenceId", "taskId", "kind", "bytes", "sha256"):
             if field not in raw:
                 raise ManifestVerificationError(f"manifest evidence entry missing required field '{field}'")
         captured_at_millis = raw.get("capturedAtMillis")
+        evidence_id = str(raw["evidenceId"])
+        if evidence_id in seen_ids:
+            raise ManifestVerificationError("duplicate evidenceId")
+        seen_ids.add(evidence_id)
         items.append({
             "evidence_id": str(raw["evidenceId"]),
             "task_code": str(raw["taskId"]),
@@ -181,6 +190,12 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
             # EvidenceItem.device_captured_at's docstring in models.py.
             "captured_at_millis": int(captured_at_millis) if isinstance(captured_at_millis, (int, float)) else None,
         })
+        if raw.get("assistance") is not None:
+            if version != 2:
+                raise ManifestVerificationError("assistance requires manifest schemaVersion 2")
+            items[-1]["assistance"] = validate_snapshot(raw["assistance"], assessment_id=manifest_assessment_id,
+                revision_id=revision_id, item=raw)
+            items[-1]["duration_ms"] = raw.get("durationMillis")
 
     task_totals = {
         str(t["taskId"]): int(t["finalBytes"])
@@ -217,3 +232,26 @@ def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) 
         declared_gap_task_codes=list(gap_codes) if isinstance(gap_codes, list) else None,
         declared_match_reasons=parsed_match_reasons,
     )
+
+
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON object key")
+        result[key] = value
+    return result
+
+
+def _invalid_constant(value):
+    raise ValueError("non-finite JSON number")
+
+
+def parse_and_verify_envelope(envelope_bytes: bytes, expected_revision_id: str) -> ParsedManifest:
+    try:
+        return _parse_and_verify_envelope(envelope_bytes, expected_revision_id)
+    except ManifestVerificationError:
+        raise
+    except (ValueError, TypeError, KeyError, AttributeError, OverflowError, RecursionError) as exc:
+        # Never include raw submitted metadata or private identifiers in errors/logs.
+        raise ManifestVerificationError("malformed manifest or assistance contract") from exc

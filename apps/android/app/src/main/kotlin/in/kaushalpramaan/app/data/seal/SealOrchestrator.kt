@@ -75,6 +75,7 @@ class SealOrchestrator(
     private val vaultKeysetProvider: VaultKeysetProvider,
     private val appVersion: String,
     private val signingKeyAlias: String = "kp_seal_signing_key",
+    private val assistance: `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator? = null,
 ) {
     /** [debugForcedTotalBudgetBytes] is the debug-only `P5_TEST_ONLY` virtual-remaining-budget
      * override (spec part D.6): routed through this exact same production ledger
@@ -184,6 +185,7 @@ class SealOrchestrator(
 
             val updated = processOneItem(assessmentId, item, allowedBytes)
             evidenceDraftDao.update(updated)
+            assistance?.schedule(updated.id)
             if (updated.finalState == FinalEvidenceState.QUALITY_FLOOR_EXCEEDED) anyFloorExceeded = true
             Log.d(LOG_TAG, "process_item task=${item.taskId} kind=${item.kind} result=${updated.finalState}")
         }
@@ -225,15 +227,22 @@ class SealOrchestrator(
             }
         } else {
             when (val result = videoOptimizer.optimize(rawFile, allowedBytes, tempDir)) {
-                is VideoOptimizationResult.KeptAsIs -> item.copy(
-                    finalState = FinalEvidenceState.FITS_AS_IS,
-                    finalRelativePath = item.relativePath,
-                    finalBytes = result.bytes,
-                    finalMimeType = "video/mp4",
-                    finalWidthPx = item.widthPx,
-                    finalHeightPx = item.heightPx,
-                    finalDurationMillis = item.durationMillis,
-                )
+                is VideoOptimizationResult.KeptAsIs -> {
+                    // A recovered/older capture may lack metadata even though its
+                    // container is valid. Use the validated final media's metadata so
+                    // absent capture metadata cannot turn AI into a submission blocker.
+                    val recovered = if (item.durationMillis == null || item.widthPx == null || item.heightPx == null)
+                        videoOptimizer.validateContainer(result.file) else null
+                    item.copy(
+                        finalState = FinalEvidenceState.FITS_AS_IS,
+                        finalRelativePath = item.relativePath,
+                        finalBytes = result.bytes,
+                        finalMimeType = "video/mp4",
+                        finalWidthPx = item.widthPx ?: recovered?.widthPx,
+                        finalHeightPx = item.heightPx ?: recovered?.heightPx,
+                        finalDurationMillis = item.durationMillis ?: recovered?.durationMs,
+                    )
+                }
                 is VideoOptimizationResult.Optimized -> item.copy(
                     finalState = FinalEvidenceState.OPTIMIZED,
                     finalRelativePath = fileManager.relativePathOf(result.file),
@@ -265,6 +274,7 @@ class SealOrchestrator(
         val tempDir = fileManager.optimizationTempDir(assessmentId, item.taskId)
         val trimmed = videoOptimizer.trim(sourceFile, startMs, endMs, tempDir) ?: return false
         val trimmedInfo = videoOptimizer.validateContainer(trimmed) ?: return false
+        assistance?.cancel(evidenceId)
 
         sourceFile.delete()
         item.finalRelativePath?.let { if (it != item.relativePath) fileManager.resolveRelativePath(it).delete() }
@@ -293,6 +303,7 @@ class SealOrchestrator(
             if (it.sealState == SealState.FINAL_REVIEW_READY) assessmentDraftDao.update(it.copy(sealState = SealState.DRAFT_EDITABLE))
         }
         Log.d(LOG_TAG, "trim_video task=${item.taskId} result=success newBytes=${trimmedInfo.bytes}")
+        assistance?.schedule(evidenceId, retry = true)
         return true
     }
 
@@ -363,13 +374,14 @@ class SealOrchestrator(
                 heightPx = item.finalHeightPx,
                 processing = item.finalState.name,
                 capturedAtMillis = item.createdAtMillis,
+                assistance = assistance?.snapshot(item, sha256, revisionId, assessment.currentRevisionNumber),
             )
         }
         val taskTotals = rules.tasksFile.tasks.map { task ->
             ManifestTaskTotal(task.id, manifestItems.filter { it.taskId == task.id }.sumOf { it.bytes }, task.budgetBytes)
         }
         val manifest = SealManifest(
-            schemaVersion = 1,
+            schemaVersion = 2,
             assessmentId = assessmentId,
             revisionId = revisionId,
             qpCode = assessment.qpCode,
@@ -388,7 +400,12 @@ class SealOrchestrator(
             signerPublicKeyBase64 = publicKeyBase64,
             declarationSummary = buildDeclarationSummary(assessment),
         )
-        val canonicalBytes = manifest.canonicalJsonBytes()
+        val boundedManifest = try { manifest.withBoundedAssistance() } catch (_: IllegalArgumentException) {
+            assessmentDraftDao.getById(assessmentId)?.let { assessmentDraftDao.update(it.copy(sealState = SealState.FINAL_REVIEW_READY)) }
+            return SealOutcome.VerificationFailed
+        }
+        boundedManifest.evidence.mapNotNull { it.assistance }.forEach { assistance?.storeBoundedSnapshot(it) }
+        val canonicalBytes = boundedManifest.canonicalJsonBytes()
         val signature = ManifestSigner.sign(canonicalBytes, signingKey.privateKey)
         if (!ManifestSigner.verify(canonicalBytes, signature, signingKey.certificate.publicKey)) {
             // Unreachable in practice (we just signed it with the matching key) -- fail
@@ -683,6 +700,7 @@ class SealOrchestrator(
                 heightPx = item.finalHeightPx,
                 processing = item.finalState.name,
                 capturedAtMillis = item.createdAtMillis,
+                assistance = assistance?.snapshot(item, sha256, revisionId, assessment.currentRevisionNumber),
             )
         }
         val inheritedManifestItems = inheritedItems.map { item ->
@@ -699,6 +717,7 @@ class SealOrchestrator(
                 heightPx = item.finalHeightPx,
                 processing = "INHERITED",
                 capturedAtMillis = item.createdAtMillis,
+                assistance = assistance?.inherited(item),
             )
         }
         val allManifestItems = newManifestItems + inheritedManifestItems
@@ -706,7 +725,7 @@ class SealOrchestrator(
             ManifestTaskTotal(task.id, allManifestItems.filter { it.taskId == task.id }.sumOf { it.bytes }, task.budgetBytes)
         }
         val manifest = SealManifest(
-            schemaVersion = 1,
+            schemaVersion = 2,
             assessmentId = assessmentId,
             revisionId = revisionId,
             qpCode = assessment.qpCode,
@@ -725,7 +744,13 @@ class SealOrchestrator(
             signerPublicKeyBase64 = publicKeyBase64,
             declarationSummary = buildDeclarationSummary(assessment),
         )
-        val canonicalBytes = manifest.canonicalJsonBytes()
+        val boundedManifest = try { manifest.withBoundedAssistance() } catch (_: IllegalArgumentException) {
+            assessmentDraftDao.getById(assessmentId)?.let { assessmentDraftDao.update(it.copy(sealState = SealState.FINAL_REVIEW_READY)) }
+            return SealOutcome.VerificationFailed
+        }
+        boundedManifest.evidence.filter { it.processing != "INHERITED" }.mapNotNull { it.assistance }
+            .forEach { assistance?.storeBoundedSnapshot(it) }
+        val canonicalBytes = boundedManifest.canonicalJsonBytes()
         val signature = ManifestSigner.sign(canonicalBytes, signingKey.privateKey)
         if (!ManifestSigner.verify(canonicalBytes, signature, signingKey.certificate.publicKey)) {
             Log.e(LOG_TAG, "seal_targeted_revision result=failed category=self_verification_failed")

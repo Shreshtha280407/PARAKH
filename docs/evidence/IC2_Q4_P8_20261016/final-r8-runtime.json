@@ -1,0 +1,8 @@
+{
+  "verdict": "PASS",
+  "package": "in.kaushalpramaan.app.p8validation",
+  "modelProbe": "MODEL_INITIALISED",
+  "encryptedStateReopen": true,
+  "allFrozenSnapshotsUnchanged": true,
+  "revision": 2
+}

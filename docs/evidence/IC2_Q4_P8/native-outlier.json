@@ -1,0 +1,18 @@
+{
+  "runId": "p8-native-36179484484426",
+  "assessmentId": 13,
+  "historicalVideoEvidenceId": 24,
+  "currentVideoEvidenceId": 25,
+  "photoEvidenceId": 23,
+  "analysisWallMsByEvidence": {
+    "e857ecd1-e561-4c0b-98a9-816456226837": 121,
+    "4c47c508-b64d-46e6-af1e-7155e619a98c": 189353,
+    "9e2c432e-3b8b-470a-8594-fb9d81acdfc7": 1035
+  },
+  "verdict": "PASS",
+  "source": {
+    "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+    "integration_source_sha256": "178248cfbc54e3427900335541eefa1732d534e4fe275a2ba7c22d1de515aec0"
+  },
+  "runCaveat": "Combined run had two initial offline setup failures; slow first video timing included a diagnostic SIGQUIT. Not a clean benchmark."
+}

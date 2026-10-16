@@ -1,0 +1,21 @@
+{
+  "preExistingFiles": 65,
+  "unchanged": 64,
+  "missing": 0,
+  "changed": 1,
+  "changedFiles": [
+    "files/profileInstalled"
+  ],
+  "mainDatabaseUnchanged": true,
+  "explanation": "Only Android ProfileInstaller marker changes with APK replacement; existing evidence preserved.",
+  "originalSettings": {
+    "airplaneMode": 0,
+    "wifiOn": 0,
+    "mobileData": 1
+  },
+  "restoredSettings": {
+    "airplaneMode": 0,
+    "wifiOn": 0,
+    "mobileData": 1
+  }
+}

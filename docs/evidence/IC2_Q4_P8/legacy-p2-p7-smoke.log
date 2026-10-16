@@ -1,0 +1,17 @@
+1. login as assessor
+2. create assessment (draft)
+3. upload evidence to T1, server-verified SHA-256
+4. evidence content is served back byte-for-byte (dual auth: worker token)
+5. worker submits -- evidence locked after this
+6. assessor starts review
+7. score one performance criterion
+8. competency profile is decision support only
+9. computed outcome (decision support only, never auto-certifies)
+10. password-confirmed sign-off produces the one, immutable, Ed25519-signed PDF
+11. the stored PDF downloads with real %PDF magic bytes and the required disclaimer
+12. public /verify/{report_id} confirms it, with no auth at all, minimal safe fields only
+12b. legacy /reports/{assessment_id}/verify still works too
+13. reassess is correctly rejected outside needs_reassessment
+14. a second assessment routed to needs_reassessment IS reassessable, original untouched
+15. worker token rotate invalidates the old one; revoke disables it entirely
+ALL P2.2/P7 END-TO-END CHECKS PASSED

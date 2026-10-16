@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-16",
+  "baseHead": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd",
+  "branch": "main",
+  "committed": false,
+  "pushed": false,
+  "source": {
+    "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+    "integration_source_sha256": "01b0c987675d5bc32572e6acea89b027729f8890f73b674a0eb364cc3883ac4f"
+  },
+  "artifacts": {
+    "ui-app.apk": {
+      "bytes": 95996227,
+      "sha256": "111fcf77e38ce16524bcdc6cd73e2f54983cec9716e88b6363ca0b5cb9c6fd51",
+      "source": {
+        "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+        "integration_source_sha256": "b721eeb56ff5e5fc0f8331e1d0f9fe3c88bcf47599da37157fb20c0a1974f65c"
+      }
+    },
+    "ui-test.apk": {
+      "bytes": 1542846,
+      "sha256": "96c0e94c1df96001ddf796a4734e204ac0c2b9d9d720e70b6f61276d2a66917c"
+    },
+    "r8-app.apk": {
+      "bytes": 77083057,
+      "sha256": "480303209d8588f7240eb86172f331be0bb8488bed297806830ba74a57a6ef84",
+      "source": {
+        "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+        "integration_source_sha256": "5904167beb41ac0d6cdd6625b70ee90b112d8b100c48564efd4ce3b2eb46f308"
+      }
+    },
+    "final-r8-app.apk": {
+      "bytes": 75646091,
+      "sha256": "892fa8ce458aefeb175210a5c8b65ebbb81c21a85755868e65073ee96a7bf241",
+      "source": {
+        "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+        "integration_source_sha256": "01b0c987675d5bc32572e6acea89b027729f8890f73b674a0eb364cc3883ac4f"
+      }
+    },
+    "final-normal-debug.apk": {
+      "bytes": 95996159,
+      "sha256": "011051a52c6bc3e5fc54967e707ca7a239276185ca3c115334e9b66270c73e7e",
+      "source": {
+        "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+        "integration_source_sha256": "01b0c987675d5bc32572e6acea89b027729f8890f73b674a0eb364cc3883ac4f"
+      }
+    },
+    "final-normal-release.apk": {
+      "bytes": 87088508,
+      "sha256": "8477d76ed56bd5e7248a913736cec39e791f9482d45acb0513969a23d7d606c9",
+      "source": {
+        "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+        "integration_source_sha256": "01b0c987675d5bc32572e6acea89b027729f8890f73b674a0eb364cc3883ac4f"
+      }
+    }
+  },
+  "androidUnitTests": 190,
+  "backendFullPreviouslyPassed": 278,
+  "backendAssistanceFreshPassed": 43,
+  "priorPhysicalIsolatedTestsPassed": 23,
+  "newPhysicalUiPhasesPassed": 10,
+  "newUiPhasesAreSeparateInvocations": true,
+  "failedEarlierAttemptsRetainedAndExplained": true,
+  "osAnalysisProcessRecovery": "PASS",
+  "osUploadProcessRecovery": "PASS",
+  "cameraCaptureToReview": "PASS",
+  "q4FunctionalIntegration": "PASS",
+  "p8FunctionalIntegration": "PASS",
+  "p8Exits": {
+    "A": "NOT VERIFIED",
+    "B": "NOT VERIFIED",
+    "C": "PASS",
+    "D": "PASS",
+    "E": "PASS"
+  },
+  "originalIc2Acceptance": "FAIL",
+  "threePhoneFieldRun": "NOT VERIFIED",
+  "entryMidHardware": "NOT VERIFIED",
+  "independentHoldout": "NOT VERIFIED",
+  "hostedCi": "NOT RUN",
+  "overall": "PARTIALLY COMPLETE",
+  "completeOwnerAcceptance": "INCOMPLETE"
+}

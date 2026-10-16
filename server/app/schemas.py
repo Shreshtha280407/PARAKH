@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from .assistance import AssistanceSnapshot
 
 EvidenceKind = Literal["photo", "video"]
 
@@ -118,6 +119,8 @@ class EvidenceReceiptOut(BaseModel):
     # models.EvidenceItem.device_captured_at. None means "not recorded",
     # never substitute created_at (server receipt time) for it.
     device_captured_at: datetime.datetime | None = None
+    quality_check_status: str = "not_run"
+    assistance: AssistanceSnapshot | None = None
 
 
 class AssessmentTaskOut(BaseModel):

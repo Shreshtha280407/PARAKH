@@ -52,6 +52,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private fun EvidenceDraftEntity.effectiveBytes(): Long = finalBytes ?: byteSize
 
@@ -104,6 +106,8 @@ fun PreviewScreen(
                 progress = { if (totalBudget > 0) (totalUsed.toFloat() / totalBudget).coerceIn(0f, 1f) else 0f },
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp),
             )
+            Text(stringResource(R.string.assistance_overall_review), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.assistance_advisory), style = MaterialTheme.typography.bodySmall)
 
             if (BuildConfigP5ForceOptimizeEnabled()) {
                 DebugForcedBudgetControl(
@@ -149,6 +153,13 @@ fun PreviewScreen(
                                     editable = uiState.sealState.isEditable() && !taskLocked && !item.fromPreviousRevision,
                                     onOpen = { onPreviewEvidence(item.id) },
                                     onTrim = { onTrimEvidence(item.id) },
+                                )
+                                `in`.kaushalpramaan.app.ui.components.AssistanceCard(
+                                    record = uiState.assistanceByEvidence[item.id]?.takeIf {
+                                        item.finalState == FinalEvidenceState.SEALED || it.inputPath == `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator.inputPath(item)
+                                    },
+                                    sealed = item.finalState == FinalEvidenceState.SEALED,
+                                    compact = true,
                                 )
                             }
                         }
@@ -230,7 +241,10 @@ fun PreviewScreen(
                     onClick = {
                         scope.launch {
                             when (val outcome = viewModel.seal()) {
-                                SealOutcome.Sealed -> onSubmitted()
+                                // Match capture/delete navigation: sealing includes
+                                // Room/IO suspensions, while NavController lifecycle
+                                // transitions must always execute on Android's main thread.
+                                SealOutcome.Sealed -> withContext(Dispatchers.Main.immediate) { onSubmitted() }
                                 SealOutcome.ItemsNotReady, SealOutcome.NotReady -> sealErrorMessage = R.string.final_review_item_exceeds_budget
                                 SealOutcome.AttestationRequired -> sealErrorMessage = R.string.action_submit_disabled_hint
                                 SealOutcome.NoEvidence -> sealErrorMessage = R.string.preview_empty_task

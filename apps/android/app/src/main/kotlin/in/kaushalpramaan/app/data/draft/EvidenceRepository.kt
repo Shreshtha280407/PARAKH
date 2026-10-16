@@ -55,6 +55,7 @@ class EvidenceRepository(
     private val evidenceDraftDao: EvidenceDraftDao,
     private val fileManager: EvidenceFileManager,
     private val rules: Rules,
+    private val assistance: `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator? = null,
 ) {
     fun observeActiveAssessment(): Flow<AssessmentDraftEntity?> = assessmentDraftDao.observeActive()
 
@@ -275,6 +276,7 @@ class EvidenceRepository(
             deleteEvidenceInternal(oldId)
             evidenceDraftDao.update(readyRow.copy(replacesEvidenceId = null))
         }
+        assistance?.schedule(readyRow.id)
         return FinalizeResult.Ready(readyRow)
     }
 
@@ -340,12 +342,14 @@ class EvidenceRepository(
 
         assessmentDraftDao.getActiveOnce()?.let { a ->
             taskDraftDao.getAllOnce(a.id).forEach { recomputeTaskDraft(a.id, it.taskId) }
+            assistance?.recover(a.id)
         }
         Log.d(LOG_TAG, "reconcile_on_launch result=completed")
     }
 
     private suspend fun deleteEvidenceInternal(evidenceId: String) {
         val row = evidenceDraftDao.getById(evidenceId) ?: return
+        assistance?.cancel(evidenceId)
         if (row.state != EvidenceDraftState.DELETED) {
             evidenceDraftDao.markDeleted(evidenceId)
         }
@@ -355,6 +359,7 @@ class EvidenceRepository(
     }
 
     private suspend fun finishDeletingAssessment(assessmentId: String) {
+        evidenceDraftDao.getAllForAssessmentOnce(assessmentId).forEach { assistance?.cancel(it.id) }
         fileManager.deleteAssessmentTree(assessmentId)
         fileManager.deleteP5TempTree(assessmentId)
         evidenceDraftDao.hardDeleteAllForAssessment(assessmentId)

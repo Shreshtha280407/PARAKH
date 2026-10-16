@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-15",
+  "baseHead": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd",
+  "branch": "main",
+  "committed": false,
+  "pushed": false,
+  "source": {
+    "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+    "integration_source_sha256": "a5727df00cc6124b78b81cb50495312a9faf0a8dd5531ab2af76ab9f781b5537"
+  },
+  "apk": {
+    "debug": {
+      "bytes": 96845785,
+      "sha256": "19fd59c496f9b8ae54b6a586ecb00aee003ea94150f73d3df786e08f505d2bcb"
+    },
+    "release": {
+      "bytes": 87088508,
+      "sha256": "2582031f7ea943d47aededa148712d8ddb6acd1daf53966da27d4e68cb9cac58"
+    }
+  },
+  "androidUnitTests": 190,
+  "backendTests": 278,
+  "assistancePythonTests": 21,
+  "physicalTests": {
+    "passed": 23,
+    "failed": 0,
+    "ignored": 0,
+    "seconds": 22.084,
+    "device": "OnePlus 13R CPH2691",
+    "androidVersion": "16",
+    "api": 36,
+    "serial": "d34cebae",
+    "runId": "p8-native-38926584918743",
+    "inferenceOfflineAsserted": true,
+    "syntheticInputs": true,
+    "encryptedMigration": true,
+    "productionDatabaseOpened": false,
+    "cameraXCaptureVerified": false,
+    "fullWorkerNavigationVerified": false,
+    "productionWorkManagerProcessRecoveryVerified": false,
+    "realWorkManagerNativeExecution": true
+  },
+  "browserBoundaryChecks": 19,
+  "browserNativeChecks": 5,
+  "nativeApiSignedUploadAndReassessment": "PASS",
+  "signedFlagPersistence": "PASS",
+  "dashboardMarkers": "PASS",
+  "fullWorkerProductPath": "NOT VERIFIED",
+  "p8ExitA": "NOT VERIFIED",
+  "p8ExitB": "NOT VERIFIED",
+  "p8ExitC": "PASS",
+  "p8ExitD": "Native API/backend PASS; full UI NOT VERIFIED",
+  "p8ExitE": "NOT VERIFIED as complete capture/offline-to-online sync exit",
+  "threePhoneFieldRun": "NOT VERIFIED",
+  "independentHoldout": "NOT VERIFIED",
+  "originalIc2Acceptance": "FAIL",
+  "q3InheritedAgreementPercent": 75.8,
+  "representativeEntryAndMidHardware": "NOT VERIFIED",
+  "overall": "PARTIALLY COMPLETE",
+  "combinedPhase": "INCOMPLETE",
+  "limitations": [
+    "Synthetic native APIs do not demonstrate full CameraX/worker-screen navigation or production WorkManager process restart.",
+    "No new ten-bad/ten-good independent field captures.",
+    "No three-phone or entry/mid-range physical evaluation.",
+    "Intermediate diagnostic-contaminated native timing outlier retained separately.",
+    "Hosted GitHub Actions not run; final current-source Compose tests used cached images with read-only mounts after registry DNS failed."
+  ],
+  "q4FunctionalApiIntegration": "PASS",
+  "p8FunctionalApiIntegration": "PASS",
+  "p8ExitTests": "NOT VERIFIED",
+  "browserChannel": "Google Chrome",
+  "hostedCi": "NOT RUN"
+}

@@ -94,6 +94,8 @@ jobs:
         run: python -m pytest server/tests -v
       - name: OpenAPI contract must be up to date
         run: python tools/export_openapi.py --check
+      - name: Signed assistance JSON Schema must be up to date
+        run: python tools/export_flags_schema.py --check
 
   android-core-mapping-tests:
     name: Q-1/P-3 Kotlin matcher parity (core:mapping)
@@ -223,14 +225,29 @@ jobs:
         run: |
           python3 tools/verify_assistance_assets.py --require-calibrated \
             --apk apps/android/assist-benchmark/build/outputs/apk/debug/assist-benchmark-debug.apk \
-            --apk apps/android/assist-benchmark/build/outputs/apk/release/assist-benchmark-release-unsigned.apk
+            --apk apps/android/assist-benchmark/build/outputs/apk/release/assist-benchmark-release-unsigned.apk \
+            --apk apps/android/app/build/outputs/apk/debug/app-debug.apk \
+            --apk apps/android/app/build/outputs/apk/release/app-release-unsigned.apk
+      # Runs after the normal debug artifact/asset checks: this opt-in replaces
+      # local debug outputs with a separate applicationId, never a release APK.
+      - name: Compile isolated physical UI harness
+        working-directory: apps/android
+        run: ./gradlew -Pp8Validation=true :app:assembleDebug :app:assembleDebugAndroidTest :app:verifyMergedManifestHasExpectedNetworkPermissions --console=plain
+      # Compose instrumentation and the target share stdlib/Compose APIs across
+      # APKs. Run it on the normal production-equivalent build. The independently
+      # shrunk APK is exercised by the host during OS process-recovery validation.
+      - name: Build isolated R8 runtime validation APK
+        working-directory: apps/android
+        run: ./gradlew -Pp8Validation=true -Pp8ValidationShrink=true :app:assembleDebug --console=plain
+      - name: Verify bundled assistance assets survive shrinking
+        run: python3 tools/verify_assistance_assets.py --require-calibrated --apk apps/android/app/build/outputs/apk/debug/app-debug.apk
     # Real-device-only coverage (CameraX capture, Media3 Transformer video transcoding, real
     # AndroidKeyStore ECDSA signing, real Tink StreamingAead vault encryption, SQLCipher's
     # native library, and P6's real-Keystore-backed sync tests) is NOT run on GitHub-hosted
-    # runners -- nested KVM virtualization for an Android emulator is unavailable/unreliable
-    # there, and several of these primitives (AndroidKeyStore in particular) do not exist in
-    # any emulator either, only real hardware. This is a platform constraint, not an
-    # incomplete P3/P4/P5/P6 feature: the instrumented tests exist (apps/android/app/src/
+    # runners in this workflow: no emulator or physical device is configured here.
+    # An emulator can exercise software-backed AndroidKeyStore and lifecycle behavior,
+    # but cannot establish real-phone camera, hardware-key or device-tier performance.
+    # The instrumented tests exist (apps/android/app/src/
     # androidTest, apps/android/media/src/androidTest, apps/android/core/seal/src/androidTest)
     # and the commands below reproduce them exactly, run locally against a real physical
     # device.
@@ -259,6 +276,13 @@ jobs:
       - name: Build (tsc -b && vite build -- fails on type errors)
         working-directory: apps/dashboard
         run: npm run build
+      - name: Dashboard lint
+        working-directory: apps/dashboard
+        run: npm run lint
+      - name: Validate physical harness syntax without requiring a device
+        run: |
+          python3 -m py_compile tools/p8_device_ui.py tools/p8_network_proxy.py
+          node --check apps/dashboard/e2e/p8-device.mjs
 
   docker-compose-smoke-test:
     name: Docker Compose end-to-end smoke test
@@ -333,6 +357,37 @@ jobs:
             --assessor-email assessor.demo@parakh.test --assessor-password ci-smoke-test-pw
       - name: Dashboard is reachable
         run: curl -sf -o /dev/null http://localhost:5173/
+      - name: Signed P8 flags, interrupted upload, advisory submission and targeted revision history
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python3 tools/p8_e2e.py --base-url http://localhost:8000 \
+            --assessor-email assessor.demo@parakh.test --assessor-password ci-smoke-test-pw \
+            --out /tmp/p8-api.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Browser setup (privacy-safe synthetic persisted evidence only)
+        working-directory: apps/dashboard
+        # The persisted fixtures are actual H.264 evidence. Use the same stock
+        # Chrome codec support exercised locally, rather than assuming every
+        # bundled Chromium build includes proprietary media codecs.
+        run: npm ci && npx playwright install --with-deps chrome
+      - name: P8 native player timeline, seek, keyboard/touch, revisions and authorization
+        working-directory: apps/dashboard
+        env:
+          P8_FIXTURE: /tmp/p8-api.json
+          P8_API_URL: http://localhost:8000
+          P8_DASHBOARD_URL: http://localhost:5173
+          P8_ASSESSOR_EMAIL: assessor.demo@parakh.test
+          P8_ASSESSOR_PASSWORD: ci-smoke-test-pw
+        run: npm run test:p8
+      - name: Upload P8 synthetic browser results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-persisted-browser-results
+          path: /tmp/parakh-p8-browser
+          if-no-files-found: ignore
       - name: Shut down cleanly
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v

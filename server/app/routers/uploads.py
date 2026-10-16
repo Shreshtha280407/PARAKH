@@ -462,6 +462,7 @@ def _maybe_complete_manifest(db: Session, manifest: models.DeviceManifest, asses
                 field for field, ok in (
                     ("sha256", found.sha256 == item["sha256"]),
                     ("byte count", found.declared_size_bytes == item["bytes"]),
+                    ("assistance snapshot", found.assistance == item.get("assistance")),
                 ) if not ok
             ]
             if mismatched:
@@ -583,6 +584,9 @@ def _complete_evidence_upload(db: Session, session: models.UploadSession, body: 
         revision_id=session.revision_id,
         client_evidence_id=session.client_evidence_id,
         device_captured_at=device_captured_at,
+        assistance=declared.get("assistance") if manifest is not None else None,
+        quality_check_status=(declared["assistance"]["status"].lower()
+                              if manifest is not None and declared.get("assistance") else "not_run"),
     )
     if evidence.kind == "video":
         # Distinguishes "a thumbnail job is queued" from the model default
@@ -816,6 +820,14 @@ def _complete_manifest_upload(db: Session, session: models.UploadSession, body: 
             )
             db.commit()
             raise HTTPException(409, f"manifest rejected: {reason}")
+
+    # New assistance is bound to the actual server revision number. Inherited
+    # snapshots are compared byte-for-value with the original verified item in
+    # _maybe_complete_manifest; they retain their historical revision identity.
+    for item in parsed.items:
+        assistance = item.get("assistance")
+        if assistance and item.get("processing") != "INHERITED" and assistance["revisionNumber"] != assessment.revision_number:
+            raise HTTPException(409, "assistance revision number does not match active assessment revision")
 
     manifest_row = models.DeviceManifest(
         assessment_id=assessment.id, revision_id=parsed.revision_id,

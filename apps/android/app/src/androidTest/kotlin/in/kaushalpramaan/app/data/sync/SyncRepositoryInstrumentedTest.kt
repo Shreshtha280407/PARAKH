@@ -323,6 +323,14 @@ class SyncRepositoryInstrumentedTest {
             // SYNC never recreates a plaintext copy, not that P5 merely never deleted one.
             assertFalse(fileManager.resolveRelativePath(beforeSeal.relativePath).exists())
 
+            // A personal test device can already contain legitimate draft JPEGs with the
+            // same encoder header. Preserve them and compare their complete hashes;
+            // any new or changed matching file after sync is still a failure.
+            fun matchingFiles() = context.filesDir.walkTopDown().filter { it.isFile }.filter { f ->
+                runCatching { containsMarker(f, plaintextMarker) }.getOrDefault(false)
+            }.associate { it.absolutePath to `in`.kaushalpramaan.core.seal.StreamingHasher.sha256Hex(it) }
+            val existingMatches = matchingFiles()
+
             val endpoint = object : SyncEndpointConfig {
                 override fun baseUrl() = server.url("/").toString().removeSuffix("/")
                 override fun supportsRuntimeOverride() = true
@@ -338,9 +346,7 @@ class SyncRepositoryInstrumentedTest {
             // end-state scan at minimum proves no such copy was left behind, and the
             // implementation (SyncRepository.syncEvidenceItem) only ever holds a bounded
             // in-memory buffer -- see its own doc comments -- never a FileOutputStream.
-            val offenders = context.filesDir.walkTopDown().filter { it.isFile }.filter { f ->
-                runCatching { containsMarker(f, plaintextMarker) }.getOrDefault(false)
-            }.toList()
+            val offenders = matchingFiles().filter { (path, hash) -> existingMatches[path] != hash }.keys
             assertTrue("found a plaintext copy of evidence bytes on disk: $offenders", offenders.isEmpty())
         } finally {
             server.shutdown()

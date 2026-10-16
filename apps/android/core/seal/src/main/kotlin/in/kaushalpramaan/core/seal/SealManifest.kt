@@ -26,6 +26,9 @@ data class ManifestEvidenceItem(
      * the server (see server/app/models.py's EvidenceItem.device_captured_at). Null for an
      * item sealed before this field existed. */
     val capturedAtMillis: Long? = null,
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @kotlinx.serialization.EncodeDefault(kotlinx.serialization.EncodeDefault.Mode.NEVER)
+    val assistance: AssistanceSnapshot? = null,
 )
 
 @Serializable
@@ -91,6 +94,22 @@ data class SealManifest(
             taskTotals = taskTotals.sortedBy { it.taskId },
         )
         return CANONICAL_JSON.encodeToString(serializer(), canonical).encodeToByteArray()
+    }
+
+    /** Keep metadata below P6's unchanged 2 MiB envelope ceiling. The canonical
+     * limit leaves room for base64 + ECDSA/public-key envelope overhead. If
+     * diagnostics are too large, new items honestly record unavailable/PAYLOAD_LIMIT;
+     * inherited snapshots and all media hashes/budgets stay unchanged. */
+    fun withBoundedAssistance(maxCanonicalBytes: Int = 1_400_000): SealManifest {
+        if (canonicalJsonBytes().size <= maxCanonicalBytes) return this
+        val compact = copy(evidence = evidence.map { item ->
+            if (item.processing == "INHERITED" || item.assistance == null) item
+            else item.copy(assistance = item.assistance.copy(status = AssistanceStatus.UNAVAILABLE,
+                quality = null, hands = null, flags = emptyList(), completedAtMillis = null,
+                errorCategory = AssistanceError.PAYLOAD_LIMIT, intervalsTruncated = false))
+        })
+        require(compact.canonicalJsonBytes().size <= maxCanonicalBytes) { "manifest metadata exceeds upload ceiling" }
+        return compact
     }
 
     companion object {

@@ -11,6 +11,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import java.security.SecureRandom
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SupportFactory
+import `in`.kaushalpramaan.app.data.assistance.AssistanceRecord
+import `in`.kaushalpramaan.app.data.assistance.AssistanceDao
 
 /** P4 closure: adds `debug_ceiling_requested` to `evidence_drafts` so the fail-closed
  * final-size check at finalizeCapture() can recompute the exact ceiling that was active
@@ -117,9 +119,22 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     }
 }
 
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS `evidence_assistance` (
+            `evidenceId` TEXT NOT NULL, `assessmentId` TEXT NOT NULL, `taskId` TEXT NOT NULL,
+            `revisionNumber` INTEGER NOT NULL, `generation` TEXT NOT NULL, `inputPath` TEXT NOT NULL,
+            `inputSha256` TEXT NOT NULL, `durationMs` INTEGER, `status` TEXT NOT NULL, `stage` TEXT NOT NULL,
+            `resultJson` TEXT, `sealedSnapshotJson` TEXT, `errorCategory` TEXT,
+            PRIMARY KEY(`evidenceId`), FOREIGN KEY(`evidenceId`) REFERENCES `evidence_drafts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_evidence_assistance_assessmentId` ON `evidence_assistance` (`assessmentId`)")
+    }
+}
+
 @androidx.room.Database(
-    entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class, OutboxItemEntity::class],
-    version = 5,
+    entities = [AssessmentDraftEntity::class, TaskDraftEntity::class, EvidenceDraftEntity::class, OutboxItemEntity::class, AssistanceRecord::class],
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -127,6 +142,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDraftDao(): TaskDraftDao
     abstract fun evidenceDraftDao(): EvidenceDraftDao
     abstract fun outboxDao(): OutboxDao
+    abstract fun assistanceDao(): AssistanceDao
 
     companion object {
         private const val DB_FILE_NAME = "kp_drafts.db"
@@ -161,7 +177,7 @@ abstract class AppDatabase : RoomDatabase() {
             val factory = SupportFactory(passphrase)
             return Room.databaseBuilder(appContext, AppDatabase::class.java, dbFileName)
                 .openHelperFactory(factory)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
         }
     }

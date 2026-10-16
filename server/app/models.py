@@ -314,10 +314,10 @@ class EvidenceItem(Base):
     # missing or extraction failed -- never blocks serving the original).
     thumbnail_status: Mapped[str] = mapped_column(String(20), default="not_applicable")
     thumbnail_key: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    # Stable contract for a future CV/AI quality-check integration -- no
-    # model exists or runs in this phase, see docs/evidence_quality_result.md.
-    # not_run | queued | completed | unavailable.
+    # Signed on-device advisory snapshot; never an input to scoring. Legacy
+    # direct uploads remain not_run. Pending means pending AT SEAL, not a server job.
     quality_check_status: Mapped[str] = mapped_column(String(20), default="not_run")
+    assistance: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # --- P6: real server-extracted metadata (ffprobe, never trusted from
     # the client manifest alone) + sealed-package binding. ---

@@ -7,6 +7,13 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Opt-in physical validation uses the production source sets in a separate UID,
+// including a real Room/WorkManager database. Never replace/clear a worker's app
+// merely to obtain a fresh test sandbox. Normal debug/release builds are unchanged.
+val p8ValidationBuild = providers.gradleProperty("p8Validation").orNull == "true"
+val p8ValidationShrink = providers.gradleProperty("p8ValidationShrink").orNull == "true"
+check(!p8ValidationShrink || p8ValidationBuild) { "Shrunk validation must use the isolated QA package" }
+
 android {
     namespace = "in.kaushalpramaan.app"
     // compileSdk 36, not 35: several AndroidX libraries pulled in transitively
@@ -18,6 +25,9 @@ android {
     // than the test device's API level is normal and does not block
     // install/run there).
     compileSdk = 36
+    // MediaPipe opens the bundled model by asset descriptor; library packaging
+    // options do not propagate to the consuming application's APK.
+    androidResources { noCompress += "task" }
 
     defaultConfig {
         applicationId = "in.kaushalpramaan.app"
@@ -33,14 +43,37 @@ android {
     // committed exported schema JSONs as real packaged assets, so a real migration can be
     // proven against a real prior-version database rather than only diffed schema-export JSON.
     sourceSets {
+        getByName("main") {
+            assets.srcDirs(layout.buildDirectory.dir("generated/integrationAssets").get().asFile)
+        }
         getByName("androidTest") {
             assets.srcDirs("$projectDir/schemas")
+            assets.srcDirs(rootDir.resolve("assist-benchmark/src/androidTest/assets"))
+            assets.srcDirs(rootDir.resolve("../../contracts/fixtures"))
+            if (p8ValidationBuild) kotlin.srcDir("src/p8ValidationAndroidTest/kotlin")
+        }
+        getByName("debug") {
+            if (p8ValidationBuild) {
+                kotlin.srcDir("src/p8Validation/kotlin")
+                manifest.srcFile("src/p8Validation/AndroidManifest.xml")
+            }
         }
     }
 
     buildTypes {
+        configureEach {
+            proguardFiles("proguard-rules.pro")
+        }
         debug {
             isDebuggable = true
+            if (p8ValidationBuild) {
+                applicationIdSuffix = ".p8validation"
+                versionNameSuffix = "-p8validation"
+                isMinifyEnabled = p8ValidationShrink
+                isShrinkResources = p8ValidationShrink
+                proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+                resValue("string", "app_name", "KaushalPramaan P8 Validation")
+            }
             // P4_TEST_ONLY: a debug-build-only override of the per-recording safety
             // ceiling, wired through the SAME production enforcement path as the real
             // T1-T5/total budgets (see EvidenceRepository). It exists purely so a
@@ -70,7 +103,8 @@ android {
             // a real device on the same Wi-Fi/hotspot must be told the laptop's
             // actual LAN IP via the in-app debug-only field (see PreviewScreen).
             buildConfigField("boolean", "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED", "true")
-            buildConfigField("String", "P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL", "\"http://10.0.2.2:8000\"")
+            val debugSyncBaseUrl = if (p8ValidationBuild) "http://127.0.0.1:18008" else "http://10.0.2.2:8000"
+            buildConfigField("String", "P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL", "\"$debugSyncBaseUrl\"")
         }
         release {
             isMinifyEnabled = false
@@ -110,6 +144,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = p8ValidationBuild
     }
 
     packaging {
@@ -124,6 +159,14 @@ android {
         }
     }
 }
+
+val generateIntegrationSourceStamp = tasks.register<Exec>("generateIntegrationSourceStamp") {
+    val stamp = layout.buildDirectory.file("generated/integrationAssets/assistance-source.json")
+    outputs.file(stamp)
+    outputs.upToDateWhen { false }
+    commandLine("python3", rootDir.resolve("../../tools/integration_source.py").absolutePath, "--output", stamp.get().asFile.absolutePath)
+}
+tasks.named("preBuild") { dependsOn(generateIntegrationSourceStamp) }
 
 // Robolectric 4.17's native-SQLite shadow (needed for the Room DAO tests under
 // EvidenceRepositoryTest) reflects into a few JDK-internal classes that are not open by
@@ -140,6 +183,13 @@ tasks.withType<Test>().configureEach {
         "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
         "--enable-native-access=ALL-UNNAMED",
     )
+}
+
+// Lint's test-source analysis can visit generated Room implementations from both
+// variants. A combined `check assembleRelease` invocation otherwise races KSP's
+// release output replacement with lint's source read (reproduced in P8 validation).
+tasks.matching { it.name.startsWith("lintAnalyze") }.configureEach {
+    dependsOn("kspDebugKotlin", "kspReleaseKotlin")
 }
 
 // P6 pivot: P3/P4/P5 were offline-first by construction (no INTERNET/
@@ -191,7 +241,6 @@ val verifyMergedManifestHasExpectedNetworkPermissions = tasks.register("verifyMe
         val expectedNetwork = setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE")
         val allowed = expectedNetwork + setOf(
             "android.permission.CAMERA", "android.permission.RECORD_AUDIO",
-            "in.kaushalpramaan.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
             // Transitively injected by androidx.work's own manifest, none of
             // them network/media/gallery/public-storage: WAKE_LOCK (keep the
             // CPU awake during a sync, same category P5 already allowed for
@@ -208,12 +257,17 @@ val verifyMergedManifestHasExpectedNetworkPermissions = tasks.register("verifyMe
             }.files.firstOrNull()
             checkNotNull(mergedManifestFile) { "could not locate the merged $variant manifest" }
             val merged = mergedManifestFile.readText().replace(Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL), "")
+            check(!merged.contains("com.google.android.datatransport.")) {
+                "the MERGED $variant manifest must not expose assistance telemetry upload components"
+            }
             val declaredInMerged = usesPermissionTag.findAll(merged).map { it.groupValues[1] }.toSet()
             val missing = expectedNetwork - declaredInMerged
             check(missing.isEmpty()) {
                 "the real MERGED $variant manifest is missing expected permission(s) $missing"
             }
-            val unexpected = declaredInMerged - allowed
+            val expectedPackage = "in.kaushalpramaan.app" +
+                if (variant == "debug" && p8ValidationBuild) ".p8validation" else ""
+            val unexpected = declaredInMerged - allowed - "$expectedPackage.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
             check(unexpected.isEmpty()) {
                 "the real MERGED $variant manifest declares unexpected permission(s) $unexpected -- " +
                     "a dependency may be injecting a network/storage permission this app doesn't need; " +
@@ -222,6 +276,12 @@ val verifyMergedManifestHasExpectedNetworkPermissions = tasks.register("verifyMe
             check(merged.contains("""android:networkSecurityConfig="@xml/network_security_config"""")) {
                 "the real MERGED $variant manifest must reference android:networkSecurityConfig=" +
                     "\"@xml/network_security_config\" (see verifyReleaseForbidsCleartextTraffic)"
+            }
+            check(merged.contains("""package="$expectedPackage"""")) {
+                "unexpected package identity in the $variant manifest"
+            }
+            check(merged.contains("P8ValidationApplication") == (variant == "debug" && p8ValidationBuild)) {
+                "the QA observer must exist only in the explicitly isolated validation package"
             }
         }
     }
@@ -426,6 +486,14 @@ dependencies {
     implementation(project(":core:budget"))
     implementation(project(":core:seal"))
     implementation(project(":media"))
+    implementation(project(":assist-quality"))
+    implementation(project(":assist-hands"))
+    // The optional private QA probe diagnoses SDK initialisation only; this is
+    // the exact artifact already packaged through :assist-hands, not a second SDK.
+    if (p8ValidationBuild) implementation("com.google.mediapipe:tasks-vision:0.10.35")
+    // Already present through MediaPipe's runtime graph. Expose the same pinned
+    // classes to lint so it can resolve our manifest-removal declarations.
+    implementation("com.google.android.datatransport:transport-runtime:3.1.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,0 +1,52 @@
+# Isolated verification stack: never reads/replaces root .env or uses MVP volumes.
+name: parakh-p8-integration
+x-api-env: &api-env
+  APP_ENV: development
+  DATABASE_URL: postgresql+psycopg://p8_test:p8_test_only@db:5432/p8_integration
+  JWT_SECRET: p8-isolated-test-only-secret
+  REPORT_SIGNING_PRIVATE_KEY: c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1
+  REPORT_SIGNING_KEY_ID: p8-isolated-test-key
+  EVIDENCE_DIR: /data/evidence
+  DEV_ASSESSOR_EMAIL: p8-assessor@parakh.test
+  DEV_ASSESSOR_PASSWORD: p8-isolated-test-only
+  CORS_ALLOW_ORIGINS: http://127.0.0.1:15178
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: p8_test
+      POSTGRES_PASSWORD: p8_test_only
+      POSTGRES_DB: p8_integration
+    volumes: [p8_db:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U p8_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  migrate:
+    build: {context: .., dockerfile: server/Dockerfile}
+    environment: *api-env
+    command: alembic upgrade head
+    depends_on: {db: {condition: service_healthy}}
+  api:
+    build: {context: .., dockerfile: server/Dockerfile}
+    environment: *api-env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports: ["127.0.0.1:18008:8000"]
+    volumes: [p8_evidence:/data/evidence]
+    depends_on: {migrate: {condition: service_completed_successfully}}
+  worker:
+    build: {context: .., dockerfile: server/Dockerfile}
+    environment: *api-env
+    command: python -m app.worker
+    volumes: [p8_evidence:/data/evidence]
+    depends_on: {migrate: {condition: service_completed_successfully}}
+  dashboard:
+    build:
+      context: ../apps/dashboard
+      args: {VITE_API_BASE_URL: "http://127.0.0.1:18008"}
+    ports: ["127.0.0.1:15178:80"]
+    depends_on: [api]
+volumes:
+  p8_db: {}
+  p8_evidence: {}

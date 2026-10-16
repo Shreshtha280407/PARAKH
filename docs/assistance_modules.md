@@ -1,15 +1,13 @@
 # Offline technical-quality and hand-presence assistance
 
-The libraries now use real Kotlin metrics and a bundled CPU Hand Landmarker. The
-`quality-proxy-v2` asset is calibrated on the available proxy collection: dark mean<60,
-photo Laplacian variance<400 or video variance<100 (unless dark), coherent
-reduced-image translation>=2px. A fixed
-saturation guard requires mean>245 and highlight clipping>0.95. The asset records
-metric/preprocessing definitions, protocol/data/code hashes and calibration provenance.
-It is deterministic assistance, not a calibrated probability or field-validated classifier.
-Full-collection calibrated execution, parity and physical tests are complete under the
-amended functional scope; see
-[the combined record](gates/Q2_Q3_progress.md).
+The libraries use real Kotlin metrics and a bundled CPU Hand Landmarker. Production
+`:app` now consumes both libraries through a durable background coordinator. Current
+versioned assets and decoder optimisations are preserved; this integration changes no
+thresholds, model, sample rate or resolution. The latest inherited proxy figures are Q2
+precision/recall 92.5%/92.5%, Q3 gap-filled agreement 75.8% and combined runtime
+21.6 s/video-minute on the OnePlus 13R. These are calibration measurements, not new
+independent field acceptance. See the recovery addenda below and
+[the integration report](evidence/IC2_Q4_P8_integration.md).
 
 ## Owner-approved scope revision (2026-10-14)
 
@@ -24,7 +22,7 @@ change from the original master plan. Original Out_of_frame labels and samples r
 their exposure/blur/motion are assessed normally. Missing an intended target alone does
 not make a clear, stable, well-exposed capture technically bad.
 
-Q4/P8 will integrate these modules, capture guidance and human review. No automatic
+Q4/P8 integrates these modules, capture guidance and human review. No automatic
 semantic-framing solution is promised. Any future method needs a separate target/context
 design and validation. Hands do not establish interaction, competence, safety or identity.
 
@@ -32,13 +30,24 @@ design and validation. Hands do not establish interaction, competence, safety or
 
 `:assist-quality` contains pure Kotlin luma/Laplacian/motion calculations, a bounded
 read-only Android decoder and coroutine photo/video APIs. `:assist-hands` reuses that
-decoder/sampler and runs the bundled pre-trained Hand Landmarker on CPU. Neither library
-is a dependency of the production `:app`; no worker capture/preview/seal/sync/scoring flow
-has changed. `:assist-benchmark` is a separate package with no network or public-storage
+decoder/sampler and runs the bundled pre-trained Hand Landmarker on CPU. Both are
+production `:app` dependencies. `EvidenceRepository` schedules after capture promotion;
+`EvidenceAssistanceCoordinator` persists identities/states in Room v6 and schedules unique
+WorkManager jobs. `AssistanceRunner` permits one native analysis at a time, rejects stale
+generations/revisions/hashes and stores compact typed results. Worker evidence/final previews
+show advisory states and safe retry/cancel controls. P5 freezes a signed snapshot of the
+exact final bytes without waiting for inference; P6 verifies/uploads it; the existing
+assessor gallery shows flags and seekable timelines. Scoring/report rules are unchanged.
+`:assist-benchmark` remains a separate package with no network or public-storage
 permission, database, account or Keystore integration.
 MediaPipe's transitive AAR declares network permissions; the harness explicitly removes
 them in its own manifest. The library does not remove legitimate network permissions
-from a future consuming app: Q4/P8 must preserve the production P6 sync boundary.
+from a consuming app: production retains the P6 network-security boundary. Model assets
+are bundled once through the library and stored uncompressed (`.task`) in debug/release;
+there is no runtime model download or public-storage import.
+The production manifest removes the transitive DataTransport/CCT telemetry discovery and
+upload components; merged debug/release checks and physical package inspection enforce
+their absence. This preserves P6 networking without enabling the library statistics uploader.
 
 All public timestamps are requested source-relative integer milliseconds. The default
 sequential decoder selects the first frame at/after the request, or an EOS candidate no
@@ -77,8 +86,9 @@ unavailable. It cannot reliably distinguish an intentional pan from unintended m
 or infer every shake event. Raw differences are reported separately and never called
 camera shake. Motion coverage is explicit; unreliable pairs make the result partial.
 
-Hands samples at 1fps, with up to two hands and detection/presence/tracking confidence
-parameters 0.5. CPU is the baseline; native thread defaults are used, not a claimed fixed
+Hands samples at 1fps, with up to two hands. The original confidence parameters were
+0.5; the current detection floor is 0.1 with presence/tracking 0.5, as documented in the
+pre-existing recovery addendum below. CPU is the baseline; native thread defaults are used, not a claimed fixed
 thread count. Gloved-hand coverage is not established. A fresh VIDEO engine per clip guarantees ordered timestamps starting at 0;
 photo inference uses a separate IMAGE engine. Returned hand counts support presence,
 visible ratio and sampled absence intervals; landmarks/identity data are not retained.
@@ -108,10 +118,11 @@ with `hands/model.json`. No runtime model download or server inference exists. D
 `com.google.mediapipe:tasks-vision:0.10.35`, verified present in official Google Maven
 metadata. Configuration bytes and model bytes receive separate hashes in reports.
 
-## Local execution and later integration
+## Local execution and production integration
 
-See `ml/assistance/README.md` for private dataset intake/review. Instrumentation belongs
-to the isolated harness, never the production app. Build with:
+See `ml/assistance/README.md` for private dataset intake/review. Library benchmarks remain
+in the isolated harness. Production integration instrumentation uses isolated encrypted
+databases, unique synthetic assessments and scoped cleanup. Build the libraries with:
 
 ```sh
 cd apps/android
@@ -133,20 +144,25 @@ warm inference, decoding/preprocessing, module wall time including reader/model 
 and combined wall time including result writes are reported separately. Historical
 pre-close timing limitations are identified in the benchmark reports. Flagship measurements cannot satisfy entry/mid-range gates.
 
-For Q4/P8, add dependencies only during that integration phase. Use the coroutine APIs,
+The coordinator uses the existing coroutine APIs,
 for example `QualityAnalyzer.bundled(applicationContext).photo(file)` or `.video(file)`,
-and `HandsAnalyzer(applicationContext).photo(file)` / `.video(file)`. Offload UI work,
-cancel the calling Job when the lifecycle ends and preserve `CancellationException`.
+and `HandsAnalyzer(applicationContext).photo(file)` / `.video(file)`. WorkManager owns
+production analysis across Activity recreation; leaving a screen does not cancel it.
+Explicit cancellation invalidates the generation before cancelling work. Preserve
+`CancellationException` in independently consumed library calls.
 Treat SUCCESS, PARTIAL, FAILED and UNAVAILABLE distinctly: PARTIAL observations retain
 usable metrics/flags alongside incomplete motion/sample coverage; missing profiles/models
 must not become a successful analysis. A result with no detected hands is a model output,
 not a finding that the worker failed to work. Represent semantic framing as unsupported,
 never infer it from hands or technical flags.
 
-For Q4/P8, consume typed results asynchronously; keep errors/cancellation/coverage and
-versions alongside intervals. Provide guidance and human review without blocking capture,
-rejecting evidence or scoring competence. Manifest/backend/dashboard persistence and
-timeline integration remain Q4/P8 work; this document does not declare IC-2/P8 accepted.
+Production stores errors, coverage and provenance alongside intervals, without landmarks
+or verbose frame diagnostics. Changed optimisation/trim bytes receive fresh analysis;
+SHA-256-equivalent bytes with equal duration can reuse results. Pending or unavailable
+analysis does not block sealing. Sealed and inherited snapshots are immutable, including
+historical revisions. See the [signed contract](evidence_quality_result.md),
+[Q4 device protocol](gates/Q4_device_protocol.md) and [P8 gate](gates/P8.md).
+Implemented integration does not establish original IC-2 or P8 field acceptance.
 
 ## 2026-10-15 recovery iteration addendum
 
@@ -200,9 +216,22 @@ in [addendum 2](gates/Q2_Q3_recovery_iteration.md#addendum-2-decoder-root-cause-
 Neither the original ≥90% Q3 bar nor the ≤5s/video-minute bar is met; both gaps are now
 architectural/model-capability, not further bugs.
 
-Final [Q2 report](../ml/quality/reports/quality-proxy-v2-final.json),
+Historical pre-recovery [Q2 report](../ml/quality/reports/quality-proxy-v2-final.json),
 [Q3 report](../ml/hands/reports/hands-proxy-final.json),
 [device benchmark](evidence/Q2_Q3/oneplus13r-benchmark-final.json) and
-[acceptance matrix](gates/Q2_Q3_acceptance.md) record the actual limitations. Combined
-proxy Q2 precision84.6%/recall92.5% hides weaker video precision60.7%;11/22 good clips
-receive a false warning. Treat all hints as nonbinding and preserve human review.
+[acceptance matrix](gates/Q2_Q3_acceptance.md) retain the original measurements.
+Their Q2 precision84.6%/recall92.5%, video precision60.7% and 11/22 good-video false
+warnings predate the recovery above. Do not present them as the current v3 result or
+reinterpret their scalar exports with newer profiles. All hints remain nonbinding.
+
+## 2026-10-16 production validation
+
+The separate opt-in QA UID uses actual CameraX, normal encrypted Room and OS WorkManager.
+The OnePlus run now covers worker navigation, retake/delete, killed-process recovery,
+offline sealing, interrupted upload, targeted reassessment and persisted dashboard seeking.
+[Evidence and source/APK identities](evidence/IC2_Q4_P8_20261016.md) include the native R8
+fixes: SQLCipher JNI entry points, MediaPipe callbacks and protobuf-reflected fields must
+survive shrinking. No analyzer/model/threshold/sample-policy changes were made.
+Only QA debug includes the read-only observer; normal debug/release exclude it.
+P8 C/D/E pass for executed scenarios; independent A/B and entry/mid/three-phone checks
+remain NOT VERIFIED. Original IC-2 remains FAIL because Q3 agreement is 75.8%.

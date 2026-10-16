@@ -13,3 +13,4 @@ python-multipart==0.0.32
 cryptography==50.0.2
 reportlab==5.0.1
 qrcode==8.2
+jsonschema==4.26.0

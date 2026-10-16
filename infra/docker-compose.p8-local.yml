@@ -1,0 +1,11 @@
+# Apply over docker-compose.p8-test.yml after images have been built once.
+# Uses cached images and current source/build output without registry access.
+services:
+  api:
+    volumes: ["../server/app:/code/app:ro"]
+  worker:
+    volumes: ["../server/app:/code/app:ro"]
+  migrate:
+    volumes: ["../server/app:/code/app:ro", "../server/alembic:/code/alembic:ro"]
+  dashboard:
+    volumes: ["../apps/dashboard/dist:/usr/share/nginx/html:ro"]

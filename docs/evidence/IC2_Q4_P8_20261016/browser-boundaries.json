@@ -1,0 +1,84 @@
+{
+  "runId": "p8-75e0bec9a543",
+  "source": "real API and persisted synthetic signed snapshots",
+  "checks": [
+    {
+      "name": "authenticated dashboard login and queue",
+      "verdict": "PASS"
+    },
+    {
+      "name": "actual protected persisted video metadata/duration",
+      "verdict": "PASS"
+    },
+    {
+      "name": "historical and current evidence separated",
+      "verdict": "PASS"
+    },
+    {
+      "name": "marker DARK positions and seeks at 0 ms",
+      "verdict": "PASS"
+    },
+    {
+      "name": "marker OVEREXPOSED positions and seeks at 4999 ms",
+      "verdict": "PASS"
+    },
+    {
+      "name": "marker BLURRY positions and seeks at 1000 ms",
+      "verdict": "PASS"
+    },
+    {
+      "name": "marker CAMERA_MOTION positions and seeks at 1000 ms",
+      "verdict": "PASS"
+    },
+    {
+      "name": "marker HANDS_NOT_DETECTED positions and seeks at 4000 ms",
+      "verdict": "PASS"
+    },
+    {
+      "name": "start/end, overlapping intervals and simultaneous flags",
+      "verdict": "PASS"
+    },
+    {
+      "name": "keyboard marker seeking",
+      "verdict": "PASS"
+    },
+    {
+      "name": "touch marker seeking",
+      "verdict": "PASS"
+    },
+    {
+      "name": "new revision does not inherit old markers",
+      "verdict": "PASS"
+    },
+    {
+      "name": "unavailable, pending and legacy states rendered honestly",
+      "verdict": "PASS"
+    },
+    {
+      "name": "mobile resize, touch targets and no horizontal overflow",
+      "verdict": "PASS"
+    },
+    {
+      "name": "assistance never triggers score/outcome/reassessment actions",
+      "verdict": "PASS"
+    },
+    {
+      "name": "no browser runtime errors",
+      "verdict": "PASS"
+    },
+    {
+      "name": "unauthenticated evidence access denied",
+      "verdict": "PASS"
+    },
+    {
+      "name": "unavailable media / missing playable duration disables seek without fake positions",
+      "verdict": "PASS"
+    },
+    {
+      "name": "signed timestamps beyond actual playable duration are suppressed and explained",
+      "verdict": "PASS"
+    }
+  ],
+  "physicalDevice": false,
+  "verdict": "PASS"
+}

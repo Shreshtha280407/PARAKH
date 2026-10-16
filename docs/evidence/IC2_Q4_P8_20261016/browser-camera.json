@@ -1,0 +1,39 @@
+{
+  "assessmentId": 17,
+  "revisionNumber": 2,
+  "checks": [
+    {
+      "name": "offline sealed snapshots match the uploaded API and post-sync phone state exactly",
+      "verdict": "PASS"
+    },
+    {
+      "name": "CameraX video 37: 1 persisted intervals seek at source milliseconds",
+      "verdict": "PASS"
+    },
+    {
+      "name": "CameraX video 36: 0 persisted intervals seek at source milliseconds",
+      "verdict": "PASS"
+    },
+    {
+      "name": "CameraX video 38: 2 persisted intervals seek at source milliseconds",
+      "verdict": "PASS"
+    },
+    {
+      "name": "physical capture review fits a 360px viewport",
+      "verdict": "PASS"
+    },
+    {
+      "name": "viewing assistance makes no assessment decision mutations",
+      "verdict": "PASS"
+    },
+    {
+      "name": "actual CameraX evidence requires reviewer authentication",
+      "verdict": "PASS"
+    }
+  ],
+  "markerCount": 3,
+  "verdict": "PASS",
+  "physicalDevice": true,
+  "cameraXCapture": true,
+  "independentAccuracyEvidence": false
+}

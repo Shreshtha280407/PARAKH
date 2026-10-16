@@ -43,6 +43,16 @@
         android:theme="@style/Theme.KaushalPramaan"
         android:usesCleartextTraffic="false">
 
+        <!-- MediaPipe's transitive statistics logger uses DataTransport/CCT. Assistance
+             is local; retain P6 networking but remove telemetry backend discovery and
+             upload entry points. No model, inference or decoder code is changed. -->
+        <service android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            tools:node="remove" />
+        <service android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            tools:node="remove" />
+        <receiver android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            tools:node="remove" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

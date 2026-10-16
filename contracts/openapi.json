@@ -347,6 +347,401 @@
         "title": "AssessmentTaskOut",
         "type": "object"
       },
+      "AssistanceAnalysis": {
+        "additionalProperties": false,
+        "properties": {
+          "coverage": {
+            "$ref": "#/components/schemas/AssistanceCoverage"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistanceProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reviewRecommended": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewrecommended"
+          },
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL",
+              "FAILED",
+              "UNAVAILABLE"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "visibleRatio": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibleratio"
+          },
+          "visibleRatioGapFilled": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibleratiogapfilled"
+          }
+        },
+        "required": [
+          "status",
+          "provenance",
+          "coverage"
+        ],
+        "title": "AssistanceAnalysis",
+        "type": "object"
+      },
+      "AssistanceCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "analysedSamples": {
+            "maximum": 2400.0,
+            "minimum": 0.0,
+            "title": "Analysedsamples",
+            "type": "integer"
+          },
+          "coveredDurationMs": {
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Covereddurationms",
+            "type": "integer"
+          },
+          "motionAnalysedPairs": {
+            "default": 0,
+            "maximum": 1200.0,
+            "minimum": 0.0,
+            "title": "Motionanalysedpairs",
+            "type": "integer"
+          },
+          "motionRequestedPairs": {
+            "default": 0,
+            "maximum": 1200.0,
+            "minimum": 0.0,
+            "title": "Motionrequestedpairs",
+            "type": "integer"
+          },
+          "requestedSamples": {
+            "maximum": 2400.0,
+            "minimum": 0.0,
+            "title": "Requestedsamples",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requestedSamples",
+          "analysedSamples",
+          "coveredDurationMs"
+        ],
+        "title": "AssistanceCoverage",
+        "type": "object"
+      },
+      "AssistanceFlag": {
+        "additionalProperties": false,
+        "properties": {
+          "endMs": {
+            "anyOf": [
+              {
+                "maximum": 1200000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endms"
+          },
+          "observed": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed"
+          },
+          "severity": {
+            "const": "review",
+            "default": "review",
+            "title": "Severity",
+            "type": "string"
+          },
+          "startMs": {
+            "default": 0,
+            "maximum": 1200000.0,
+            "minimum": 0.0,
+            "title": "Startms",
+            "type": "integer"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "type": {
+            "enum": [
+              "DARK",
+              "OVEREXPOSED",
+              "BLURRY",
+              "CAMERA_MOTION",
+              "HANDS_NOT_DETECTED"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "AssistanceFlag",
+        "type": "object"
+      },
+      "AssistanceProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "modelSha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelsha256"
+          },
+          "moduleVersion": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Moduleversion",
+            "type": "string"
+          },
+          "profileSha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Profilesha256",
+            "type": "string"
+          },
+          "profileVersion": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Profileversion",
+            "type": "string"
+          },
+          "sampleIntervalMs": {
+            "const": 1000,
+            "default": 1000,
+            "title": "Sampleintervalms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "moduleVersion",
+          "profileVersion",
+          "profileSha256"
+        ],
+        "title": "AssistanceProvenance",
+        "type": "object"
+      },
+      "AssistanceSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "assessmentId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Assessmentid",
+            "type": "string"
+          },
+          "completedAtMillis": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedatmillis"
+          },
+          "contractVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Contractversion",
+            "type": "integer"
+          },
+          "durationMs": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Durationms"
+          },
+          "errorCategory": {
+            "anyOf": [
+              {
+                "enum": [
+                  "CANCELLED",
+                  "INTERRUPTED",
+                  "MEDIA_UNAVAILABLE",
+                  "INPUT_CHANGED",
+                  "ANALYSIS_FAILED",
+                  "MODEL_UNAVAILABLE",
+                  "INCOMPLETE_COVERAGE",
+                  "PAYLOAD_LIMIT"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errorcategory"
+          },
+          "evidenceId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Evidenceid",
+            "type": "string"
+          },
+          "flags": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AssistanceFlag"
+            },
+            "maxItems": 256,
+            "title": "Flags",
+            "type": "array"
+          },
+          "hands": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistanceAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "intervalsTruncated": {
+            "default": false,
+            "title": "Intervalstruncated",
+            "type": "boolean"
+          },
+          "mediaSha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Mediasha256",
+            "type": "string"
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistanceAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revisionId": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Revisionid",
+            "type": "string"
+          },
+          "revisionNumber": {
+            "minimum": 1.0,
+            "title": "Revisionnumber",
+            "type": "integer"
+          },
+          "source": {
+            "const": "ON_DEVICE",
+            "default": "ON_DEVICE",
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "NOT_RUN",
+              "QUEUED",
+              "RUNNING",
+              "COMPLETED",
+              "PARTIAL",
+              "FAILED",
+              "UNAVAILABLE"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "taskId": {
+            "enum": [
+              "T1",
+              "T2",
+              "T3",
+              "T4",
+              "T5"
+            ],
+            "title": "Taskid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessmentId",
+          "taskId",
+          "evidenceId",
+          "revisionId",
+          "revisionNumber",
+          "mediaSha256",
+          "status"
+        ],
+        "title": "AssistanceSnapshot",
+        "type": "object"
+      },
       "AuditLogEntryOut": {
         "properties": {
           "action": {
@@ -755,6 +1150,16 @@
       },
       "EvidenceReceiptOut": {
         "properties": {
+          "assistance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistanceSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -818,6 +1223,11 @@
           },
           "mime": {
             "title": "Mime",
+            "type": "string"
+          },
+          "quality_check_status": {
+            "default": "not_run",
+            "title": "Quality Check Status",
             "type": "string"
           },
           "revision_number": {

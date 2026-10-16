@@ -214,4 +214,27 @@
     <string name="content_desc_video_evidence">Video evidence item</string>
     <string name="loading">Loading…</string>
     <string name="offline_badge">Capture offline; sync when connected</string>
+    <string name="assistance_not_run">Quality review: not analysed</string>
+    <string name="assistance_queued">Quality review: queued</string>
+    <string name="assistance_running">Quality review: analysing in background</string>
+    <string name="assistance_completed">Quality review completed</string>
+    <string name="assistance_partial">Quality review: partial coverage</string>
+    <string name="assistance_failed">Quality review failed. You may retry or continue.</string>
+    <string name="assistance_unavailable">Quality review unavailable. You may continue.</string>
+    <string name="assistance_dark">Parts of this capture may be too dark. Review the evidence and retake if needed.</string>
+    <string name="assistance_overexposed">Bright areas may have lost detail. Review the evidence.</string>
+    <string name="assistance_blurry">Detail may be unclear or blurred. Review the evidence.</string>
+    <string name="assistance_motion">Camera movement was detected in sampled footage. Review these intervals.</string>
+    <string name="assistance_hands_warning">Hands were not detected during parts of this video. Please review the footage; detection can miss visible hands.</string>
+    <string name="assistance_hands_sampled">Hands visibility was checked on sampled frames. This does not verify task execution.</string>
+    <string name="assistance_hands_unavailable">Hands visibility analysis unavailable.</string>
+    <string name="assistance_coverage">Analysed %1$d of %2$d requested samples. Intervals describe sampled footage.</string>
+    <string name="assistance_advisory">Advice only. You can continue and submit without retaking. The assessor decides.</string>
+    <string name="assistance_sealed_snapshot">Recorded at sealing; pending analysis does not change this submission.</string>
+    <string name="assistance_retry">Retry analysis</string>
+    <string name="assistance_cancel">Stop analysis</string>
+    <string name="assistance_stage_quality">Checking exposure, detail and camera motion. You can leave this screen.</string>
+    <string name="assistance_stage_hands">Checking hands visibility on sampled frames. You can leave this screen.</string>
+    <string name="assistance_warning_count">%1$d advisory observation types. Open the evidence to review.</string>
+    <string name="assistance_overall_review">Evidence quality review</string>
 </resources>

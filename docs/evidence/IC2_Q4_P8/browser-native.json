@@ -1,0 +1,33 @@
+{
+  "runId": "p8-native-38926584918743",
+  "source": {
+    "source_version": "0f0e1f64f033851668e0b98ce2bb0853eefc86fd+assistance-tree-sha256:fe91d0a047e316e1dd5d297b6df611449bb9d0c3455261613329531cee48204a",
+    "integration_source_sha256": "a5727df00cc6124b78b81cb50495312a9faf0a8dd5531ab2af76ab9f781b5537"
+  },
+  "checks": [
+    {
+      "name": "authenticated review of the native uploaded assessment",
+      "verdict": "PASS"
+    },
+    {
+      "name": "v1 · historical: actual Q2/Q3 intervals render and seek (1 markers)",
+      "verdict": "PASS"
+    },
+    {
+      "name": "v2 · current: actual Q2/Q3 intervals render and seek (1 markers)",
+      "verdict": "PASS"
+    },
+    {
+      "name": "native dark-photo advice remains visible after targeted video reassessment",
+      "verdict": "PASS"
+    },
+    {
+      "name": "reviewing native advice makes no scoring or outcome mutations",
+      "verdict": "PASS"
+    }
+  ],
+  "verdict": "PASS",
+  "physicalDeviceInference": true,
+  "syntheticMedia": true,
+  "cameraXCaptureVerified": false
+}

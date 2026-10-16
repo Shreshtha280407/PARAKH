@@ -214,4 +214,27 @@
     <string name="content_desc_video_evidence">वीडियो प्रमाण आइटम</string>
     <string name="loading">लोड हो रहा है…</string>
     <string name="offline_badge">ऑफ़लाइन प्रमाण लें; कनेक्शन पर सिंक करें</string>
+    <string name="assistance_not_run">गुणवत्ता जाँच: विश्लेषण नहीं हुआ</string>
+    <string name="assistance_queued">गुणवत्ता जाँच: कतार में</string>
+    <string name="assistance_running">गुणवत्ता जाँच: पृष्ठभूमि में विश्लेषण जारी</string>
+    <string name="assistance_completed">गुणवत्ता जाँच पूरी हुई</string>
+    <string name="assistance_partial">गुणवत्ता जाँच: आंशिक कवरेज</string>
+    <string name="assistance_failed">गुणवत्ता जाँच विफल। फिर कोशिश करें या आगे बढ़ें।</string>
+    <string name="assistance_unavailable">गुणवत्ता जाँच उपलब्ध नहीं। आप आगे बढ़ सकते हैं।</string>
+    <string name="assistance_dark">यह रिकॉर्डिंग कुछ जगह अँधेरी हो सकती है। देखें और ज़रूरत हो तो दोबारा लें।</string>
+    <string name="assistance_overexposed">तेज़ रोशनी में बारीकी खो सकती है। कृपया रिकॉर्डिंग देखें।</string>
+    <string name="assistance_blurry">बारीकी अस्पष्ट या धुँधली हो सकती है। कृपया रिकॉर्डिंग देखें।</string>
+    <string name="assistance_motion">नमूना फ़्रेमों में कैमरा हिलता दिखा। बताए गए समय पर देखें।</string>
+    <string name="assistance_hands_warning">वीडियो के कुछ हिस्सों में हाथ नहीं पहचाने गए। कृपया देखें; दिखाई देते हाथ भी छूट सकते हैं।</string>
+    <string name="assistance_hands_sampled">नमूना फ़्रेमों में हाथों की दृश्यता जाँची गई। इससे काम सही होना प्रमाणित नहीं होता।</string>
+    <string name="assistance_hands_unavailable">हाथों की दृश्यता का विश्लेषण उपलब्ध नहीं।</string>
+    <string name="assistance_coverage">माँगे गए %2$d नमूनों में से %1$d का विश्लेषण हुआ। समय-अंतराल नमूना फ़्रेमों पर आधारित हैं।</string>
+    <string name="assistance_advisory">केवल सलाह। दोबारा लिए बिना आगे बढ़कर जमा कर सकते हैं। निर्णय मूल्यांकनकर्ता करेंगे।</string>
+    <string name="assistance_sealed_snapshot">सील करते समय की जाँच; बाद का विश्लेषण इस जमा रिकॉर्ड को नहीं बदलता।</string>
+    <string name="assistance_retry">फिर विश्लेषण करें</string>
+    <string name="assistance_cancel">विश्लेषण रोकें</string>
+    <string name="assistance_stage_quality">रोशनी, बारीकी और कैमरे की हलचल की जाँच हो रही है। आप इस स्क्रीन से जा सकते हैं।</string>
+    <string name="assistance_stage_hands">नमूना फ़्रेमों में हाथों की दृश्यता जाँची जा रही है। आप इस स्क्रीन से जा सकते हैं।</string>
+    <string name="assistance_warning_count">सलाह के लिए %1$d प्रकार के संकेत मिले। देखने के लिए रिकॉर्डिंग खोलें।</string>
+    <string name="assistance_overall_review">साक्ष्य की गुणवत्ता समीक्षा</string>
 </resources>

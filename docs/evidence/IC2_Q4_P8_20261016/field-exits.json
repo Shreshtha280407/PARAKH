@@ -1,0 +1,11 @@
+{
+  "badCaptures": {
+    "verdict": "NOT VERIFIED",
+    "reason": "No new 10-bad field run supplied"
+  },
+  "goodCaptures": {
+    "verdict": "NOT VERIFIED",
+    "reason": "No new 10-good field run supplied"
+  },
+  "captures": []
+}

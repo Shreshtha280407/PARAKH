@@ -1,0 +1,61 @@
+{
+  "runId": "p8-75e0bec9a543",
+  "assessmentId": 9,
+  "videoEvidenceId": 12,
+  "currentVideoEvidenceId": 16,
+  "mismatchedDurationAssessmentId": 10,
+  "mismatchedDurationEvidenceId": 17,
+  "source": "generated synthetic media and contract snapshots, real HTTP/PostgreSQL persistence",
+  "physicalDevice": false,
+  "fieldAcceptance": "NOT VERIFIED",
+  "apiWorkflow": "PASS",
+  "resumeAndIdempotency": "PASS",
+  "warningsPendingUnavailableSubmit": "PASS",
+  "targetedReassessment": "PASS",
+  "historicalSnapshotIsolation": "PASS",
+  "automaticScoresCreated": 0,
+  "expectedMarkers": [
+    {
+      "type": "DARK",
+      "startMs": 0,
+      "endMs": 1000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "OVEREXPOSED",
+      "startMs": 4999,
+      "endMs": 5000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "BLURRY",
+      "startMs": 1000,
+      "endMs": 3000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "CAMERA_MOTION",
+      "startMs": 1000,
+      "endMs": 2000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    },
+    {
+      "type": "HANDS_NOT_DETECTED",
+      "startMs": 4000,
+      "endMs": 5000,
+      "severity": "review",
+      "observed": null,
+      "threshold": null
+    }
+  ],
+  "canonicalAssistanceOverheadBytes": 3613,
+  "manifestEnvelopeBytes": 7022
+}

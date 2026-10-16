@@ -169,6 +169,7 @@ def test_put_score_blocks_on_and_then_loses_to_a_concurrent_sign_off(client, imp
     SessionScore = sessionmaker(bind=create_engine(url))
 
     lock_acquired = threading.Event()
+    score_attempting = threading.Event()
     release_lock = threading.Event()
     result: dict = {}
 
@@ -193,6 +194,8 @@ def test_put_score_blocks_on_and_then_loses_to_a_concurrent_sign_off(client, imp
                 pc_full_id=pc_full_id, score_level=2, evidence_status="DEMONSTRATED", expected_version=1,
             )
             started = time.monotonic()
+            result["backend_pid"] = s.connection().exec_driver_sql("SELECT pg_backend_pid()").scalar_one()
+            score_attempting.set()
             try:
                 scoring.put_score(a["id"], body, s, user)
                 result["outcome"] = "unexpectedly_succeeded"
@@ -207,10 +210,30 @@ def test_put_score_blocks_on_and_then_loses_to_a_concurrent_sign_off(client, imp
     t_score = threading.Thread(target=_attempt_concurrent_score_save)
     t_lock.start()
     t_score.start()
-    time.sleep(0.3)  # give the score thread time to actually reach and block on FOR UPDATE
-    release_lock.set()
-    t_lock.join(timeout=5)
-    t_score.join(timeout=5)
+    try:
+        assert score_attempting.wait(timeout=5), "score thread did not reach its database call"
+        # Wait for actual PostgreSQL lock contention, not connection-startup timing.
+        # The previous sleep started before opening the score connection; under load
+        # 80ms of that 300ms window could be spent connecting, leaving only 220ms of
+        # real blocking and failing the unchanged >=250ms assertion below.
+        deadline = time.monotonic() + 3
+        with SessionScore.kw["bind"].connect() as observer:
+            while time.monotonic() < deadline:
+                waiting = observer.exec_driver_sql(
+                    "SELECT wait_event_type FROM pg_stat_activity WHERE pid = %s",
+                    (result["backend_pid"],),
+                ).scalar_one_or_none()
+                observer.rollback()  # refresh pg_stat_activity's transaction snapshot
+                if waiting == "Lock":
+                    break
+                time.sleep(0.01)
+            else:
+                pytest.fail("score save never blocked on the assessment lock")
+        time.sleep(0.3)  # hold the observed lock for the original minimum duration
+    finally:
+        release_lock.set()
+        t_lock.join(timeout=5)
+        t_score.join(timeout=5)
 
     # Proves put_score genuinely WAITED on the lock (not a lucky race) and,
     # once unblocked, correctly saw the post-sign-off status and rejected --

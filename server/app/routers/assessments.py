@@ -189,6 +189,7 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
             metadata_status=e.metadata_status, duration_ms=e.duration_ms, width_px=e.width_px,
             height_px=e.height_px, revision_number=revision_number, is_current_revision=is_current,
             device_captured_at=e.device_captured_at,
+            quality_check_status=e.quality_check_status, assistance=e.assistance,
         )
 
     return schemas.AssessmentOut(

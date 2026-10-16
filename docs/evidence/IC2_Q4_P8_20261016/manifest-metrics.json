@@ -1,0 +1,27 @@
+{
+  "assessmentId": 17,
+  "manifests": [
+    {
+      "manifestId": 19,
+      "revisionId": "0d958922-8bdf-42de-b942-9465c6721424",
+      "status": "complete",
+      "canonicalBytes": 6327,
+      "assistanceFieldBytes": 3915,
+      "reconstructedEnvelopeBytes": 8791,
+      "declaredEvidenceBytes": 28316659,
+      "itemCount": 3,
+      "storedSignatureReverified": true
+    },
+    {
+      "manifestId": 20,
+      "revisionId": "7e66ea97-6f35-4728-9972-7d3e21cacb90",
+      "status": "complete",
+      "canonicalBytes": 6511,
+      "assistanceFieldBytes": 4106,
+      "reconstructedEnvelopeBytes": 9039,
+      "declaredEvidenceBytes": 16836943,
+      "itemCount": 3,
+      "storedSignatureReverified": true
+    }
+  ]
+}

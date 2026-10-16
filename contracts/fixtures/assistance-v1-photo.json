@@ -1,0 +1,46 @@
+{
+  "contractVersion": 1,
+  "source": "ON_DEVICE",
+  "assessmentId": "fixture-assessment",
+  "taskId": "T1",
+  "evidenceId": "fixture-photo",
+  "revisionId": "fixture-revision",
+  "revisionNumber": 1,
+  "mediaSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "durationMs": null,
+  "status": "COMPLETED",
+  "quality": {
+    "status": "COMPLETED",
+    "provenance": {
+      "moduleVersion": "quality-technical-v1",
+      "profileVersion": "test-privacy-safe-v1",
+      "profileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "modelSha256": null,
+      "sampleIntervalMs": 1000
+    },
+    "coverage": {
+      "requestedSamples": 1,
+      "analysedSamples": 1,
+      "coveredDurationMs": 0,
+      "motionRequestedPairs": 0,
+      "motionAnalysedPairs": 0
+    },
+    "reviewRecommended": true,
+    "visibleRatio": null,
+    "visibleRatioGapFilled": null
+  },
+  "hands": null,
+  "flags": [
+    {
+      "type": "DARK",
+      "startMs": 0,
+      "endMs": null,
+      "severity": "review",
+      "observed": 20.0,
+      "threshold": 60.0
+    }
+  ],
+  "completedAtMillis": 1000,
+  "errorCategory": null,
+  "intervalsTruncated": false
+}

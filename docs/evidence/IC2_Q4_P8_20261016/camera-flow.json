@@ -1,0 +1,364 @@
+{
+  "runId": "p8-camera-20261016",
+  "device": "OnePlus 13R CPH2691",
+  "android": "16 / API36",
+  "package": "in.kaushalpramaan.app.p8validation",
+  "assessmentId": 17,
+  "currentRevision": 2,
+  "junitPhases": [
+    {
+      "phase": "ui-intake",
+      "verdict": "PASS",
+      "hostWallSeconds": 12.508,
+      "junitSeconds": 10.362,
+      "revision": 1,
+      "airplaneMode": 1,
+      "internetNetworkCount": 0
+    },
+    {
+      "phase": "ui-photo",
+      "verdict": "PASS",
+      "hostWallSeconds": 6.939,
+      "junitSeconds": 4.647,
+      "revision": 1,
+      "airplaneMode": 1,
+      "internetNetworkCount": 0
+    },
+    {
+      "phase": "ui-inspect",
+      "verdict": "PASS",
+      "hostWallSeconds": 4.119,
+      "junitSeconds": 1.858,
+      "revision": 1,
+      "airplaneMode": 1,
+      "internetNetworkCount": 0
+    },
+    {
+      "phase": "ui-sealed-preview",
+      "verdict": "PASS",
+      "hostWallSeconds": 3.726,
+      "junitSeconds": 1.558,
+      "revision": 1,
+      "airplaneMode": 1,
+      "internetNetworkCount": 0
+    },
+    {
+      "phase": "ui-synced",
+      "verdict": "PASS",
+      "hostWallSeconds": 4.672,
+      "junitSeconds": 1.546,
+      "revision": 1,
+      "airplaneMode": 0,
+      "internetNetworkCount": 1
+    },
+    {
+      "phase": "ui-p7-updates",
+      "verdict": "PASS",
+      "hostWallSeconds": 3.404,
+      "junitSeconds": 1.05,
+      "revision": 2,
+      "airplaneMode": 0,
+      "internetNetworkCount": 1
+    },
+    {
+      "phase": "ui-p7-video",
+      "verdict": "PASS",
+      "hostWallSeconds": 8.77,
+      "junitSeconds": 6.44,
+      "revision": 2,
+      "airplaneMode": 0,
+      "internetNetworkCount": 1
+    },
+    {
+      "phase": "ui-p7-inspect",
+      "verdict": "PASS",
+      "hostWallSeconds": 4.358,
+      "junitSeconds": 1.96,
+      "revision": 2,
+      "airplaneMode": 0,
+      "internetNetworkCount": 1
+    },
+    {
+      "phase": "ui-p7-seal",
+      "verdict": "PASS",
+      "hostWallSeconds": 4.855,
+      "junitSeconds": 2.482,
+      "revision": 2,
+      "airplaneMode": 1,
+      "internetNetworkCount": 0
+    },
+    {
+      "phase": "ui-p7-synced",
+      "verdict": "PASS",
+      "hostWallSeconds": 4.959,
+      "junitSeconds": 2.478,
+      "revision": 2,
+      "airplaneMode": 0,
+      "internetNetworkCount": 1
+    }
+  ],
+  "sealedOffline": true,
+  "syncedAfterConnectivity": true,
+  "snapshots": [
+    {
+      "task": "T1",
+      "evidenceId": "89fa36e6-c828-480a-84a2-c6455c180f3b",
+      "bytes": 3762876,
+      "durationMs": null,
+      "sha256": "49d23cd510e04c3096bb87f69a81e71048bca8bc7baf70eddc5c2f9f004f38b0",
+      "sealedSnapshot": {
+        "contractVersion": 1,
+        "source": "ON_DEVICE",
+        "assessmentId": "4e6468fb-163e-4f79-8dcb-8f959d480cfb",
+        "taskId": "T1",
+        "evidenceId": "89fa36e6-c828-480a-84a2-c6455c180f3b",
+        "revisionId": "0d958922-8bdf-42de-b942-9465c6721424",
+        "revisionNumber": 1,
+        "mediaSha256": "49d23cd510e04c3096bb87f69a81e71048bca8bc7baf70eddc5c2f9f004f38b0",
+        "durationMs": null,
+        "status": "COMPLETED",
+        "quality": {
+          "status": "COMPLETED",
+          "provenance": {
+            "moduleVersion": "quality-technical-v1",
+            "profileVersion": "quality-proxy-v3",
+            "profileSha256": "ba22f4bd6654691ed8c41c7a315ae74084bb88c2cd5b5bcd2c57738af42f3e77",
+            "modelSha256": null,
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 1,
+            "analysedSamples": 1,
+            "coveredDurationMs": 0,
+            "motionRequestedPairs": 0,
+            "motionAnalysedPairs": 0
+          },
+          "reviewRecommended": false,
+          "visibleRatio": null,
+          "visibleRatioGapFilled": null
+        },
+        "hands": null,
+        "flags": [],
+        "completedAtMillis": 1792092667674,
+        "errorCategory": null,
+        "intervalsTruncated": false
+      }
+    },
+    {
+      "task": "T2",
+      "evidenceId": "5cb3c143-b6e9-4e68-be87-db8a2f8f2d0d",
+      "bytes": 12263535,
+      "durationMs": 44926,
+      "sha256": "3e1186aae77659207848900635797bcb1997c1d7e7e38e7d7b9789eeeec8f1a9",
+      "sealedSnapshot": {
+        "contractVersion": 1,
+        "source": "ON_DEVICE",
+        "assessmentId": "4e6468fb-163e-4f79-8dcb-8f959d480cfb",
+        "taskId": "T2",
+        "evidenceId": "5cb3c143-b6e9-4e68-be87-db8a2f8f2d0d",
+        "revisionId": "0d958922-8bdf-42de-b942-9465c6721424",
+        "revisionNumber": 1,
+        "mediaSha256": "3e1186aae77659207848900635797bcb1997c1d7e7e38e7d7b9789eeeec8f1a9",
+        "durationMs": 44926,
+        "status": "PARTIAL",
+        "quality": {
+          "status": "COMPLETED",
+          "provenance": {
+            "moduleVersion": "quality-technical-v1",
+            "profileVersion": "quality-proxy-v3",
+            "profileSha256": "ba22f4bd6654691ed8c41c7a315ae74084bb88c2cd5b5bcd2c57738af42f3e77",
+            "modelSha256": null,
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 90,
+            "analysedSamples": 90,
+            "coveredDurationMs": 44926,
+            "motionRequestedPairs": 45,
+            "motionAnalysedPairs": 45
+          },
+          "reviewRecommended": false,
+          "visibleRatio": null,
+          "visibleRatioGapFilled": null
+        },
+        "hands": {
+          "status": "UNAVAILABLE",
+          "provenance": {
+            "moduleVersion": "hands-presence-v1",
+            "profileVersion": "hand_landmarker-float16-1",
+            "profileSha256": "4ac20d6b540dddcf1a92f66861f84d56a903a1914406766adf8b25a838183a1f",
+            "modelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 0,
+            "analysedSamples": 0,
+            "coveredDurationMs": 0,
+            "motionRequestedPairs": 0,
+            "motionAnalysedPairs": 0
+          },
+          "reviewRecommended": null,
+          "visibleRatio": null,
+          "visibleRatioGapFilled": null
+        },
+        "flags": [],
+        "completedAtMillis": 1792093456412,
+        "errorCategory": "INCOMPLETE_COVERAGE",
+        "intervalsTruncated": false
+      }
+    },
+    {
+      "task": "T3",
+      "evidenceId": "e9602f12-ff2c-4add-8860-8219938ea05f",
+      "bytes": 12290248,
+      "durationMs": 45058,
+      "sha256": "e5c5600153dc11522d85ad666e402de03f824b8ddba5d76e2c201ee2909a69be",
+      "sealedSnapshot": {
+        "contractVersion": 1,
+        "source": "ON_DEVICE",
+        "assessmentId": "4e6468fb-163e-4f79-8dcb-8f959d480cfb",
+        "taskId": "T3",
+        "evidenceId": "e9602f12-ff2c-4add-8860-8219938ea05f",
+        "revisionId": "0d958922-8bdf-42de-b942-9465c6721424",
+        "revisionNumber": 1,
+        "mediaSha256": "e5c5600153dc11522d85ad666e402de03f824b8ddba5d76e2c201ee2909a69be",
+        "durationMs": 45058,
+        "status": "COMPLETED",
+        "quality": {
+          "status": "COMPLETED",
+          "provenance": {
+            "moduleVersion": "quality-technical-v1",
+            "profileVersion": "quality-proxy-v3",
+            "profileSha256": "ba22f4bd6654691ed8c41c7a315ae74084bb88c2cd5b5bcd2c57738af42f3e77",
+            "modelSha256": null,
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 91,
+            "analysedSamples": 91,
+            "coveredDurationMs": 45058,
+            "motionRequestedPairs": 45,
+            "motionAnalysedPairs": 45
+          },
+          "reviewRecommended": false,
+          "visibleRatio": null,
+          "visibleRatioGapFilled": null
+        },
+        "hands": {
+          "status": "COMPLETED",
+          "provenance": {
+            "moduleVersion": "hands-presence-v1",
+            "profileVersion": "hand_landmarker-float16-1",
+            "profileSha256": "4ac20d6b540dddcf1a92f66861f84d56a903a1914406766adf8b25a838183a1f",
+            "modelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 46,
+            "analysedSamples": 46,
+            "coveredDurationMs": 45058,
+            "motionRequestedPairs": 0,
+            "motionAnalysedPairs": 0
+          },
+          "reviewRecommended": null,
+          "visibleRatio": 0,
+          "visibleRatioGapFilled": 0
+        },
+        "flags": [
+          {
+            "type": "HANDS_NOT_DETECTED",
+            "startMs": 0,
+            "endMs": 45058,
+            "severity": "review",
+            "observed": null,
+            "threshold": null
+          }
+        ],
+        "completedAtMillis": 1792094443419,
+        "errorCategory": null,
+        "intervalsTruncated": false
+      }
+    },
+    {
+      "task": "T2",
+      "evidenceId": "ecc51db3-a8b2-4ffe-bebc-4d646dbec481",
+      "bytes": 783819,
+      "durationMs": 3099,
+      "sha256": "1a2abe7263cceb55c788d5d73beaa3c1f89f4745cb2e2403534bfecc8942881a",
+      "sealedSnapshot": {
+        "contractVersion": 1,
+        "source": "ON_DEVICE",
+        "assessmentId": "4e6468fb-163e-4f79-8dcb-8f959d480cfb",
+        "taskId": "T2",
+        "evidenceId": "ecc51db3-a8b2-4ffe-bebc-4d646dbec481",
+        "revisionId": "7e66ea97-6f35-4728-9972-7d3e21cacb90",
+        "revisionNumber": 2,
+        "mediaSha256": "1a2abe7263cceb55c788d5d73beaa3c1f89f4745cb2e2403534bfecc8942881a",
+        "durationMs": 3099,
+        "status": "PARTIAL",
+        "quality": {
+          "status": "PARTIAL",
+          "provenance": {
+            "moduleVersion": "quality-technical-v1",
+            "profileVersion": "quality-proxy-v3",
+            "profileSha256": "ba22f4bd6654691ed8c41c7a315ae74084bb88c2cd5b5bcd2c57738af42f3e77",
+            "modelSha256": null,
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 7,
+            "analysedSamples": 7,
+            "coveredDurationMs": 3099,
+            "motionRequestedPairs": 3,
+            "motionAnalysedPairs": 0
+          },
+          "reviewRecommended": true,
+          "visibleRatio": null,
+          "visibleRatioGapFilled": null
+        },
+        "hands": {
+          "status": "COMPLETED",
+          "provenance": {
+            "moduleVersion": "hands-presence-v1",
+            "profileVersion": "hand_landmarker-float16-1",
+            "profileSha256": "4ac20d6b540dddcf1a92f66861f84d56a903a1914406766adf8b25a838183a1f",
+            "modelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+            "sampleIntervalMs": 1000
+          },
+          "coverage": {
+            "requestedSamples": 4,
+            "analysedSamples": 4,
+            "coveredDurationMs": 3099,
+            "motionRequestedPairs": 0,
+            "motionAnalysedPairs": 0
+          },
+          "reviewRecommended": null,
+          "visibleRatio": 0,
+          "visibleRatioGapFilled": 0
+        },
+        "flags": [
+          {
+            "type": "DARK",
+            "startMs": 0,
+            "endMs": 3099,
+            "severity": "review",
+            "observed": null,
+            "threshold": null
+          },
+          {
+            "type": "HANDS_NOT_DETECTED",
+            "startMs": 0,
+            "endMs": 3099,
+            "severity": "review",
+            "observed": null,
+            "threshold": null
+          }
+        ],
+        "completedAtMillis": 1792096354343,
+        "errorCategory": "INCOMPLETE_COVERAGE",
+        "intervalsTruncated": false
+      }
+    }
+  ],
+  "independentAccuracyEvidence": false
+}

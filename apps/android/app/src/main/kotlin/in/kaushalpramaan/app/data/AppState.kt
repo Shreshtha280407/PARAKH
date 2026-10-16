@@ -71,6 +71,7 @@ data class AppUiState(
     val gapTaskIds: Set<String> = emptySet(),
     val taskDrafts: Map<String, TaskDraftEntity> = emptyMap(),
     val evidenceByTask: Map<String, List<EvidenceDraftEntity>> = emptyMap(),
+    val assistanceByEvidence: Map<String, `in`.kaushalpramaan.app.data.assistance.AssistanceRecord> = emptyMap(),
 
     // P5: seal state machine + attestation, mirrored live from the active AssessmentDraft
     // (see SealOrchestrator/AppViewModel.observeDraft) -- never a locally-faked flag.

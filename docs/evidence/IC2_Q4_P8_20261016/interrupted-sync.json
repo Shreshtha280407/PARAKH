@@ -1,0 +1,39 @@
+{
+  "verdict": "PASS",
+  "hostWallSeconds": 34.153,
+  "beforeInternetNetworks": 0,
+  "beforeStopPid": 1731,
+  "afterRecoveryPid": 6321,
+  "serverAssessmentBefore": 17,
+  "serverAssessmentAfter": 17,
+  "outboxAtStop": [
+    {
+      "kind": "MANIFEST",
+      "state": "SYNCED",
+      "uploadedBytes": 0,
+      "error": null
+    },
+    {
+      "kind": "EVIDENCE",
+      "state": "UPLOADING",
+      "uploadedBytes": 1048576,
+      "error": null
+    },
+    {
+      "kind": "EVIDENCE",
+      "state": "QUEUED",
+      "uploadedBytes": 0,
+      "error": null
+    },
+    {
+      "kind": "EVIDENCE",
+      "state": "QUEUED",
+      "uploadedBytes": 0,
+      "error": null
+    }
+  ],
+  "synced": true,
+  "frozenSnapshotsUnchanged": true,
+  "transport": "unchanged signed bytes through local 1 MiB/s upload cap",
+  "performanceBenchmark": false
+}

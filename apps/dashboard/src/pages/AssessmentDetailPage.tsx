@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { EvidenceAssistance } from "../components/EvidenceAssistance";
 import {
   createReassessmentRequest,
   decideAssessment,
@@ -65,6 +66,8 @@ function formatDuration(ms: number | null): string {
 function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evidence: EvidenceReceiptOut }) {
   const contentUrl = evidenceContentUrl(assessmentId, evidence.id);
   const [mediaFailed, setMediaFailed] = useState(false);
+  const player = useRef<HTMLVideoElement>(null);
+  const [playableDurationMs, setPlayableDurationMs] = useState<number | null>(null);
 
   return (
     <li className="evidence-gallery-item">
@@ -73,12 +76,18 @@ function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evi
           <div className="thumb evidence-media-fallback">media unavailable</div>
         ) : evidence.kind === "video" ? (
           <video
+            ref={player}
             className="thumb"
             controls
             preload="metadata"
             src={contentUrl}
             poster={evidence.thumbnail_status === "completed" ? evidenceThumbnailUrl(assessmentId, evidence.id) : undefined}
             onError={() => setMediaFailed(true)}
+            aria-label={`Evidence video v${evidence.revision_number}`}
+            onLoadedMetadata={() => {
+              const duration = player.current?.duration;
+              setPlayableDurationMs(duration && Number.isFinite(duration) ? duration * 1000 : null);
+            }}
           />
         ) : (
           <img className="thumb" src={contentUrl} alt="evidence" onError={() => setMediaFailed(true)} />
@@ -113,6 +122,10 @@ function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evi
           open in a new tab
         </a>
       </div>
+      <EvidenceAssistance snapshot={evidence.assistance ?? null} durationMs={playableDurationMs}
+        mediaAvailable={!mediaFailed} onSeek={ms => {
+          if (player.current && playableDurationMs !== null && ms >= 0 && ms < playableDurationMs) player.current.currentTime = ms / 1000;
+        }} />
     </li>
   );
 }
