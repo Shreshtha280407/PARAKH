@@ -39,6 +39,17 @@ Seeded assessor login: the email/password you put in `.env`'s
 password, and that account simply can't log in, if you leave
 `DEV_ASSESSOR_PASSWORD` unset).
 
+`python -m app.seed` also creates three demo workers/assessments -- fine
+for a local demo, wrong for a real deployment. For a real environment
+where the only thing needed is one genuine assessor login with no demo
+data at all, provision it instead with
+`docker compose -f infra/docker-compose.yml exec api python -m app.provision_assessor
+--email you@yourorg.example --display-name "Your Name"` (prompts for a
+password interactively; see `server/app/provision_assessor.py`). You still
+need `python -m app.pack_import` (or the seed step above, which calls it)
+to import the qualification pack itself -- that's real configuration data,
+not demo data.
+
 ## Shutdown
 
 ```
@@ -76,6 +87,12 @@ internet — `docker compose up --build` needs to pull `postgres:16-alpine`,
 `python:3.12-slim`, `node:22-alpine`, `nginx:alpine` and install pip/npm
 packages the first time, same as any other Docker Compose project. **Do
 not read "offline" as "this stack works with no internet connection ever."**
+
+That said, P10 closes this for a genuine offline *deployment*: build and
+export the images once on a machine with internet, then start them on a
+network-isolated laptop from that export alone, no pulls or builds at all.
+See `tools/offline_bundle.py` and `docs/deployment/README.md`'s "Offline
+deployment" section.
 
 What "offline" actually means in this product (master plan): the worker's
 **Android app** captures declarations and evidence while genuinely

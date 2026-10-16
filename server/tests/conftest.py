@@ -69,6 +69,7 @@ def db_session():
 
 @pytest.fixture()
 def client(db_session, tmp_path):
+    from server.app.routers import auth as auth_router
     from server.app.routers import uploads as uploads_router
     from server.app.storage import LocalDiskStorage
 
@@ -83,11 +84,18 @@ def client(db_session, tmp_path):
     # in-memory DB, so storage keys collide across test runs otherwise).
     original_storage = uploads_router._storage
     uploads_router._storage = LocalDiskStorage(tmp_path / "evidence")
+    # The login throttle (server/app/routers/auth.py) is a module-level,
+    # per-process dict keyed by email -- every test's `assessor` fixture
+    # reuses the same literal email, so without clearing this a failed-login
+    # test earlier in the suite would eventually lock out an unrelated
+    # later test's legitimate login.
+    auth_router._failed_login_attempts.clear()
     try:
         yield TestClient(app)
     finally:
         app.dependency_overrides.clear()
         uploads_router._storage = original_storage
+        auth_router._failed_login_attempts.clear()
 
 
 @pytest.fixture()

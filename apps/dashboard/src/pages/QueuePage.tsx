@@ -10,7 +10,7 @@ export function QueuePage() {
   const [state, setState] = useState<LoadState>("loading");
   const [error, setError] = useState<string>("");
 
-  useEffect(() => {
+  function load() {
     let cancelled = false;
     setState("loading");
     getQueue()
@@ -27,13 +27,19 @@ export function QueuePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }
+
+  useEffect(load, []);
 
   return (
     <div className="page">
       <h1>Assessor Queue</h1>
       {state === "loading" && <p>Loading…</p>}
-      {state === "error" && <p className="error">Failed to load the queue: {error}</p>}
+      {state === "error" && (
+        <p className="error">
+          Failed to load the queue: {error} <button onClick={load}>Retry</button>
+        </p>
+      )}
       {state === "empty" && <p>No assessments are waiting for review right now.</p>}
       {state === "ready" && (
         <table>

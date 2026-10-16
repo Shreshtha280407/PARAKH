@@ -405,6 +405,14 @@ jobs:
           name: p8-persisted-browser-results
           path: /tmp/parakh-p8-browser
           if-no-files-found: ignore
+      - name: P10 single assessor workflow (login, queue, scoring, conflicts, profile, reassessment, sign-off, public verify)
+        working-directory: apps/dashboard
+        env:
+          P10_DASHBOARD_URL: http://localhost:5173
+          P10_API_URL: http://localhost:8000
+          P10_ASSESSOR_EMAIL: assessor.demo@parakh.test
+          P10_ASSESSOR_PASSWORD: ci-smoke-test-pw
+        run: npm run test:p10
       - name: Shut down cleanly
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v

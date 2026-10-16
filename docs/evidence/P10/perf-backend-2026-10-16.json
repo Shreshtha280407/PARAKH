@@ -1,0 +1,50 @@
+{
+  "provenance": {
+    "source_commit": "6cd169330b4744432b1f27ebf03b71e7b6caf477",
+    "generated_at_note": "caller must stamp wall-clock time -- see docs/perf.md",
+    "base_url": "http://127.0.0.1:18300",
+    "measurement_kind": "real HTTP latency against a live backend; not synthetic, not mocked"
+  },
+  "results": [
+    {
+      "scenario": "auth_login",
+      "observations": 20,
+      "failures": 0,
+      "median_ms": 95.24,
+      "p95_ms": 111.65,
+      "min_ms": 81.48,
+      "max_ms": 111.69,
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    },
+    {
+      "scenario": "queue_retrieval",
+      "observations": 20,
+      "failures": 0,
+      "median_ms": 6.15,
+      "p95_ms": 19.5,
+      "min_ms": 4.88,
+      "max_ms": 19.64,
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    },
+    {
+      "scenario": "assessment_bootstrap_register_plus_create",
+      "observations": 20,
+      "failures": 0,
+      "median_ms": 33.63,
+      "p95_ms": 52.92,
+      "min_ms": 16.06,
+      "max_ms": 53.13,
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    },
+    {
+      "scenario": "rubric_retrieval",
+      "observations": 20,
+      "failures": 0,
+      "median_ms": 15.69,
+      "p95_ms": 32.84,
+      "min_ms": 7.86,
+      "max_ms": 33.12,
+      "provenance": "real HTTP call against a live FastAPI+PostgreSQL stack"
+    }
+  ]
+}

@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:p8": "node e2e/p8.mjs"
+    "test:p8": "node e2e/p8.mjs",
+    "test:p10": "node e2e/p10-workflow.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",
