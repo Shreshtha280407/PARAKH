@@ -1,0 +1,18 @@
+# Runtime pipeline: Python standard library only (Python 3.12–3.14).
+# Exact test environment; independent sklearn/statsmodels numerical oracles.
+cloudpickle==3.1.2
+iniconfig==2.3.1
+joblib==1.6.0
+numpy==2.4.2
+packaging==26.3
+pandas==3.0.6
+patsy==1.0.3
+pluggy==1.7.0
+Pygments==2.21.0
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+scikit-learn==1.8.0
+scipy==1.18.1
+six==1.17.0
+statsmodels==0.14.6
+threadpoolctl==3.7.0

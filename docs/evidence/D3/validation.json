@@ -1,0 +1,97 @@
+{
+  "artifact_sha256": {
+    "ml/study/data/dataset_manifest.json": "9d0d0dd3abca4c8babb7d638b8608061b92050bbf8dad634a741eaab906afd18",
+    "ml/study/data/evidence_manifest.jsonl": "bc8318020c5f6370aa07db36597c0bf88ccc3afaeabdafb39a76a4a7f8b3a92b",
+    "ml/study/data/expected_pc_levels.csv": "2a5ec93b8562d8618162f912bddbece098c63ab2581f4ecee62330ad94e40c1c",
+    "ml/study/data/packages.jsonl": "ecbd214b44a0580104fde3df05eb607cc0213a14b73826c23d2ac739876b0061",
+    "ml/study/data/simulated_ratings.csv": "5423f28674f354335d6f7b781588566789fcbc18dcc47616f576cf1258486c68",
+    "ml/study/reports/dataset_validation.md": "e1d3100699289833e8eb588419e92c2eaf92e5ce726451d1d2fc93ae25891446",
+    "ml/study/reports/synthetic_validation.json": "d2ec688b1320246bdf72cfc1a6e2721eaaf5ecee7d769e36ae1054b0258092ad",
+    "ml/study/reports/synthetic_validation.md": "d852101e235526bf19b887a3be0cf397894b2e1852cb5cbe054c7c190e1f78ae"
+  },
+  "audited_base_commit": "7e18d6e24c7dbc7cb111625f73fee16b7d0546ff",
+  "backend_test_isolation": "New dedicated ephemeral PostgreSQL 16 container; no existing database reused",
+  "committed": false,
+  "existing_warning": "StarletteDeprecationWarning: httpx testclient integration",
+  "generator_version": "d3-synthetic-v1",
+  "hosted_github_actions": "NOT_RUN",
+  "initial_worktree": "clean",
+  "limitation": "This report uses synthetic packages, synthetic reference scores and simulated raters. It validates the software and statistics only. It is not evidence of agreement improvement among real assessors.",
+  "local_checks": {
+    "dataset_validation": "PASS",
+    "dependency_consistency": "PASS",
+    "flags_schema_freshness": "PASS",
+    "full_2000_draw_regeneration": "PASS_8_BYTE_IDENTICAL_ARTIFACTS",
+    "git_diff_check": "PASS",
+    "golden_vectors_passed": 100,
+    "matcher_checks_passed": 17,
+    "openapi_freshness": "PASS",
+    "pack_validation": "PASS",
+    "python_versions_reproduction": [
+      "3.13.5",
+      "3.14.7"
+    ],
+    "qp_traceability": "PASS"
+  },
+  "not_performed": [
+    "physical_D3_collection",
+    "independent_assessor_D5",
+    "expert_gold_collection",
+    "P10_offline_product_demo",
+    "P10_device_performance"
+  ],
+  "provenance": "SYNTHETIC_ENGINEERING_VALIDATION_ONLY",
+  "pushed": false,
+  "qp_code": "CON/Q0602",
+  "qp_version": "4.0",
+  "rubric_disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+  "rubric_id": "ae-con-q0602@v4.0-r1",
+  "rubric_status": "draft \u2014 pending trade-expert sign-off (P1 exit test)",
+  "source_sha256": {
+    "ml/study/agreement.py": "12cd44625ab5036159db036465ed056375cf9c6432582f71902b48744cf32494",
+    "ml/study/common.py": "56753eb9172a806dcd275a51104f084cbe0feaed76ed313df0f55beff261ca55",
+    "ml/study/generate_demo_data.py": "18319cc18f1d4ecf2179f9bcc4ce82287a9ab7912d7b09f0fd08cdd2d195538d",
+    "ml/study/outcome_adapter.py": "fa0cb3fb92e340529a6c0140f5732024196dd6055b19509d57cdbbe3a66556d2",
+    "ml/study/reproduce.py": "5129da2ae19a7fa8d2cba33c2a7b0a19809e67b6488b0079865a94fae9d3ac95",
+    "ml/study/requirements-test.txt": "af2a8130cb8f7e9bacc51b2c1b47b4db01598e387276a8cef7d84aabc27baacb",
+    "ml/study/simulate_ratings.py": "501315d6f40cafb372c9e771d6d735417231e2ad61d271fbef9a3422a37e5168",
+    "ml/study/validate_dataset.py": "9c5ca899b2e4d34877153e868d300e8e2ad0d03b388be907cf7347688cbed713",
+    "packs/ae-con-q0602/coverage_matrix.json": "ab4c3be900875b10998a00a27b3823878adf5c69a5ce6dc611aadba6a48de28e",
+    "packs/ae-con-q0602/qp.json": "d7a99a144dc94047a476633af229dded0056830b41ef49fc91229a20a7a0ed8f",
+    "packs/ae-con-q0602/rubric.json": "1acb1b06ec3fa99762a5da6a2b31c3cd23434015af8d552e656fb8998f0bce46",
+    "packs/ae-con-q0602/tasks.json": "e07a1946792240063cd068348378b1453050a174d49bcf2fd9f0c903bae19138",
+    "server/app/outcome.py": "0e547bb571d9a9e243022be4b084e631d15f5df80e23173af224de6e50e68c1b",
+    "server/app/routers/scoring.py": "f613d1a181afac583995feb59b13b4b201b9304293dc2d2bee159d21a60c4a15"
+  },
+  "statistical_oracles": {
+    "absolute_tolerance": 1e-12,
+    "scikit_learn": "1.8.0",
+    "statsmodels": "0.14.6"
+  },
+  "status": "COMPLETE_OWNER_AMENDED_SYNTHETIC_D3_ONLY",
+  "study_test_source_sha256": {
+    "ml/study/tests/conftest.py": "0d9a8975a8303d3e25a32ee1f14c9a50849a7c8d89aa1868b4b5cacfba5a12f1",
+    "ml/study/tests/test_agreement.py": "a884f2c3a08e81a7d6eec3b6a98c857aa69fa91b25a40452244b28e82d5e1d82",
+    "ml/study/tests/test_generator.py": "efd2cb8b94041ecb98bd33942769a629204b884721c873f01930c6e9ad956115",
+    "ml/study/tests/test_ratings.py": "2635b59845085c28aeed48b8e5dc23b409d18c60d6cbfccf0fd3f20283856e2a",
+    "ml/study/tests/test_reproducibility.py": "6cfa0c0f7802bc51991db0952cc0e6e2c79cd4945c8d3826275e09ea66d5baca",
+    "ml/study/tests/test_schema.py": "b55038374abaa15d4d6b94300f82ec541c679bb0f44da20778b0712ddad4ea2e"
+  },
+  "synthetic": true,
+  "test_suites": {
+    "backend": {
+      "elapsed_seconds": 436.278,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 278
+    },
+    "study": {
+      "elapsed_seconds": 6.493,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 95
+    }
+  }
+}

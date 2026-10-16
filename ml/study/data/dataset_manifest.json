@@ -1,0 +1,71 @@
+{
+  "artifact_sha256": {
+    "evidence_manifest.jsonl": "bc8318020c5f6370aa07db36597c0bf88ccc3afaeabdafb39a76a4a7f8b3a92b",
+    "expected_pc_levels.csv": "2a5ec93b8562d8618162f912bddbece098c63ab2581f4ecee62330ad94e40c1c",
+    "packages.jsonl": "ecbd214b44a0580104fde3df05eb607cc0213a14b73826c23d2ac739876b0061",
+    "simulated_ratings.csv": "5423f28674f354335d6f7b781588566789fcbc18dcc47616f576cf1258486c68"
+  },
+  "clock_policy": "No event timestamps: fictional metadata only; no wall clock or UUIDs.",
+  "count": 20,
+  "generator_version": "d3-synthetic-v1",
+  "media_policy": "No media files, media hashes, upload receipts or signatures exist.",
+  "provenance": "SYNTHETIC_ENGINEERING_VALIDATION_ONLY",
+  "qp_code": "CON/Q0602",
+  "qp_version": "4.0",
+  "reference_kind": "synthetic_reference",
+  "rubric_disclaimer": "MVP assessor-support rubric; not an official SSC scoring replacement.",
+  "rubric_id": "ae-con-q0602@v4.0-r1",
+  "rubric_status": "draft — pending trade-expert sign-off (P1 exit test)",
+  "scenario_counts": {
+    "incomplete_evidence": 5,
+    "major_faults": 5,
+    "minor_faults": 5,
+    "strong": 5
+  },
+  "schema_version": 1,
+  "seed": 42,
+  "simulation": {
+    "conditions": [
+      "manual",
+      "rubric_assisted"
+    ],
+    "parameters": {
+      "baseline": "Same parameters in both conditions; independent condition-specific draws; no assistance effect.",
+      "identical": "Same parameters and random draws in both conditions; zero-difference control.",
+      "large_disagreement_probability": "0.04 conditional on a scoring perturbation",
+      "leakage_boundary": "Simulator consumes scenario levels to create controlled errors; analysis never corrects ratings using references.",
+      "missing_policy": "Reference NOT_OBSERVABLE, declaration-only and fixed not-applicable stay unscored.",
+      "one_step_probability": "0.10 + 0.38 * ambiguity; multiply by 0.55 on critical PCs",
+      "severity": {
+        "SIM_RATER_01": -0.18,
+        "SIM_RATER_02": 0.0,
+        "SIM_RATER_03": 0.18
+      },
+      "unobservable_decision_probability": "0.035 * ambiguity on demonstrated PCs only"
+    },
+    "policy": "baseline",
+    "raters": [
+      "SIM_RATER_01",
+      "SIM_RATER_02",
+      "SIM_RATER_03"
+    ],
+    "seed": 42
+  },
+  "source_sha256": {
+    "ml/study/agreement.py": "12cd44625ab5036159db036465ed056375cf9c6432582f71902b48744cf32494",
+    "ml/study/common.py": "56753eb9172a806dcd275a51104f084cbe0feaed76ed313df0f55beff261ca55",
+    "ml/study/generate_demo_data.py": "18319cc18f1d4ecf2179f9bcc4ce82287a9ab7912d7b09f0fd08cdd2d195538d",
+    "ml/study/outcome_adapter.py": "fa0cb3fb92e340529a6c0140f5732024196dd6055b19509d57cdbbe3a66556d2",
+    "ml/study/reproduce.py": "5129da2ae19a7fa8d2cba33c2a7b0a19809e67b6488b0079865a94fae9d3ac95",
+    "ml/study/requirements-test.txt": "af2a8130cb8f7e9bacc51b2c1b47b4db01598e387276a8cef7d84aabc27baacb",
+    "ml/study/simulate_ratings.py": "501315d6f40cafb372c9e771d6d735417231e2ad61d271fbef9a3422a37e5168",
+    "ml/study/validate_dataset.py": "9c5ca899b2e4d34877153e868d300e8e2ad0d03b388be907cf7347688cbed713",
+    "packs/ae-con-q0602/coverage_matrix.json": "ab4c3be900875b10998a00a27b3823878adf5c69a5ce6dc611aadba6a48de28e",
+    "packs/ae-con-q0602/qp.json": "d7a99a144dc94047a476633af229dded0056830b41ef49fc91229a20a7a0ed8f",
+    "packs/ae-con-q0602/rubric.json": "1acb1b06ec3fa99762a5da6a2b31c3cd23434015af8d552e656fb8998f0bce46",
+    "packs/ae-con-q0602/tasks.json": "e07a1946792240063cd068348378b1453050a174d49bcf2fd9f0c903bae19138",
+    "server/app/outcome.py": "0e547bb571d9a9e243022be4b084e631d15f5df80e23173af224de6e50e68c1b",
+    "server/app/routers/scoring.py": "f613d1a181afac583995feb59b13b4b201b9304293dc2d2bee159d21a60c4a15"
+  },
+  "synthetic": true
+}
