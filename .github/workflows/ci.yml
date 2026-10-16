@@ -16,6 +16,23 @@ permissions:
   contents: read
 
 jobs:
+  d3-synthetic-study:
+    name: D3 synthetic dataset and statistical validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated study test dependencies
+        run: python -m pip install -r ml/study/requirements-test.txt
+      - name: Validate schemas, pinned provenance and deterministic dataset regeneration
+        run: python ml/study/validate_dataset.py --check-reproducible --out /tmp/d3-dataset-validation.md
+      - name: Statistical unit tests and independent library cross-checks
+        run: python -m pytest ml/study/tests -q
+      - name: Byte-identical full report regeneration (2000 package bootstrap draws)
+        run: python ml/study/reproduce.py --check
+
   p1-pack-validate:
     name: P1 pack validation
     runs-on: ubuntu-latest
