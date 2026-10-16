@@ -87,6 +87,15 @@ This also validates the tar's own `manifest.json` lists every required
 image *before* touching Docker at all, so a short/corrupt export is caught
 with a clear message instead of an obscure failure partway through `up`.
 
+**Safety**: `verify` defaults to a *different* Compose project name than
+the real deployment above (`kaushalpramaan-mvp-offline-verify`, not
+`kaushalpramaan-mvp`) and unconditionally refuses to run at all if you pass
+`--project kaushalpramaan-mvp` explicitly -- `--teardown` runs
+`docker compose down -v`, which deletes Compose-managed volumes, and
+running that against the real deployment's project name would destroy its
+actual database and evidence. Never override `--project` to match a real
+deployment you want to keep.
+
 **This was verified for real during P10**, both by hand and via the
 `verify` subcommand above: the four built images were deleted from the
 local Docker image store, reloaded from the exported tar alone, and

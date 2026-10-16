@@ -33,8 +33,18 @@ Or, to prove it automatically (same thing `verify` does, plus a health
 check and teardown):
     python3 tools/offline_bundle.py verify --tar parakh-offline-images.tar --teardown
 
+Safety: `verify` defaults to a project name distinct from the real
+deployment's ("kaushalpramaan-mvp", infra/docker-compose.yml's `name:`)
+and unconditionally REFUSES to run against that exact name at all --
+`verify`'s `docker load` would overwrite that project's image tags, and
+`--teardown` runs `docker compose down -v`, which deletes Compose-managed
+volumes (a real deployment's actual database and evidence). `export`
+intentionally still defaults to the real project name (so the tar it
+produces matches what you'd actually deploy); `verify` never does.
+
 This script only builds/saves/loads images; it never touches .env,
-evidence, or the dbdata/evidence named volumes.
+evidence, or the dbdata/evidence named volumes OF A DIFFERENTLY-NAMED
+project. Never pass `verify` the real deployment's own project name.
 """
 import argparse
 import json
@@ -49,6 +59,22 @@ BUILT_SERVICES = ["api", "worker", "dashboard", "migrate"]
 # `docker compose build` and must be pulled and saved explicitly.
 DIRECTLY_PULLED_IMAGES = ["postgres:16-alpine"]
 HEALTHCHECKED_SERVICES = ["api", "dashboard"]
+
+# infra/docker-compose.yml's own `name:` directive -- the project name a
+# REAL local/demo deployment of this stack actually runs under. `verify`
+# loads images, brings up containers and (with --teardown) runs
+# `docker compose down -v` -- which deletes Compose-managed volumes. If
+# `verify` were ever allowed to default to or accept this exact name, a
+# plain `python3 tools/offline_bundle.py verify --tar X --teardown` run
+# against a machine that happens to have the real deployment up under its
+# default name would silently recreate its containers from the tar and
+# then DELETE its `dbdata`/`evidence` volumes -- a real database and real
+# evidence, gone, with no confirmation prompt. verify_bundle() refuses
+# this name outright, unconditionally, before touching Docker at all;
+# there is no flag to override it, because there is no legitimate reason
+# for a disposable proof-of-offline-start to share a name with a real
+# deployment in the first place -- see verify's own --project default below.
+REAL_DEPLOYMENT_PROJECT_NAME = "kaushalpramaan-mvp"
 
 
 class OfflineBundleError(Exception):
@@ -90,7 +116,9 @@ def export_bundle(project: str, out: str, compose_file: str) -> None:
     print("\n--no-build makes Compose refuse to build anything; --pull never makes it")
     print("refuse to fetch anything either, hard-failing instead of silently reaching")
     print("the network -- the real proof the start did not fall back to a network pull.")
-    print(f"\nOr verify this automatically: python3 tools/offline_bundle.py verify --tar {out} --teardown")
+    print(f"\nOr verify this automatically (uses a separate, disposable --project by default -- never")
+    print(f"the real deployment's project name above, see verify_bundle()'s own hard check):")
+    print(f"  python3 tools/offline_bundle.py verify --tar {out} --teardown")
 
 
 def _normalize_tag(tag: str) -> str:
@@ -150,6 +178,15 @@ def wait_for_healthy(project: str, services: list[str], timeout_seconds: int) ->
 
 
 def verify_bundle(project: str, tar_path: str, compose_file: str, timeout_seconds: int, teardown: bool) -> None:
+    if project == REAL_DEPLOYMENT_PROJECT_NAME:
+        raise OfflineBundleError(
+            f"refusing to verify against project name '{REAL_DEPLOYMENT_PROJECT_NAME}' -- that is the "
+            "real deployment's own project name (infra/docker-compose.yml's `name:`), and verify's "
+            "`docker load` (overwrites that project's image tags) and --teardown (`docker compose down "
+            "-v`, deletes its dbdata/evidence volumes) would silently damage or destroy a real running "
+            "deployment under that name. Pass a different, disposable --project (the default already is "
+            "one) -- verify is a throwaway proof, never meant to run against the real deployment's name."
+        )
     expected = set(expected_image_tags(project))
     actual = read_tar_image_tags(tar_path)
     missing = expected - actual
@@ -189,7 +226,12 @@ def main(argv: list[str] | None = None) -> int:
         "verify",
         help="load the tar and start the stack with --no-build --pull never, proving no network pull occurs",
     )
-    verify_p.add_argument("--project", default="kaushalpramaan-mvp")
+    # Deliberately NOT "kaushalpramaan-mvp" (the real deployment's project
+    # name) -- verify is a throwaway proof-of-offline-start that loads
+    # images and (with --teardown) deletes volumes; sharing the real
+    # deployment's name would risk damaging or destroying it. See
+    # REAL_DEPLOYMENT_PROJECT_NAME and verify_bundle()'s hard check above.
+    verify_p.add_argument("--project", default="kaushalpramaan-mvp-offline-verify")
     verify_p.add_argument("--compose-file", default="infra/docker-compose.yml")
     verify_p.add_argument("--tar", required=True)
     verify_p.add_argument("--timeout", type=int, default=120, help="seconds to wait for services to report healthy")

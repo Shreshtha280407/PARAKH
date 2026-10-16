@@ -69,6 +69,50 @@ def test_verify_rejects_a_tar_missing_a_required_image_before_touching_docker(tm
     mock_subprocess_run.assert_not_called()
 
 
+def test_verify_refuses_the_real_deployment_project_name_before_touching_docker(tmp_path):
+    """The real bug this guards against: verify's --project used to
+    default to the SAME name as the actual deployment
+    (infra/docker-compose.yml's `name: kaushalpramaan-mvp`). Since
+    --teardown runs `docker compose down -v`, running verify against a
+    machine that happens to have the real stack up under its default name
+    would silently recreate its containers from the tar and then DELETE
+    its dbdata/evidence volumes -- a real database and real evidence,
+    gone. This must be refused unconditionally, before Docker is touched
+    at all, regardless of --teardown."""
+    complete_tar = _make_tar(tmp_path, [
+        f"{offline_bundle.REAL_DEPLOYMENT_PROJECT_NAME}-api:latest",
+        f"{offline_bundle.REAL_DEPLOYMENT_PROJECT_NAME}-worker:latest",
+        f"{offline_bundle.REAL_DEPLOYMENT_PROJECT_NAME}-dashboard:latest",
+        f"{offline_bundle.REAL_DEPLOYMENT_PROJECT_NAME}-migrate:latest",
+        "postgres:16-alpine",
+    ])
+    with patch("tools.offline_bundle.run") as mock_run, patch("subprocess.run") as mock_subprocess_run:
+        with pytest.raises(offline_bundle.OfflineBundleError, match="real deployment"):
+            offline_bundle.verify_bundle(
+                offline_bundle.REAL_DEPLOYMENT_PROJECT_NAME, str(complete_tar),
+                "infra/docker-compose.yml", 60, teardown=True,
+            )
+    mock_run.assert_not_called()
+    mock_subprocess_run.assert_not_called()
+
+
+def test_main_verify_defaults_to_a_project_name_distinct_from_the_real_deployment(tmp_path):
+    """A plain `offline_bundle.py verify --tar X --teardown` with no
+    --project override must never be able to reach the destructive path
+    above by accident -- main()'s actual default (not a reimplementation
+    of it) must differ from REAL_DEPLOYMENT_PROJECT_NAME."""
+    complete_tar = _make_tar(tmp_path, [
+        "whatever-the-default-project-api:latest", "whatever-the-default-project-worker:latest",
+        "whatever-the-default-project-dashboard:latest", "whatever-the-default-project-migrate:latest",
+        "postgres:16-alpine",
+    ])
+    seen_projects = []
+    with patch("tools.offline_bundle.verify_bundle", side_effect=lambda project, *a, **k: seen_projects.append(project)):
+        exit_code = offline_bundle.main(["verify", "--tar", str(complete_tar)])
+    assert exit_code == 0
+    assert seen_projects and seen_projects[0] != offline_bundle.REAL_DEPLOYMENT_PROJECT_NAME
+
+
 def test_verify_passes_no_build_and_pull_never_to_docker_compose(tmp_path):
     """The actual no-pull fix: starting the offline stack must explicitly
     forbid Docker from pulling anything, not rely solely on --no-build

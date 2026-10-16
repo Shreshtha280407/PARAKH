@@ -111,22 +111,35 @@ Timing scales close to linearly with chunk count (photo: 2 chunks, video: 8
 chunks), as expected for a sequential chunked protocol with per-chunk
 round-trip overhead on localhost.
 
-## 3. Throttled upload (real, this pass)
+## 3. Throttled upload (real, corrected)
 
-Source: `docs/evidence/P10/perf-upload-throttled-256kibs-2026-10-17.json` and
-`perf-upload-unthrottled-comparison-2026-10-17.json`. Uses the existing
-`tools/p8_network_proxy.py` loopback bandwidth cap (its own enforced minimum
-is 262144 bytes/s = 256 KiB/s -- the closest honest reading of the original
-master plan's "256 kbps" target, which this tool's pre-existing lower bound
-already fixes the units of) in front of the real P8-integration test stack
-(`infra/docker-compose.p8-test.yml`, API on port 18008), with
-`tools/perf_upload.py` driven straight through it:
+**Unit correction**: an earlier revision of this report configured the proxy
+at 262,144 bytes/s and called that "256 kbps". That is wrong: the master
+plan's target is in kbps (**kilo*bits***/second, decimal telecom convention,
+1 kbps = 1000 bits/s), so 256 kbps = 256,000 bits/s = **32,000 bytes/s** --
+not 256 *KiB*/s (262,144 bytes/s), which is ~8.2x faster than intended. The
+earlier 262,144 bytes/s run is kept as `perf-upload-throttled-256kibs-2026-10-17.json`
+for the record, but it does not satisfy the original requirement; the table
+below is the corrected, authoritative measurement.
+
+Fixed as part of the correction: `tools/p8_network_proxy.py` previously
+enforced a hard floor of 262,144 bytes/s, which made 32,000 bytes/s
+inexpressible even once the unit mistake was caught. It now accepts
+`--upload-kbps` directly (so the rate is given the same way the master plan
+states it, removing the conversion step that caused the original error) and
+its floor was lowered to 8,192 bytes/s.
+
+Source: `docs/evidence/P10/perf-upload-throttled-256kbps-corrected-2026-10-17.json`
+and `perf-upload-unthrottled-comparison-2026-10-17.json`. Uses
+`tools/p8_network_proxy.py`'s loopback bandwidth cap in front of the real
+P8-integration test stack (`infra/docker-compose.p8-test.yml`, API on port
+18008), with `tools/perf_upload.py` driven straight through it:
 
 ```sh
-python3 tools/p8_network_proxy.py --upload-bytes-per-second 262144 &
+python3 tools/p8_network_proxy.py --upload-kbps 256 &
 server/.venv/bin/python tools/perf_upload.py --base-url http://127.0.0.1:18009 \
   --repeat 2 --photo-bytes 1048576 --video-bytes 0 --chunk-bytes 262144 \
-  --out docs/evidence/P10/perf-upload-throttled-256kibs-2026-10-17.json
+  --out docs/evidence/P10/perf-upload-throttled-256kbps-corrected-2026-10-17.json
 # unthrottled comparison, same payload, direct to the same stack:
 server/.venv/bin/python tools/perf_upload.py --base-url http://127.0.0.1:18008 \
   --repeat 2 --photo-bytes 1048576 --video-bytes 0 --chunk-bytes 262144 \
@@ -136,13 +149,13 @@ server/.venv/bin/python tools/perf_upload.py --base-url http://127.0.0.1:18008 \
 | Condition | 1 MiB photo upload+verify (median) |
 |---|---:|
 | Unthrottled (direct, same stack) | 107.3 ms |
-| Throttled at 256 KiB/s | 4203.0 ms |
+| Throttled at the correct 256 kbps (32,000 bytes/s) | 32,997.1 ms |
 
-4203 ms for 1,048,576 bytes at a 262,144 bytes/s cap is within ~5% of the
-theoretical 4000 ms floor (1,048,576 / 262,144), the difference being real
-protocol overhead (session open, 4 sequential chunk PUTs, complete/verify)
-on top of the raw bandwidth limit -- i.e. the throttle is doing exactly what
-it claims, and the overhead above the floor is genuine, not noise.
+32,997 ms for 1,048,576 bytes at a 32,000 bytes/s cap is within 0.7% of the
+theoretical 32,768 ms floor (1,048,576 / 32,000) -- the tiny difference is
+real protocol overhead (session open, 4 sequential chunk PUTs,
+complete/verify) on top of the raw bandwidth limit, confirming the throttle
+now runs at the rate it claims and matches the originally-specified target.
 
 ## 4. Dashboard (browser, real, this pass)
 
