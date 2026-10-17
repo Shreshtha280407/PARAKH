@@ -3,6 +3,7 @@ import datetime
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select, text
 
 from .. import models, schemas
 from ..auth import (
@@ -15,6 +16,8 @@ from ..auth import (
 )
 from ..db import get_db
 from ..worker_tokens import generate_worker_token, hash_worker_token
+from ..abuse import enrollment_limits, enrollment_capacity
+from ..reviewer_identity import identity
 
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
@@ -124,14 +127,20 @@ def _created_out(assessment: models.Assessment, raw_token: str) -> schemas.Asses
 
 
 @router.post("", response_model=schemas.AssessmentCreatedOut, status_code=201)
-def create_assessment(body: schemas.AssessmentCreate, db: Session = Depends(get_db)) -> schemas.AssessmentCreatedOut:
+def create_assessment(body: schemas.AssessmentCreate, request: Request, db: Session = Depends(get_db)) -> schemas.AssessmentCreatedOut:
     """Open to any caller (the worker app has no login) -- the response
     carries a fresh, unguessable capability token that every subsequent
     worker-side call on this assessment must present. See
     docs/worker_capability_tokens.md."""
+    enrollment_limits(db, request)
+    if db.bind.dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_xact_lock(72026017)"))
+    enrollment_capacity(db)
     worker = db.get(models.User, body.worker_id)
     if worker is None or worker.role != "worker":
         raise HTTPException(404, "worker not found")
+    if worker.enrollment_secret_hash:
+        raise HTTPException(403, "use the protected candidate enrollment contract")
     pack = db.get(models.QualificationPack, body.pack_id)
     if pack is None:
         raise HTTPException(404, "pack not found")
@@ -349,7 +358,7 @@ def start_review(
 ) -> schemas.AssessmentOut:
     """An assessor picks a submitted assessment off the queue -- moves
     submitted -> in_review and claims it (assessor_id)."""
-    assessment = db.get(models.Assessment, assessment_id)
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
     if assessment.status != models.AssessmentStatus.submitted.value:
@@ -359,7 +368,7 @@ def start_review(
 
     assessment.status = models.AssessmentStatus.in_review.value
     assessment.assessor_id = user.id
-    _audit(db, assessment.id, actor_user_id=user.id, actor_role=user.role, action="review_started")
+    _audit(db, assessment.id, actor_user_id=user.id, actor_role=user.role, action="review_started", details={"reviewer_identity": identity(user)})
     db.commit()
     db.refresh(assessment)
     return _assessment_out(db, assessment)
@@ -511,7 +520,7 @@ def get_audit_log(
     } if actor_ids else {}
     return [
         schemas.AuditLogEntryOut(
-            id=r.id, actor_user_id=r.actor_user_id, actor_name=names.get(r.actor_user_id),
+            id=r.id, actor_user_id=r.actor_user_id, actor_name=names.get(r.actor_user_id) or r.details.get("reviewer_identity", {}).get("name"),
             actor_role=r.actor_role, action=r.action, details=r.details, created_at=r.created_at,
         )
         for r in rows

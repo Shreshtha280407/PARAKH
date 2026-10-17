@@ -3,18 +3,21 @@ PDF's own QR code points at (see routers/reports.py's sign_off). Exposes
 only minimal safe fields: never the worker's name/contact, never raw
 evidence, never the full score breakdown. See docs/gates/P7.md section 4.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from .. import models, report_signing, schemas
 from ..db import get_db
+from ..abuse import source, throttle
 from . import uploads
 
 router = APIRouter(tags=["verify"])
 
 
 @router.get("/verify/{report_id}", response_model=schemas.PublicVerifyOut)
-def public_verify(report_id: str, db: Session = Depends(get_db)) -> schemas.PublicVerifyOut:
+def public_verify(report_id: str, request: Request, db: Session = Depends(get_db)) -> schemas.PublicVerifyOut:
+    throttle(db, "verify-global", 300, 60)
+    throttle(db, "verify:" + source(request), 60, 60)
     report = db.query(models.SignedReport).filter_by(report_uid=report_id).one_or_none()
     if report is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "no signed report exists for this report id")

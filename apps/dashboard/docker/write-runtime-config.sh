@@ -13,7 +13,7 @@ set -eu
 CONFIG_PATH="/usr/share/nginx/html/config.json"
 
 if [ -n "${DASHBOARD_RUNTIME_API_BASE_URL:-}" ]; then
-  printf '{"apiBaseUrl":"%s"}\n' "$DASHBOARD_RUNTIME_API_BASE_URL" > "$CONFIG_PATH"
+  printf '{"apiBaseUrl":"%s","accessMode":"%s"}\n' "$DASHBOARD_RUNTIME_API_BASE_URL" "${DASHBOARD_ACCESS_MODE:-private}" > "$CONFIG_PATH"
 else
-  printf '{}\n' > "$CONFIG_PATH"
+  printf '{"accessMode":"%s"}\n' "${DASHBOARD_ACCESS_MODE:-private}" > "$CONFIG_PATH"
 fi

@@ -25,6 +25,8 @@ class HealthOut(BaseModel):
     status: str
     database: str
     storage: str
+    source_sha: str = "local"
+    worker_source_sha: str | None = None
 
 
 # ---- auth ----
@@ -64,6 +66,64 @@ class WorkerRegisterRequest(BaseModel):
 
 class WorkerRegisterOut(BaseModel):
     worker_id: int
+
+
+class CandidateEnrollmentIn(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    device_worker_id: str = Field(min_length=20, max_length=60, pattern=r"^[A-Za-z0-9-]+$")
+    enrollment_secret: str = Field(min_length=64, max_length=64, pattern=r"^[a-f0-9]{64}$", repr=False)
+    client_assessment_id: str = Field(min_length=32, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+    full_name: str = Field(min_length=2, max_length=120)
+    phone: str = Field(pattern=r"^\+91[6-9][0-9]{9}$", repr=False)
+    public_name_consent: bool = False
+    consent_version: Literal["public-name-v1"] = "public-name-v1"
+    qp_code: str = "CON/Q0602"
+    qp_version: str = "4.0"
+
+    @model_validator(mode="after")
+    def validate_name(self):
+        if not any(c.isalpha() for c in self.full_name) or any(ord(c) < 32 for c in self.full_name):
+            raise ValueError("enter a valid full name")
+        return self
+
+
+class PublicAssessmentOut(BaseModel):
+    id: int
+    candidate_display_name: str
+    pack_code: str
+    submitted_at: datetime.datetime
+    status: str
+    tasks_completed: int
+    tasks_total: int
+    review_status: str
+    revision_number: int
+    report_available: bool
+    report_id: str | None = None
+    outcome: str | None = None
+
+
+class ReviewerChallengeIn(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    assessment_id: int = Field(gt=0)
+    name: str = Field(min_length=2, max_length=120)
+    email: str = Field(max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+    action: Literal["review", "reject", "reassessment", "sign_off"]
+
+
+class ReviewerVerifyIn(BaseModel):
+    challenge_id: str = Field(max_length=64)
+    code: str = Field(pattern=r"^[0-9]{6}$", repr=False)
+
+
+class ReviewerSignOffIn(BaseModel):
+    final_recommendation: "ComputedOutcomeValue"
+    override_reason: str | None = Field(default=None, max_length=4000)
+    confirmed: Literal[True]
+
+
+class ReviewerRejectIn(BaseModel):
+    reason: str = Field(min_length=3, max_length=4000)
+    confirmed: Literal[True]
 
 
 # ---- pack lookup (P6 sync bootstrap: resolve the pinned QP code/version to a pack_id) ----
@@ -436,7 +496,7 @@ class ReassessmentRequestOut(BaseModel):
     task_codes: list[str]
     reason: str
     capture_instructions: str
-    requested_by_id: int
+    requested_by_id: int = Field(description="Organizational user ID, or 0 for an account-free reviewer; never an authentication credential")
     requested_at: datetime.datetime
     status: str
     fulfilled_at: datetime.datetime | None = None

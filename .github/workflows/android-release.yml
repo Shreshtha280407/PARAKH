@@ -1,0 +1,93 @@
+name: Android APK delivery
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: parakh-android-release
+  cancel-in-progress: false
+jobs:
+  apk:
+    if: >-
+      github.repository == 'Shreshtha280407/PARAKH' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.conclusion == 'success'
+    environment: android-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
+      RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+      EXPECTED_CERT_SHA256: ${{ vars.ANDROID_RELEASE_CERT_SHA256 }}
+    steps:
+      - name: Check successful CI still represents main
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = await github.rest.repos.getBranch({...context.repo, branch: 'main'});
+            if (branch.data.commit.sha !== context.payload.workflow_run.head_sha) throw new Error('main advanced; wait for the newer CI run');
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install release Android SDK components
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Use approved signing identity or explicitly deliver unsigned test artifact
+        run: |
+          python3 - <<'PY'
+          import base64, os, pathlib
+          keys = ['ANDROID_KEYSTORE_BASE64','RELEASE_STORE_PASSWORD','RELEASE_KEY_ALIAS','RELEASE_KEY_PASSWORD','EXPECTED_CERT_SHA256']
+          supplied = [bool(os.environ.get(k)) for k in keys]
+          if any(supplied) and not all(supplied):
+              raise SystemExit('Incomplete release signing configuration; refusing a partial identity')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              if all(supplied):
+                  path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'approved-release.jks'
+                  path.write_bytes(base64.b64decode(os.environ['ANDROID_KEYSTORE_BASE64'], validate=True))
+                  path.chmod(0o600)
+                  output.write(f'RELEASE_STORE_FILE={path}\nAPK_SIGNING=approved-release\n')
+              else:
+                  output.write('APK_SIGNING=unsigned-test-artifact\n')
+          PY
+      - name: Build HTTPS release and run hardening checks
+        working-directory: apps/android
+        run: |
+          ./gradlew :app:assembleRelease :app:lintRelease \
+            :app:verifyP4TestCeilingDisabledInRelease :app:verifyP5DebugFeaturesDisabledInRelease \
+            :app:verifyP5DebugExportAbsentFromRelease :app:verifyP6TestOnlySyncOverrideDisabledInRelease \
+            :app:verifyP6SyncEndpointOverrideAbsentFromRelease :app:verifyNoGalleryImportPath \
+            :app:verifyExpectedNetworkPermissions :app:verifyMergedManifestHasExpectedNetworkPermissions \
+            :app:verifyReleaseForbidsCleartextTraffic \
+            -PreleaseSyncBaseUrl=https://api-production-c626.up.railway.app \
+            -PreleaseVersionCode=$((1000 + GITHUB_RUN_NUMBER)) \
+            -PreleaseVersionName="0.7.0-${RELEASE_SHA:0:8}" --console=plain
+      - name: Record version, exact SHA and actual signing identity
+        run: python3 tools/android_release_receipt.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ env.APK_SIGNING }}-${{ github.event.workflow_run.head_sha }}
+          retention-days: 14
+          path: |
+            apps/android/app/build/outputs/apk/release/*.apk
+            android-release-receipt.json
+      - name: Remove ephemeral signing file
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          (pathlib.Path(os.environ['RUNNER_TEMP']) / 'approved-release.jks').unlink(missing_ok=True)
+          PY

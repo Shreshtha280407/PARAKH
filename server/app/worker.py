@@ -214,10 +214,21 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     signal.signal(signal.SIGTERM, _handle_stop)
     signal.signal(signal.SIGINT, _handle_stop)
-    logger.info("worker starting id=%s poll_interval=%ss", WORKER_ID, settings.job_poll_interval_seconds)
+    logger.info("worker starting id=%s poll_interval=%ss source_sha=%s", WORKER_ID, settings.job_poll_interval_seconds, settings.source_sha)
+    last_heartbeat = 0.0
     while _running:
         db = SessionLocal()
         try:
+            if time.monotonic() - last_heartbeat >= 30:
+                heartbeat = db.get(models.WorkerHeartbeat, "worker")
+                if heartbeat is None:
+                    heartbeat = models.WorkerHeartbeat(service="worker", source_sha=settings.source_sha, seen_at=models.utcnow())
+                    db.add(heartbeat)
+                else:
+                    heartbeat.source_sha = settings.source_sha
+                    heartbeat.seen_at = models.utcnow()
+                db.commit()
+                last_heartbeat = time.monotonic()
             recovered = jobs.recover_stale_jobs(db)
             if recovered:
                 logger.warning("recovered %s stale job(s) from a crashed worker", recovered)

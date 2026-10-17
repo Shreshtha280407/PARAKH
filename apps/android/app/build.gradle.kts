@@ -19,11 +19,8 @@ check(!p8ValidationShrink || p8ValidationBuild) { "Shrunk validation must use th
 // password. Reads a Gradle property first (-PreleaseStoreFile=...), then
 // the matching environment variable (CI secrets convention), so either a
 // local release build or a CI job can supply real signing material without
-// touching this file. When nothing is supplied, falls back to Android's
-// own auto-generated debug keystore so `assembleRelease` still produces an
-// installable (debug-signed, clearly not a real release) APK for local/CI
-// builds that have no real keystore -- this is a loud, logged fallback,
-// not a silent one.
+// touching this file. With no approved keystore, assembleRelease produces
+// an explicitly unsigned test artifact. It never substitutes a debug identity.
 fun releaseSigningProperty(name: String): String? =
     (project.findProperty(name) as String?) ?: System.getenv(name)
 
@@ -53,8 +50,8 @@ android {
         applicationId = "in.kaushalpramaan.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.6.0-p6"
+        versionCode = providers.gradleProperty("releaseVersionCode").orNull?.toInt() ?: 2
+        versionName = providers.gradleProperty("releaseVersionName").orNull ?: "0.7.0-open"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -149,15 +146,12 @@ android {
             // P10: real release signing when RELEASE_STORE_FILE/PASSWORD/
             // RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD are supplied (see
             // hasRealReleaseSigning above); otherwise this intentionally
-            // falls back to the debug signing config so a release build
-            // without real signing material is still debug-signed and
-            // installable, not unsigned/unbuildable -- never silently
-            // claim a build is really release-signed when it is not.
-            signingConfig = if (hasRealReleaseSigning) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            // remains unsigned when no real signing material exists.
+            signingConfig = if (hasRealReleaseSigning) signingConfigs.getByName("release") else null
             if (!hasRealReleaseSigning) {
                 logger.warn(
                     "RELEASE_STORE_FILE/RELEASE_STORE_PASSWORD/RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD not set -- " +
-                        "this release APK is debug-signed, not real-release-signed. Set all four (as Gradle " +
+                        "this release APK is UNSIGNED and cannot be installed. Set all four (as Gradle " +
                         "properties or environment variables) before distributing a real release build.",
                 )
             }

@@ -725,7 +725,8 @@ def test_concurrent_registration_for_the_same_device_never_creates_two_workers(c
         s = session_factory()
         try:
             out = workers_router.register_worker(
-                schemas.WorkerRegisterRequest(device_worker_id="KP-RACE-TEST", display_name="Racer"), db=s,
+            schemas.WorkerRegisterRequest(device_worker_id="KP-RACE-TEST", display_name="Racer"),
+            request=__import__("starlette.requests", fromlist=["Request"]).Request({"type": "http", "client": ("registration-race-test", 1)}), db=s,
             )
             results[key] = out.worker_id
         finally:

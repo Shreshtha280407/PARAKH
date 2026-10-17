@@ -83,7 +83,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: python -m pip install --upgrade pip && python -m pip install pytest==9.1.1 cryptography==50.0.2
+        run: python -m pip install --upgrade pip && python -m pip install pytest==9.1.1 cryptography==50.0.2 sqlalchemy==2.1.4
       - name: Run tools/tests (mocked HTTP/Docker -- no live stack needed)
         run: python -m pytest tools/tests -v
 
@@ -257,7 +257,7 @@ jobs:
             --apk apps/android/assist-benchmark/build/outputs/apk/debug/assist-benchmark-debug.apk \
             --apk apps/android/assist-benchmark/build/outputs/apk/release/assist-benchmark-release-unsigned.apk \
             --apk apps/android/app/build/outputs/apk/debug/app-debug.apk \
-            --apk apps/android/app/build/outputs/apk/release/app-release.apk
+            --apk apps/android/app/build/outputs/apk/release/app-release-unsigned.apk
       # Runs after the normal debug artifact/asset checks: this opt-in replaces
       # local debug outputs with a separate applicationId, never a release APK.
       - name: Compile isolated physical UI harness
@@ -429,6 +429,52 @@ jobs:
       - name: Shut down cleanly
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
+
+  open-access-browser:
+    name: Open access browser regression
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: parakh
+          POSTGRES_PASSWORD: parakh_test_pw
+          POSTGRES_DB: parakh_open_e2e
+        ports: [5432:5432]
+        options: --health-cmd "pg_isready -U parakh" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://parakh:parakh_test_pw@127.0.0.1:5432/parakh_open_e2e
+      NEON_DIRECT_DATABASE_URL: postgresql+psycopg://parakh:parakh_test_pw@127.0.0.1:5432/parakh_open_e2e
+      REPORT_SIGNING_PRIVATE_KEY: c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1
+      CORS_ALLOW_ORIGINS: http://127.0.0.1:18177
+      EVIDENCE_DIR: /tmp/parakh-open-e2e-storage
+      VITE_API_BASE_URL: http://127.0.0.1:18178
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install -r server/requirements.txt
+      - run: npm ci
+        working-directory: apps/dashboard
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/dashboard
+      - name: Apply real migrations and start isolated services
+        run: |
+          PARAKH_MIGRATION_ONLY=1 python -m alembic -c server/alembic.ini upgrade head
+          python tools/open_access_e2e_server.py > /tmp/open-api.log 2>&1 &
+          npm --prefix apps/dashboard run dev -- --host 127.0.0.1 --port 18177 > /tmp/open-dashboard.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:18178/health >/dev/null && curl -sf http://127.0.0.1:18177 >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Real browser enrollment, privacy, review, scoring, reassessment, rejection and signing
+        run: node apps/dashboard/e2e/open-access.mjs
 
   offline-bundle-verify:
     name: Offline deployment -- real no-pull verification

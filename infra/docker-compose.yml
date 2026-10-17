@@ -83,6 +83,7 @@ services:
       # origin on redeploy without rebuilding. Leave unset to keep the
       # build-time VITE_API_BASE_URL/DASHBOARD_API_BASE_URL value above.
       DASHBOARD_RUNTIME_API_BASE_URL: ${DASHBOARD_RUNTIME_API_BASE_URL:-}
+      DASHBOARD_ACCESS_MODE: ${DASHBOARD_ACCESS_MODE:-private}
     ports:
       - "${DASHBOARD_HOST_PORT:-5173}:80"
     depends_on:

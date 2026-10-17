@@ -1,5 +1,9 @@
 # Deployment guide (P10.2 / P10.5)
 
+For the current public dashboard, candidate PIN workflow, and coordinated
+Vercel/Railway/Neon release, see [Open access release operations](OPEN_ACCESS_RELEASE.md).
+This guide retains the private offline deployment procedures.
+
 This covers three scenarios the same codebase supports: local development,
 offline/LAN deployment (e.g. a training site with no internet), and a later
 hosted HTTPS deployment. It complements `infra/README.md` (local dev

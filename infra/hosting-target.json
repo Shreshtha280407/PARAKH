@@ -1,0 +1,16 @@
+{
+  "github_repository": "Shreshtha280407/PARAKH",
+  "github_branch": "main",
+  "github_environment": "hosted-staging",
+  "railway_project": "0db00184-3011-4e77-8984-d16158e5c6d2",
+  "railway_environment": "5f04aba5-58e1-4d7f-8552-d782e6b694fc",
+  "railway_api_service": "bfbcec3e-ff8d-4bb6-af2d-4e2c2a1aef88",
+  "railway_worker_service": "a3f9fbc2-a5c5-4473-aecf-600e9713a163",
+  "api_url": "https://api-production-c626.up.railway.app",
+  "dashboard_url": "https://parakh-dashboard-five.vercel.app",
+  "neon_branch": "br-green-king-b3x0m645",
+  "neon_direct_host": "ep-hidden-fire-b3tt778e.c-4.ap-southeast-1.aws.neon.tech",
+  "s3_bucket": "parakh-evidence-staging",
+  "vercel_project": "prj_QuZl6BmJeNFE6ZYt5ClPnBoL9IY9",
+  "vercel_org": "team_sGXQt823l4rFYT0LEinP1etP"
+}

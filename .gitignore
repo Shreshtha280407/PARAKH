@@ -7,8 +7,16 @@ node_modules/
 server/data/
 .pytest_cache/
 .env
+.env.*
+!.env.example
 dist/
 apps/dashboard/node_modules/
 apps/dashboard/dist/
 .env.deploy
 .neon
+server/app/source_version.json
+apps/dashboard/public/version.json
+migration-result.json
+deployment-result.json
+android-release-receipt.json
+previous-*.json

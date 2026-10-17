@@ -75,6 +75,7 @@ class EvidenceRepository(
         language: String,
         matchOutput: MatchOutput?,
         declaration: DeclarationState? = null,
+        candidate: `in`.kaushalpramaan.app.data.WorkerRegistration? = null,
     ): AssessmentDraftEntity {
         assessmentDraftDao.getActiveOnce()?.let { return it }
 
@@ -86,6 +87,10 @@ class EvidenceRepository(
             .orEmpty()
         val assessment = AssessmentDraftEntity(
             id = UUID.randomUUID().toString(),
+            candidateFullName = candidate?.fullName,
+            candidatePhone = candidate?.phone,
+            candidatePublicNameConsent = candidate?.publicNameConsent ?: false,
+            enrollmentSecret = candidate?.enrollmentSecret,
             state = AssessmentDraftState.ACTIVE,
             qpCode = rules.tasksFile.qpCode,
             qpVersion = rules.tasksFile.qpVersion,
@@ -94,7 +99,7 @@ class EvidenceRepository(
             matchResult = matchOutput?.matchResult,
             overallCoverage = matchOutput?.overallCoverage,
             gapTaskIdsCsv = gapIds,
-            isTestOnly = true,
+            isTestOnly = candidate == null,
             createdAtMillis = now,
             updatedAtMillis = now,
             // P7: the full declaration/match snapshot, durably persisted -- see
@@ -165,7 +170,7 @@ class EvidenceRepository(
                 durationMillis = null,
                 state = EvidenceDraftState.STAGING,
                 replacesEvidenceId = replacesEvidenceId,
-                isTestOnly = true,
+                isTestOnly = assessmentDraftDao.getById(assessmentId)?.isTestOnly ?: true,
                 debugCeilingRequested = debugOverrideRequested,
             ),
         )

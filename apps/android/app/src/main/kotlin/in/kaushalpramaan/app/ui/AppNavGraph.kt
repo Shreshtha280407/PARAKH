@@ -18,6 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NamedNavArgument
+import androidx.compose.animation.AnimatedContentScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -50,39 +54,42 @@ object Routes {
 @Composable
 fun AppNavGraph(viewModel: AppViewModel) {
     val navController: NavHostController = rememberNavController()
-
     NavHost(navController = navController, startDestination = Routes.LOADING) {
-        composable(Routes.LOADING) {
+        protectedScreen(viewModel, navController, Routes.LOADING) {
             val uiState by viewModel.uiState.collectAsState()
             LaunchedEffect(uiState.startRouteResolved) {
                 if (uiState.startRouteResolved) {
-                    val target = if (uiState.resumedFromDraft) Routes.TASK_LIST else Routes.LANGUAGE
+                    val target = when {
+                        uiState.resumedFromDraft -> Routes.TASK_LIST
+                        uiState.registration != null -> Routes.DECLARATION
+                        else -> Routes.LANGUAGE
+                    }
                     navController.navigate(target) { popUpTo(Routes.LOADING) { inclusive = true } }
                 }
             }
             LoadingScreen()
         }
-        composable(Routes.LANGUAGE) {
+        protectedScreen(viewModel, navController, Routes.LANGUAGE) {
             LanguageScreen(
                 viewModel = viewModel,
                 onContinue = { navController.navigate(Routes.CONSENT) },
             )
         }
-        composable(Routes.CONSENT) {
+        protectedScreen(viewModel, navController, Routes.CONSENT) {
             ConsentScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onContinue = { navController.navigate(Routes.REGISTRATION) },
             )
         }
-        composable(Routes.REGISTRATION) {
+        protectedScreen(viewModel, navController, Routes.REGISTRATION) {
             RegistrationScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onContinue = { navController.navigate(Routes.DECLARATION) },
             )
         }
-        composable(Routes.DECLARATION) {
+        protectedScreen(viewModel, navController, Routes.DECLARATION) {
             DeclarationScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
@@ -92,14 +99,14 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 },
             )
         }
-        composable(Routes.MATCH_RESULT) {
+        protectedScreen(viewModel, navController, Routes.MATCH_RESULT) {
             MatchResultScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onViewTasks = { navController.navigate(Routes.TASK_LIST) },
             )
         }
-        composable(Routes.TASK_LIST) {
+        protectedScreen(viewModel, navController, Routes.TASK_LIST) {
             TaskListScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
@@ -110,7 +117,7 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 },
             )
         }
-        composable(Routes.TASK_DETAIL) { backStackEntry ->
+        protectedScreen(viewModel, navController, Routes.TASK_DETAIL) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getString("taskId")
             requireNotNull(taskId) { "task_detail route requires a taskId argument" }
             TaskDetailScreen(
@@ -121,7 +128,7 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 onPreviewEvidence = { evidenceId -> navController.navigate(Routes.evidencePreview(evidenceId)) },
             )
         }
-        composable(
+        protectedScreen(viewModel, navController,
             Routes.CAPTURE,
             arguments = listOf(navArgument("replaceId") { type = NavType.StringType; nullable = true }),
         ) { backStackEntry ->
@@ -134,7 +141,7 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 onDone = { navController.popBackStack() },
             )
         }
-        composable(Routes.EVIDENCE_PREVIEW) { backStackEntry ->
+        protectedScreen(viewModel, navController, Routes.EVIDENCE_PREVIEW) { backStackEntry ->
             val evidenceId = requireNotNull(backStackEntry.arguments?.getString("evidenceId"))
             EvidencePreviewScreen(
                 viewModel = viewModel,
@@ -151,7 +158,7 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 onDeleted = { navController.popBackStack() },
             )
         }
-        composable(Routes.PREVIEW) {
+        protectedScreen(viewModel, navController, Routes.PREVIEW) {
             PreviewScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
@@ -165,7 +172,7 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 },
             )
         }
-        composable(Routes.TRIM) { backStackEntry ->
+        protectedScreen(viewModel, navController, Routes.TRIM) { backStackEntry ->
             val evidenceId = requireNotNull(backStackEntry.arguments?.getString("evidenceId"))
             TrimScreen(
                 viewModel = viewModel,
@@ -174,11 +181,38 @@ fun AppNavGraph(viewModel: AppViewModel) {
                 onCancel = { navController.popBackStack() },
             )
         }
-        composable(Routes.SUBMITTED) {
+        protectedScreen(viewModel, navController, Routes.SUBMITTED) {
             SubmittedScreen(
                 viewModel = viewModel,
                 onViewPreviewAgain = { navController.navigate(Routes.PREVIEW) },
             )
+        }
+    }
+}
+
+
+/** Keep NavHost mounted for the full Activity lifecycle. Only destination
+ * content is gated, so no private screen exists while locked and navigation
+ * entries never lose their lifecycle owner during background/recreation. */
+private fun NavGraphBuilder.protectedScreen(
+    viewModel: AppViewModel,
+    navController: NavHostController,
+    route: String,
+    arguments: List<NamedNavArgument> = emptyList(),
+    content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit,
+) {
+    composable(route = route, arguments = arguments) { entry ->
+        val gate by viewModel.uiState.collectAsState()
+        if (!gate.startRouteResolved) {
+            LoadingScreen()
+        } else if (gate.localLocked) {
+            `in`.kaushalpramaan.app.ui.screens.PinUnlockScreen(viewModel, onErased = {
+                navController.navigate(Routes.LANGUAGE) {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                }
+            })
+        } else {
+            content(entry)
         }
     }
 }

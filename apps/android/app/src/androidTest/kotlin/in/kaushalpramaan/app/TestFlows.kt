@@ -63,6 +63,7 @@ class ClearP4DraftBeforeTest : TestRule {
             // old data regardless of the file deletion below.
             AppDatabase.resetInstanceForTesting()
             val context = InstrumentationRegistry.getInstrumentation().targetContext
+            `in`.kaushalpramaan.app.data.CandidateSecurity(context).clear()
             val dbFile = context.getDatabasePath("kp_drafts.db")
             dbFile.delete()
             File(dbFile.path + "-wal").delete()
@@ -134,10 +135,14 @@ fun ComposeTestRule.completeIntake(languageTag: String, phone: String = "9876543
     tapTag("consent_checkbox")
     tapTag("btn_continue")
 
+    onNodeWithTag("reg_name").scrollToIfPossible().performTextInput("Device Test Candidate")
     onNodeWithTag("reg_phone").scrollToIfPossible().performTextInput(phone)
     onNodeWithTag("reg_pin").scrollToIfPossible().performTextInput(pin)
     onNodeWithTag("reg_pin_confirm").scrollToIfPossible().performTextInput(pin)
     tapTag("btn_register")
+    // PIN derivation runs off the UI thread. Continue only once durable
+    // registration completes and navigation reaches the declaration.
+    waitUntilExactlyOneExists(hasTestTag("declaration_lazy_column"), timeoutMillis = 15_000)
 }
 
 /** DeclarationScreen's list is a LazyColumn (26 items + the non-scored

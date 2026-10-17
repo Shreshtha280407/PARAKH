@@ -38,7 +38,9 @@ enum class EvidenceType { PHOTO, VIDEO }
 data class WorkerRegistration(
     val workerId: String,
     val phone: String,
-    val pin: String,
+    val fullName: String = "",
+    val publicNameConsent: Boolean = false,
+    val enrollmentSecret: String = "",
 )
 
 data class DeclarationState(
@@ -54,6 +56,8 @@ data class DeclarationState(
 )
 
 data class AppUiState(
+    val localLocked: Boolean = true,
+    val legacyPinRequired: Boolean = false,
     val language: AppLanguage = AppLanguage.ENGLISH,
     val consentAcknowledged: Boolean = false,
     val registration: WorkerRegistration? = null,

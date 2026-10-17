@@ -27,7 +27,8 @@ import {
 // the SAME built image be redeployed against a different backend by only
 // changing an environment variable and restarting the container, no
 // rebuild required.
-export let BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+export let BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? "/api" : "http://localhost:8000");
+export let PUBLIC_DASHBOARD = true;
 
 /** P10: optional runtime override, read once at startup (see main.tsx) from
  * /config.json -- a plain static file nginx's docker-entrypoint regenerates
@@ -42,6 +43,7 @@ export async function loadRuntimeConfig(): Promise<void> {
     const res = await fetch("/config.json", { cache: "no-store" });
     if (!res.ok) return;
     const config = await res.json();
+    PUBLIC_DASHBOARD = config.accessMode !== "private";
     if (typeof config.apiBaseUrl === "string" && config.apiBaseUrl.length > 0) {
       BASE_URL = config.apiBaseUrl;
     }
@@ -76,12 +78,15 @@ function csrfToken(): string | null {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (PUBLIC_DASHBOARD && path.startsWith("/assessments/")) path = `/reviewer${path}`;
   const method = (options.method ?? "GET").toUpperCase();
   const headers = new Headers(options.headers);
   if (options.body) headers.set("Content-Type", "application/json");
   if (MUTATING_METHODS.has(method)) {
     const csrf = csrfToken();
     if (csrf) headers.set("X-CSRF-Token", csrf);
+    const reviewerCsrf = document.cookie.match(/(?:^|; )parakh_reviewer_csrf=([^;]*)/);
+    if (reviewerCsrf) headers.set("X-Reviewer-CSRF", decodeURIComponent(reviewerCsrf[1]));
   }
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, method, headers, credentials: "include" });
@@ -197,7 +202,7 @@ export function publicVerify(reportId: string): Promise<PublicVerifyOut> {
 }
 
 export function reportDownloadUrl(id: number, format: "json" | "pdf" | "receipt"): string {
-  return `${BASE_URL}/assessments/${id}/report?format=${format}`;
+  return `${BASE_URL}${PUBLIC_DASHBOARD ? "/reviewer" : ""}/assessments/${id}/report?format=${format}`;
 }
 
 interface ReportReceipt {
@@ -277,9 +282,36 @@ export function getAuditLog(id: number): Promise<AuditLogEntryOut[]> {
  * send cookies for same-origin/CORS-with-credentials requests the same way) authorises these
  * directly; no separate token needs to be embedded in the URL. */
 export function evidenceContentUrl(assessmentId: number, evidenceId: number): string {
-  return `${BASE_URL}/assessments/${assessmentId}/evidence/${evidenceId}/content`;
+  return `${BASE_URL}${PUBLIC_DASHBOARD ? "/reviewer" : ""}/assessments/${assessmentId}/evidence/${evidenceId}/content`;
 }
 
 export function evidenceThumbnailUrl(assessmentId: number, evidenceId: number): string {
-  return `${BASE_URL}/assessments/${assessmentId}/evidence/${evidenceId}/thumbnail`;
+  return `${BASE_URL}${PUBLIC_DASHBOARD ? "/reviewer" : ""}/assessments/${assessmentId}/evidence/${evidenceId}/thumbnail`;
+}
+
+export interface PublicAssessment {
+  id: number; candidate_display_name: string; pack_code: string; submitted_at: string;
+  status: string; tasks_completed: number; tasks_total: number; review_status: string;
+  revision_number: number; report_available: boolean; report_id: string | null; outcome: string | null;
+}
+export type ReviewerAction = "review" | "reject" | "reassessment" | "sign_off";
+export function publicAssessments(beforeId?: number): Promise<PublicAssessment[]> {
+  return request(`/public/assessments${beforeId ? `?before_id=${beforeId}` : ""}`);
+}
+export function publicAssessment(id: number): Promise<PublicAssessment> { return request(`/public/assessments/${id}`); }
+export function reviewerAvailability(): Promise<{available: boolean; message: string}> { return request("/reviewer/availability"); }
+export function requestReviewerCode(assessmentId: number, name: string, email: string, action: ReviewerAction): Promise<{challenge_id: string}> {
+  return request("/reviewer/challenges", {method: "POST", body: JSON.stringify({assessment_id: assessmentId, name, email, action})});
+}
+export function verifyReviewerCode(challengeId: string, code: string): Promise<{name: string; email: string}> {
+  return request("/reviewer/verify", {method: "POST", body: JSON.stringify({challenge_id: challengeId, code})});
+}
+export function rejectAssessment(id: number, reason: string): Promise<AssessmentOut> {
+  return request(`/reviewer/assessments/${id}/reject`, {method: "POST", body: JSON.stringify({reason, confirmed: true})});
+}
+export function reviewerSignOff(id: number, finalRecommendation: string, overrideReason: string): Promise<SignedReportOut> {
+  return request(`/reviewer/assessments/${id}/sign-off`, {method: "POST", body: JSON.stringify({final_recommendation: finalRecommendation, override_reason: overrideReason || null, confirmed: true})});
+}
+export function reviewerReassessment(id: number, body: ReassessmentRequestIn): Promise<ReassessmentRequestOut> {
+  return request(`/reviewer/assessments/${id}/reassessment-requests`, {method: "POST", body: JSON.stringify({...body, confirmed: true})});
 }

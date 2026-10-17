@@ -63,7 +63,7 @@ function formatDuration(ms: number | null): string {
  * (section B.4 of the P6 spec) shows a clear, safe fallback rather than a broken image or a
  * claim that the media itself is missing -- the ORIGINAL content is always still playable
  * regardless of thumbnail/metadata job outcome. */
-function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evidence: EvidenceReceiptOut }) {
+export function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evidence: EvidenceReceiptOut }) {
   const contentUrl = evidenceContentUrl(assessmentId, evidence.id);
   const [mediaFailed, setMediaFailed] = useState(false);
   const player = useRef<HTMLVideoElement>(null);
@@ -130,7 +130,7 @@ function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evi
   );
 }
 
-function ScoreRow({
+export function ScoreRow({
   assessmentId,
   item,
   onSaved,

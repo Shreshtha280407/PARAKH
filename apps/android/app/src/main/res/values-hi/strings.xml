@@ -19,7 +19,19 @@
     <string name="consent_continue_disabled_hint">आगे बढ़ने के लिए कृपया ऊपर दी गई सहमति से सहमत हों।</string>
 
     <!-- Registration screen -->
-    <string name="registration_title">पंजीकरण करें</string>
+    <string name="registration_title">उम्मीदवार का विवरण</string>
+    <string name="registration_name_label">पूरा नाम</string>
+    <string name="registration_error_name">अपना पूरा नाम दर्ज करें।</string>
+    <string name="registration_public_name_consent">वैकल्पिक: मैं सार्वजनिक डैशबोर्ड पर आकलन की स्थिति और परिणाम के साथ अपना पूरा नाम दिखाने की सहमति देता/देती हूँ। इसे कोई भी देख सकता है। नाम की जगह उम्मीदवार संख्या के लिए इसे न चुनें।</string>
+    <string name="registration_privacy">फ़ोन नंबर निजी रहेगा। सुरक्षा पिन इस फ़ोन की सुरक्षा करता है और कभी अपलोड नहीं होता। ऑनलाइन खाता आवश्यक नहीं है।</string>
+    <string name="pin_unlock_title">स्थानीय आकलन खोलें</string>
+    <string name="pin_unlock_action">खोलें</string>
+    <string name="pin_unlock_error">खोला नहीं जा सका। पिन जाँचें और %1$d सेकंड बाद पुनः प्रयास करें।</string>
+    <string name="pin_forgot_action">सुरक्षा पिन भूल गए?</string>
+    <string name="pin_erase_explanation">पिन पुनर्प्राप्त नहीं किया जा सकता। फिर से शुरू करने पर इस फ़ोन का आकलन, रिकॉर्डिंग और सिंक कुंजियाँ हमेशा के लिए मिट जाएँगी। बिना सिंक किया काम खो जाएगा। पहले भेजे गए क्लाउड रिकॉर्ड निजी रहेंगे और नए पिन से प्राप्त नहीं किए जा सकते।</string>
+    <string name="pin_erase_action">स्थानीय आकलन मिटाएँ और फिर शुरू करें</string>
+    <string name="pin_legacy_explanation">इस पुराने ड्राफ्ट में सुरक्षा पिन नहीं है। फ़ोन का स्क्रीन लॉक सत्यापित करें, फिर नया चार अंकों का सुरक्षा पिन दो बार भरें। सत्यापन संभव न होने पर केवल स्थानीय काम मिटाया जा सकता है।</string>
+    <string name="pin_device_verify">फ़ोन का स्क्रीन लॉक सत्यापित करें</string>
     <string name="registration_phone_label">फ़ोन नंबर</string>
     <string name="registration_pin_label">4 अंकों का पिन (इस फ़ोन पर आपकी जानकारी सुरक्षित रखने के लिए)</string>
     <string name="registration_pin_confirm_label">पिन दोबारा डालें</string>

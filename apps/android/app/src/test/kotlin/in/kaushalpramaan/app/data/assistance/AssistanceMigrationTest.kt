@@ -44,10 +44,14 @@ class AssistanceMigrationTest {
             execSQL("""INSERT INTO outbox_items(id,assessmentId,revision_id,idempotency_key,kind,evidence_id,task_id,vault_relative_path,priority,created_at_millis,sync_state,bytes_uploaded,server_object_id,receipt_verified_at_millis) VALUES('o','a','old-revision','a:old-revision','EVIDENCE','e','T1','vault/e.vault',1,1500,'SYNCED',100,53,1800)""")
         }
         helper.close()
-        val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(MIGRATION_5_6).build()
+        val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(MIGRATION_5_6, MIGRATION_6_7).build()
         try {
             val a = migrated.assessmentDraftDao().getById("a")!!
             assertEquals("test-token", a.serverWorkerToken)
+            assertNull(a.candidateFullName)
+            assertNull(a.candidatePhone)
+            assertNull(a.enrollmentSecret)
+            assertFalse(a.candidatePublicNameConsent)
             assertEquals(2, a.currentRevisionNumber)
             assertEquals(37L, a.workerUpdatesCursor)
             assertEquals("available", a.reportStatus)

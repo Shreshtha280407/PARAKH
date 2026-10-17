@@ -801,6 +801,73 @@
         "title": "AuditLogEntryOut",
         "type": "object"
       },
+      "CandidateEnrollmentIn": {
+        "additionalProperties": false,
+        "properties": {
+          "client_assessment_id": {
+            "maxLength": 64,
+            "minLength": 32,
+            "pattern": "^[A-Za-z0-9-]+$",
+            "title": "Client Assessment Id",
+            "type": "string"
+          },
+          "consent_version": {
+            "const": "public-name-v1",
+            "default": "public-name-v1",
+            "title": "Consent Version",
+            "type": "string"
+          },
+          "device_worker_id": {
+            "maxLength": 60,
+            "minLength": 20,
+            "pattern": "^[A-Za-z0-9-]+$",
+            "title": "Device Worker Id",
+            "type": "string"
+          },
+          "enrollment_secret": {
+            "maxLength": 64,
+            "minLength": 64,
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Enrollment Secret",
+            "type": "string"
+          },
+          "full_name": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Full Name",
+            "type": "string"
+          },
+          "phone": {
+            "pattern": "^\\+91[6-9][0-9]{9}$",
+            "title": "Phone",
+            "type": "string"
+          },
+          "public_name_consent": {
+            "default": false,
+            "title": "Public Name Consent",
+            "type": "boolean"
+          },
+          "qp_code": {
+            "default": "CON/Q0602",
+            "title": "Qp Code",
+            "type": "string"
+          },
+          "qp_version": {
+            "default": "4.0",
+            "title": "Qp Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "device_worker_id",
+          "enrollment_secret",
+          "client_assessment_id",
+          "full_name",
+          "phone"
+        ],
+        "title": "CandidateEnrollmentIn",
+        "type": "object"
+      },
       "ChunkAck": {
         "properties": {
           "chunk_index": {
@@ -931,6 +998,38 @@
           "computed_outcome"
         ],
         "title": "CompetencyProfileOut",
+        "type": "object"
+      },
+      "ConfirmedReassessment": {
+        "properties": {
+          "capture_instructions": {
+            "title": "Capture Instructions",
+            "type": "string"
+          },
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "task_codes": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Task Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "task_codes",
+          "reason",
+          "capture_instructions",
+          "confirmed"
+        ],
+        "title": "ConfirmedReassessment",
         "type": "object"
       },
       "CriterionReviewItemOut": {
@@ -1286,6 +1385,11 @@
             "title": "Database",
             "type": "string"
           },
+          "source_sha": {
+            "default": "local",
+            "title": "Source Sha",
+            "type": "string"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -1293,6 +1397,17 @@
           "storage": {
             "title": "Storage",
             "type": "string"
+          },
+          "worker_source_sha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Source Sha"
           }
         },
         "required": [
@@ -1560,6 +1675,87 @@
         "title": "PackLookupOut",
         "type": "object"
       },
+      "PublicAssessmentOut": {
+        "properties": {
+          "candidate_display_name": {
+            "title": "Candidate Display Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "pack_code": {
+            "title": "Pack Code",
+            "type": "string"
+          },
+          "report_available": {
+            "title": "Report Available",
+            "type": "boolean"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "review_status": {
+            "title": "Review Status",
+            "type": "string"
+          },
+          "revision_number": {
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "tasks_completed": {
+            "title": "Tasks Completed",
+            "type": "integer"
+          },
+          "tasks_total": {
+            "title": "Tasks Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "candidate_display_name",
+          "pack_code",
+          "submitted_at",
+          "status",
+          "tasks_completed",
+          "tasks_total",
+          "review_status",
+          "revision_number",
+          "report_available"
+        ],
+        "title": "PublicAssessmentOut",
+        "type": "object"
+      },
       "PublicVerifyOut": {
         "description": "GET /verify/{report_id} -- public, unauthenticated. Minimal safe\nfields only: never the worker's name/contact, never evidence, never the\nfull score breakdown. `valid` distinguishes \"signature verifies against\na trusted key\" from `status`, which is always SIGNED here (a report row\nonly ever exists once signed) -- the two are deliberately separate\nfields so a caller can't misread \"status: SIGNED\" as itself a validity\nguarantee.",
         "properties": {
@@ -1724,6 +1920,7 @@
             "type": "string"
           },
           "requested_by_id": {
+            "description": "Organizational user ID, or 0 for an account-free reviewer; never an authentication credential",
             "title": "Requested By Id",
             "type": "integer"
           },
@@ -1784,6 +1981,124 @@
           "signed_at"
         ],
         "title": "ReportVerifyOut",
+        "type": "object"
+      },
+      "ReviewerChallengeIn": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "review",
+              "reject",
+              "reassessment",
+              "sign_off"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "assessment_id": {
+            "exclusiveMinimum": 0.0,
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "email": {
+            "maxLength": 254,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "name",
+          "email",
+          "action"
+        ],
+        "title": "ReviewerChallengeIn",
+        "type": "object"
+      },
+      "ReviewerRejectIn": {
+        "properties": {
+          "confirmed": {
+            "const": true,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "reason": {
+            "maxLength": 4000,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "confirmed"
+        ],
+        "title": "ReviewerRejectIn",
+        "type": "object"
+      },
+      "ReviewerSignOffIn": {
+        "properties": {
+          "confirmed": {
+            "const": true,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "final_recommendation": {
+            "enum": [
+              "RECOMMEND_CERTIFICATION",
+              "PARTIALLY_COMPETENT",
+              "NOT_YET_COMPETENT",
+              "INSUFFICIENT_EVIDENCE"
+            ],
+            "title": "Final Recommendation",
+            "type": "string"
+          },
+          "override_reason": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Reason"
+          }
+        },
+        "required": [
+          "final_recommendation",
+          "confirmed"
+        ],
+        "title": "ReviewerSignOffIn",
+        "type": "object"
+      },
+      "ReviewerVerifyIn": {
+        "properties": {
+          "challenge_id": {
+            "maxLength": 64,
+            "title": "Challenge Id",
+            "type": "string"
+          },
+          "code": {
+            "pattern": "^[0-9]{6}$",
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "challenge_id",
+          "code"
+        ],
+        "title": "ReviewerVerifyIn",
         "type": "object"
       },
       "RubricItemOut": {
@@ -4194,7 +4509,6 @@
     },
     "/assessments/{assessment_id}/sign-off": {
       "post": {
-        "description": "Password-confirmed final sign-off: records the assessor's final\nrecommendation (optionally overriding the computed one, with a mandatory\nreason) and produces the one, immutable, Ed25519-signed PDF for this\nassessment. Idempotent -- a retry after the first success returns the\nexact same signed artifact, never resigns. Never logs/stores the\npassword itself.",
         "operationId": "sign_off_assessments__assessment_id__sign_off_post",
         "parameters": [
           {
@@ -5117,6 +5431,114 @@
         ]
       }
     },
+    "/public/assessments": {
+      "get": {
+        "operationId": "list_public_public_assessments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicAssessmentOut"
+                  },
+                  "title": "Response List Public Public Assessments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Public",
+        "tags": [
+          "public summaries"
+        ]
+      }
+    },
+    "/public/assessments/{assessment_id}": {
+      "get": {
+        "operationId": "get_public_public_assessments__assessment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAssessmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Public",
+        "tags": [
+          "public summaries"
+        ]
+      }
+    },
     "/queue": {
       "get": {
         "description": "Submitted (or further-along) assessments waiting on an assessor,\noldest first. Assessor/admin only -- see server/app/auth.py. Scoring,\ndecisions, reassessment and signed reports all exist (P2.2) and are\nreached from here via GET /assessments/{id} -- this endpoint itself\nstays a plain queue listing, not a scored summary.",
@@ -5248,6 +5670,869 @@
         "summary": "Verify Report",
         "tags": [
           "reports"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}": {
+      "get": {
+        "operationId": "detail_reviewer_assessments__assessment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Detail",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/audit-log": {
+      "get": {
+        "operationId": "audit_reviewer_assessments__assessment_id__audit_log_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLogEntryOut"
+                  },
+                  "title": "Response Audit Reviewer Assessments  Assessment Id  Audit Log Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/competency-profile": {
+      "get": {
+        "operationId": "profile_reviewer_assessments__assessment_id__competency_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetencyProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Profile",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/evidence/{evidence_id}/content": {
+      "get": {
+        "operationId": "content_reviewer_assessments__assessment_id__evidence__evidence_id__content_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "title": "Evidence Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Content",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/evidence/{evidence_id}/thumbnail": {
+      "get": {
+        "operationId": "thumbnail_reviewer_assessments__assessment_id__evidence__evidence_id__thumbnail_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "title": "Evidence Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Thumbnail",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/reassessment-requests": {
+      "get": {
+        "operationId": "history_reviewer_assessments__assessment_id__reassessment_requests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReassessmentRequestOut"
+                  },
+                  "title": "Response History Reviewer Assessments  Assessment Id  Reassessment Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "History",
+        "tags": [
+          "account-free review"
+        ]
+      },
+      "post": {
+        "operationId": "request_reassessment_reviewer_assessments__assessment_id__reassessment_requests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmedReassessment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReassessmentRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Reassessment",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/reject": {
+      "post": {
+        "operationId": "reject_reviewer_assessments__assessment_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerRejectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/report": {
+      "get": {
+        "operationId": "report_reviewer_assessments__assessment_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "json",
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/review": {
+      "get": {
+        "operationId": "review_reviewer_assessments__assessment_id__review_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CriterionReviewItemOut"
+                  },
+                  "title": "Response Review Reviewer Assessments  Assessment Id  Review Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review",
+        "tags": [
+          "account-free review"
+        ]
+      },
+      "put": {
+        "operationId": "score_reviewer_assessments__assessment_id__review_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriterionScoreIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CriterionScoreOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Score",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/revisions": {
+      "get": {
+        "operationId": "revisions_reviewer_assessments__assessment_id__revisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssessmentRevisionOut"
+                  },
+                  "title": "Response Revisions Reviewer Assessments  Assessment Id  Revisions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revisions",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/rubric": {
+      "get": {
+        "operationId": "rubric_reviewer_assessments__assessment_id__rubric_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RubricItemOut"
+                  },
+                  "title": "Response Rubric Reviewer Assessments  Assessment Id  Rubric Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rubric",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/sign-off": {
+      "post": {
+        "operationId": "sign_reviewer_assessments__assessment_id__sign_off_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerSignOffIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sign",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/start-review": {
+      "post": {
+        "operationId": "start_reviewer_assessments__assessment_id__start_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/sync-status": {
+      "get": {
+        "operationId": "sync_reviewer_assessments__assessment_id__sync_status_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/availability": {
+      "get": {
+        "operationId": "availability_reviewer_availability_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Availability",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/challenges": {
+      "post": {
+        "operationId": "challenge_reviewer_challenges_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerChallengeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Challenge",
+        "tags": [
+          "account-free review"
+        ]
+      }
+    },
+    "/reviewer/verify": {
+      "post": {
+        "operationId": "verify_reviewer_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerVerifyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify",
+        "tags": [
+          "account-free review"
         ]
       }
     },
@@ -5550,6 +6835,48 @@
         "summary": "Public Verify",
         "tags": [
           "verify"
+        ]
+      }
+    },
+    "/workers/enroll": {
+      "post": {
+        "description": "One atomic, retryable offline bootstrap. A random device secret, never the\nfour-digit PIN, authorizes retries and protects identity from replacement.\nLegacy bootstrap remains available but cannot publish historical records.",
+        "operationId": "enroll_candidate_workers_enroll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateEnrollmentIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentCreatedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enroll Candidate",
+        "tags": [
+          "workers"
         ]
       }
     },

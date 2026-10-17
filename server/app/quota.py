@@ -14,10 +14,11 @@ is always correct even if no cleanup job has run yet.
 """
 import datetime
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from . import models
+from .config import settings
 
 
 def _utcnow() -> datetime.datetime:
@@ -52,6 +53,7 @@ class QuotaExceeded(Exception):
 
 
 def check_quota(db: Session, assessment_task: models.AssessmentTask, requested_bytes: int, total_budget_bytes: int) -> None:
+    check_storage_capacity(db, requested_bytes)
     task_remaining = assessment_task.budget_bytes - task_bytes_committed(db, assessment_task.id)
     total_remaining = total_budget_bytes - assessment_bytes_committed(db, assessment_task.assessment_id)
     if requested_bytes > task_remaining:
@@ -64,3 +66,15 @@ def check_quota(db: Session, assessment_task: models.AssessmentTask, requested_b
             f"{requested_bytes} bytes exceeds the assessment's remaining 120 MB total quota of {total_remaining} bytes",
             task_remaining, total_remaining,
         )
+
+
+def check_storage_capacity(db: Session, requested_bytes: int) -> None:
+    # Shared capacity reservation; the lock is retained until the upload session
+    # is committed. Concurrent candidates cannot jointly overrun the free-tier cap.
+    if db.bind.dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_xact_lock(72026018)"))
+    stored = db.query(func.coalesce(func.sum(models.EvidenceItem.declared_size_bytes), 0)).scalar()
+    reserved = db.query(func.coalesce(func.sum(models.UploadSession.claimed_size_bytes), 0)).filter(
+        (models.UploadSession.status != "completed") | (models.UploadSession.target == "manifest")).scalar()
+    if int(stored) + int(reserved) + requested_bytes > settings.public_storage_max_bytes:
+        raise QuotaExceeded("deployment storage capacity reached; contact the operator", 0, 0)

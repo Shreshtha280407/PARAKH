@@ -23,6 +23,7 @@ from .. import models, report_signing, schemas
 from ..auth import require_assessor, verify_password
 from ..config import settings
 from ..db import get_db
+from ..reviewer_identity import identity
 from . import uploads
 from .assessments import _assessor_or_worker_token, _audit
 from .scoring import _rubric_rows, get_computed_outcome
@@ -152,6 +153,8 @@ def _report_snapshot(
         "revision_history": revision_history,
         "reassessment_history": reassessment_history,
         "assessor_name": assessor.display_name,
+        "reviewer_identity": identity(assessor),
+        "signed_at": assessment.decided_at.isoformat() if assessment.decided_at else None,
         "minimum_aggregate_passing_percent": pack.minimum_aggregate_passing_percent,
         "disclaimer": REPORT_DISCLAIMER,
     }
@@ -372,6 +375,14 @@ def _render_pdf(data: dict) -> bytes:
     y -= 13
     c.setFont("Helvetica", 8.5)
     c.drawString(margin, y, f"Assessor: {data['assessor_name']}    Signing date: {datetime.datetime.now(datetime.timezone.utc).date().isoformat()}")
+    y -= 12
+    reviewer = data.get("reviewer_identity", {})
+    c.drawString(margin, y, f"Email ownership verified: {reviewer.get('email_verified', False)}; name is self-declared.")
+    y -= 12
+    c.drawString(margin, y, "Server Ed25519 signature proves document integrity, not personal identity.")
+    y -= 12
+    y = _draw_wrapped(margin, y, f"Reviewer email: {reviewer.get('email') or 'not recorded'}; time: {data.get('signed_at') or 'not recorded'}", "Helvetica", 8, width - margin * 2, 10)
+    c.drawString(margin, y, "Not an official NCVET/MSDE certificate.")
     y -= 20
 
     c.setFont("Helvetica", 7.5)
@@ -401,8 +412,7 @@ def _report_out(report: models.SignedReport) -> schemas.SignedReportOut:
     )
 
 
-@router.post("/assessments/{assessment_id}/sign-off", response_model=schemas.SignedReportOut, status_code=201)
-def sign_off(
+def _sign_off_authorized(
     assessment_id: int,
     body: schemas.SignOffIn,
     db: Session = Depends(get_db),
@@ -414,7 +424,7 @@ def sign_off(
     assessment. Idempotent -- a retry after the first success returns the
     exact same signed artifact, never resigns. Never logs/stores the
     password itself."""
-    assessment = db.get(models.Assessment, assessment_id)
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
 
@@ -428,9 +438,6 @@ def sign_off(
     # retry against an already-signed report -- "password-confirmed"
     # means every sign-off request proves the password, not just the one
     # that happens to create the report.
-    if not user.password_hash or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "incorrect password")
-
     existing = db.query(models.SignedReport).filter_by(assessment_id=assessment_id).one_or_none()
     if existing is not None:
         return _report_out(existing)
@@ -475,6 +482,7 @@ def sign_off(
     assessment.decision = "recommended"
     assessment.decided_by_id = user.id
     assessment.decided_at = now
+    assessment.decision_reviewer_identity = identity(user)
 
     report_uid = secrets.token_urlsafe(16)
     verify_url = f"{settings.report_verify_base_url.rstrip('/')}/#/verify/{report_uid}"
@@ -493,15 +501,26 @@ def sign_off(
         pdf_sha256=pdf_sha256, signature=signature, key_id=key_id,
         computed_recommendation=computed.outcome, final_recommendation=body.final_recommendation,
         override_reason=body.override_reason, signed_by_id=user.id,
+        reviewer_identity=identity(user),
     )
     db.add(report)
     _audit(db, assessment_id, actor_user_id=user.id, actor_role=user.role, action="signed_off", details={
+        "reviewer_identity": identity(user),
         "computed_recommendation": computed.outcome, "final_recommendation": body.final_recommendation,
         "override_reason": body.override_reason, "report_uid": report_uid, "revision_number": assessment.revision_number,
     })
     db.commit()
     db.refresh(report)
     return _report_out(report)
+
+
+@router.post("/assessments/{assessment_id}/sign-off", response_model=schemas.SignedReportOut, status_code=201)
+def sign_off(assessment_id: int, body: schemas.SignOffIn, db: Session = Depends(get_db),
+             user: models.User = Depends(require_assessor)) -> schemas.SignedReportOut:
+    # Organizational deployments retain password re-entry on EVERY request.
+    if not user.password_hash or not verify_password(body.password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "incorrect password")
+    return _sign_off_authorized(assessment_id, body, db, user)
 
 
 @router.get("/assessments/{assessment_id}/report")

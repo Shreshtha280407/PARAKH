@@ -11,6 +11,8 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from ..reviewer_identity import identity
 
 from .. import models, schemas
 from ..auth import require_assessor
@@ -33,7 +35,7 @@ def decide_assessment(
 ) -> schemas.AssessmentOut:
     from .assessments import _assessment_out, _audit
 
-    assessment = db.get(models.Assessment, assessment_id)
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
     if assessment.status != "in_review":
@@ -44,9 +46,11 @@ def decide_assessment(
     assessment.decision_notes = body.notes
     assessment.decided_by_id = user.id
     assessment.decided_at = datetime.datetime.now(datetime.timezone.utc)
+    assessment.decision_reviewer_identity = identity(user)
     _audit(
         db, assessment.id, actor_user_id=user.id, actor_role=user.role, action="decided",
-        details={"decision": body.decision},
+        details={"decision": body.decision, "reason": body.notes, "revision_number": assessment.revision_number,
+                 "reviewer_identity": identity(user)},
     )
     db.commit()
     db.refresh(assessment)

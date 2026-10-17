@@ -60,6 +60,10 @@ enum class EvidenceDraftState { STAGING, READY, DELETED, FAILED }
 @Entity(tableName = "assessment_drafts")
 data class AssessmentDraftEntity(
     @PrimaryKey val id: String,
+    @ColumnInfo(name = "candidate_full_name") val candidateFullName: String? = null,
+    @ColumnInfo(name = "candidate_phone") val candidatePhone: String? = null,
+    @ColumnInfo(name = "candidate_public_name_consent", defaultValue = "0") val candidatePublicNameConsent: Boolean = false,
+    @ColumnInfo(name = "enrollment_secret") val enrollmentSecret: String? = null,
     val state: AssessmentDraftState,
     val qpCode: String,
     val qpVersion: String,

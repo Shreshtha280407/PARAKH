@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from .. import models, outcome as outcome_module, schemas
 from ..auth import require_assessor
 from ..db import get_db
+from ..reviewer_identity import identity
 
 router = APIRouter(prefix="/assessments", tags=["scoring"])
 
@@ -97,7 +98,9 @@ def put_score(
     rubric_row = (
         db.query(models.RubricItem, models.PerformanceCriterion)
         .join(models.PerformanceCriterion, models.RubricItem.pc_id == models.PerformanceCriterion.id)
+        .join(models.NOS, models.PerformanceCriterion.nos_id == models.NOS.id)
         .filter(models.PerformanceCriterion.full_id == body.pc_full_id)
+        .filter(models.NOS.pack_id == assessment.pack_id)
         .one_or_none()
     )
     if rubric_row is None:
@@ -149,6 +152,7 @@ def put_score(
     existing.assessor_comment = body.assessor_comment
     existing.marks_awarded = marks_awarded
     existing.assessor_id = user.id
+    existing.reviewer_identity = identity(user)
     existing.scored_at = now
     # P7: this PC has now genuinely been looked at again in the CURRENT
     # revision -- clears any stale "its task reopened, re-review me" flag
@@ -160,6 +164,7 @@ def put_score(
     from .assessments import _audit  # local import: avoids a circular import at module load time
 
     _audit(db, assessment_id, actor_user_id=user.id, actor_role=user.role, action="scored", details={
+        "reviewer_identity": identity(user), "revision_number": assessment.revision_number,
         "pc_full_id": body.pc_full_id,
         "old_score_level": old_score_level, "new_score_level": body.score_level,
         "old_evidence_status": old_evidence_status, "new_evidence_status": body.evidence_status,

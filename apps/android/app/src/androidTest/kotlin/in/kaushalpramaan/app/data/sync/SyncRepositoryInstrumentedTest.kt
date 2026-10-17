@@ -98,6 +98,7 @@ class SyncRepositoryInstrumentedTest {
      * socket (MockWebServer), not a mocked Kotlin interface, so the full real OkHttp/
      * SyncApiClient code path is genuinely exercised end to end. */
     private inner class FakeServerDispatcher : Dispatcher() {
+        val enrollments = mutableListOf<String>()
         val sessions = mutableMapOf<Long, FakeSession>()
         val nextSessionId = AtomicInteger(1)
         var rejectEvidenceComplete = false
@@ -108,6 +109,10 @@ class SyncRepositoryInstrumentedTest {
         override fun dispatch(request: RecordedRequest): MockResponse {
             val path = request.path.orEmpty().substringBefore("?")
             return when {
+                request.method == "POST" && path == "/workers/enroll" -> {
+                    enrollments.add(request.body.readUtf8())
+                    MockResponse().setBody("""{"id":1,"worker_token":"fake-token"}""")
+                }
                 request.method == "POST" && path == "/workers/register" ->
                     MockResponse().setBody("""{"worker_id":1}""")
                 request.method == "GET" && path == "/packs/by-code" ->
@@ -177,7 +182,8 @@ class SyncRepositoryInstrumentedTest {
         server.dispatcher = dispatcher
         server.start()
         try {
-            val assessment = repo.createOrResumeAssessment("KP-SYNC-TEST", "en", null)
+            val candidate = `in`.kaushalpramaan.app.data.WorkerRegistration("KP-00000000-0000-4000-8000-000000000001", "9876543210", "Asha Kumar", false, "a".repeat(64))
+            val assessment = repo.createOrResumeAssessment(candidate.workerId, "en", null, candidate = candidate)
             captureRealPhoto(repo, assessment.id, "T1")
             assertEquals(ProcessOutcome.AllFit, orchestrator.processEvidence(assessment.id))
             orchestrator.setAttestation(assessment.id, true)
@@ -196,6 +202,11 @@ class SyncRepositoryInstrumentedTest {
 
             val outcome = repository.syncAssessment(assessment.id)
             assertTrue("expected Success, got $outcome", outcome is SyncRunOutcome.Success)
+            val enrollment = json.parseToJsonElement(dispatcher.enrollments.single()).jsonObject
+            assertEquals("Asha Kumar", enrollment["full_name"]!!.jsonPrimitive.content)
+            assertEquals("+919876543210", enrollment["phone"]!!.jsonPrimitive.content)
+            assertFalse(enrollment.keys.any { it.contains("pin", ignoreCase = true) })
+            assertEquals("Asha Kumar", db.assessmentDraftDao().getById(assessment.id)!!.candidateFullName)
 
             val remainingRows = db.outboxDao().getAllForAssessmentOnce(assessment.id)
             assertTrue("outbox rows must be cleared once the whole package is submitted", remainingRows.isEmpty())

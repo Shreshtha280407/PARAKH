@@ -1,4 +1,5 @@
 import sys
+import os
 from logging.config import fileConfig
 from pathlib import Path
 
@@ -9,18 +10,23 @@ from alembic import context
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-try:
-    # Docker image layout: WORKDIR /code has app/ directly under it
-    # (server/Dockerfile copies server/app -> /code/app), so the package
-    # is just "app".
-    from app import models  # noqa: E402  (registers all tables on Base.metadata)
-    from app.config import settings  # noqa: E402
-    from app.db import Base  # noqa: E402
-except ImportError:
-    # Local dev layout: repo root is on sys.path, package is "server.app".
-    from server.app import models  # noqa: E402
-    from server.app.config import settings  # noqa: E402
-    from server.app.db import Base  # noqa: E402
+if os.environ.get("PARAKH_MIGRATION_ONLY") == "1":
+    # Release migrations have no need for report-signing, S3 or JWT secrets.
+    # The runner supplies the direct URL and holds a PostgreSQL advisory lock.
+    from types import SimpleNamespace
+    settings = SimpleNamespace(database_url=os.environ["NEON_DIRECT_DATABASE_URL"])
+    Base = SimpleNamespace(metadata=None)
+else:
+    try:
+        # Docker image layout: WORKDIR /code has app/ directly under it.
+        from app import models  # noqa: E402
+        from app.config import settings  # noqa: E402
+        from app.db import Base  # noqa: E402
+    except ImportError:
+        # Local dev layout: repo root is on sys.path, package is "server.app".
+        from server.app import models  # noqa: E402
+        from server.app.config import settings  # noqa: E402
+        from server.app.db import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -31,7 +37,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
@@ -72,6 +78,12 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    supplied_connection = config.attributes.get("connection")
+    if supplied_connection is not None:
+        context.configure(connection=supplied_connection, target_metadata=target_metadata)
+        with context.begin_transaction():
+            context.run_migrations()
+        return
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

@@ -11,10 +11,12 @@ a parallel protocol.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from .. import models, schemas
 from ..auth import require_assessor
 from ..db import get_db
+from ..reviewer_identity import identity
 from .assessments import _assessor_or_worker_token
 
 router = APIRouter(prefix="/assessments/{assessment_id}", tags=["reassessment"])
@@ -31,7 +33,11 @@ def _request_out(req: models.ReassessmentRequest, revision_number: int) -> schem
     return schemas.ReassessmentRequestOut(
         id=req.id, assessment_id=req.assessment_id, revision_number=revision_number,
         task_codes=req.task_codes, reason=req.reason, capture_instructions=req.capture_instructions,
-        requested_by_id=req.requested_by_id, requested_at=req.requested_at, status=req.status,
+        # Keep the legacy integer wire contract for already-installed Android
+        # clients. Zero explicitly denotes a reviewer without an account; the
+        # real declaration/verification lives in the private identity snapshot.
+        requested_by_id=req.requested_by_id if req.requested_by_id is not None else 0,
+        requested_at=req.requested_at, status=req.status,
         fulfilled_at=req.fulfilled_at,
     )
 
@@ -48,7 +54,7 @@ def create_reassessment_request(
     reassessment request may be pending at a time (the server-side source
     of truth for 'which tasks are reopened' would otherwise be ambiguous
     while a prior request's revision is still unresolved)."""
-    assessment = db.get(models.Assessment, assessment_id)
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
     if assessment.status not in ("in_review", "submitted"):
@@ -82,6 +88,7 @@ def create_reassessment_request(
         assessment_id=assessment.id, revision_id=revision.id, task_codes=list(body.task_codes),
         reason=body.reason.strip(), capture_instructions=body.capture_instructions.strip(),
         requested_by_id=user.id,
+        reviewer_identity=identity(user),
     )
     db.add(reassessment_request)
 
@@ -103,9 +110,15 @@ def create_reassessment_request(
 
     assessment.status = "needs_reassessment"
     assessment.revision_number = new_revision_number
+    assessment.decision_reviewer_identity = identity(user)
+    assessment.decision = "needs_reassessment"
+    assessment.decision_notes = body.reason.strip()
+    assessment.decided_at = models.utcnow()
+    assessment.decided_by_id = user.id
     _audit(
         db, assessment.id, actor_user_id=user.id, actor_role=user.role, action="reassessment_requested",
-        details={"task_codes": body.task_codes, "reason": body.reason, "revision_number": new_revision_number},
+        details={"task_codes": body.task_codes, "reason": body.reason, "revision_number": new_revision_number,
+                 "affected_revision_number": new_revision_number - 1, "reviewer_identity": identity(user)},
     )
     db.commit()
     db.refresh(reassessment_request)

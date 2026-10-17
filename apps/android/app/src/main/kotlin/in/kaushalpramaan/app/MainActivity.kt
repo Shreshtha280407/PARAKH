@@ -6,6 +6,7 @@ import `in`.kaushalpramaan.app.ui.AppNavGraph
 import `in`.kaushalpramaan.app.ui.theme.KaushalPramaanTheme
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -29,6 +30,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         setContent {
             val uiState by viewModel.uiState.collectAsState()
             LocalizedApp(language = uiState.language) {
@@ -41,6 +43,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.enteredForeground()
+    }
+
+    override fun onPause() {
+        viewModel.lockLocalData()
+        super.onPause()
     }
 }
 

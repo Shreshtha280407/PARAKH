@@ -1,0 +1,103 @@
+name: Release hosted staging
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+
+concurrency:
+  group: parakh-hosted-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.repository == 'Shreshtha280407/PARAKH' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: hosted-staging
+    timeout-minutes: 60
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      NEON_DIRECT_DATABASE_URL: ${{ secrets.NEON_DIRECT_DATABASE_URL }}
+    steps:
+      - name: Verify exact main SHA and every required CI job
+        id: gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const main = await github.rest.repos.getBranch({...context.repo, branch: 'main'});
+            if (main.data.commit.sha !== run.head_sha) throw new Error('Stale CI run: main advanced; do not deploy');
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {...context.repo, run_id: run.id, filter: 'latest', per_page: 100});
+            const required = [
+              'D3 synthetic dataset and statistical validation', 'P1 pack validation',
+              'P10 tooling regression tests (perf_report.py, offline_bundle.py error handling)',
+              'Backend tests (P2/P2.1/P2.2/P6) + OpenAPI freshness',
+              'Q-1/P-3 Kotlin matcher parity (core:mapping)',
+              'P3/P4/P5/P6 + Q2/Q3 Android tests and debug/release builds',
+              'Dashboard build + typecheck', 'Docker Compose end-to-end smoke test',
+              'Open access browser regression', 'Offline deployment -- real no-pull verification'
+            ];
+            for (const name of required) if (!jobs.some(j => j.name === name && j.conclusion === 'success')) throw new Error(`Missing successful CI job: ${name}`);
+            if (jobs.some(j => j.conclusion !== 'success')) throw new Error('A CI job was skipped or unsuccessful');
+            const deployment = await github.rest.repos.createDeployment({...context.repo, ref: run.head_sha, environment: 'hosted-staging', auto_merge: false, required_contexts: [], description: `CI ${run.id}; exact SHA ${run.head_sha}`, production_environment: false});
+            core.setOutput('deployment_id', deployment.data.id);
+            await github.rest.repos.createDeploymentStatus({...context.repo, deployment_id: deployment.data.id, state: 'in_progress'});
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned release tools
+        run: |
+          python -m pip install -r server/requirements.txt
+          npm install --global @railway/cli@5.70.0 vercel@64.5.0
+      - name: Validate provider settings and staging boundary before mutations
+        run: python tools/release_cloud.py preflight
+      - name: Migrate once under database advisory lock (no DDL when already at head)
+        run: python tools/release_migrate.py
+      - name: Check main has not advanced during preflight and migration
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = await github.rest.repos.getBranch({...context.repo, branch: 'main'});
+            if (branch.data.commit.sha !== context.payload.workflow_run.head_sha) throw new Error('main advanced; expanded schema is safe; wait for newer CI');
+      - name: Deploy existing Railway API, worker, then Vercel; verify live SHAs
+        run: python tools/release_cloud.py deploy
+      - name: Record deployment result
+        if: always() && steps.gate.outputs.deployment_id
+        uses: actions/github-script@v7
+        env:
+          DEPLOYMENT_ID: ${{ steps.gate.outputs.deployment_id }}
+          RELEASE_STATUS: ${{ job.status }}
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({...context.repo, deployment_id: Number(process.env.DEPLOYMENT_ID), state: process.env.RELEASE_STATUS === 'success' ? 'success' : 'failure', log_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`, environment_url: 'https://parakh-dashboard-five.vercel.app'});
+      - name: Preserve safe deployment and migration receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosted-release-${{ github.event.workflow_run.head_sha }}
+          retention-days: 14
+          path: |
+            migration-result.json
+            deployment-result.json
+            previous-*.json
+          if-no-files-found: ignore

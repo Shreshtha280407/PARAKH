@@ -34,6 +34,42 @@ def utcnow() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
+class AbuseCounter(Base):
+    __tablename__ = "abuse_counters"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer)
+    resets_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class WorkerHeartbeat(Base):
+    __tablename__ = "worker_heartbeats"
+    service: Mapped[str] = mapped_column(String(30), primary_key=True)
+    source_sha: Mapped[str] = mapped_column(String(40))
+    seen_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ReviewerChallenge(Base):
+    __tablename__ = "reviewer_challenges"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id"), index=True)
+    revision_number: Mapped[int] = mapped_column(Integer)
+    name: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(254))
+    action: Mapped[str] = mapped_column(String(20))
+    code_hash: Mapped[str] = mapped_column(String(64))
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ReviewerSession(Base):
+    __tablename__ = "reviewer_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    challenge_id: Mapped[str] = mapped_column(ForeignKey("reviewer_challenges.id"))
+    csrf_hash: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+
+
 class UserRole(str, enum.Enum):
     worker = "worker"
     assessor = "assessor"
@@ -57,6 +93,8 @@ class User(Base):
     # pre-provisioning. Not a credential -- no password, no OTP (see
     # docs/worker_capability_tokens.md's "no worker login" design).
     device_worker_id: Mapped[str | None] = mapped_column(String(60), unique=True, nullable=True)
+    candidate_phone: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    enrollment_secret_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -178,6 +216,12 @@ class Assessment(Base):
     __tablename__ = "assessments"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # Legacy/unknown records are deliberately excluded from public browsing.
+    provenance: Mapped[str] = mapped_column(String(30), default="legacy", server_default="legacy", index=True)
+    enrollment_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    public_name_consent: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    consent_recorded_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    decision_reviewer_identity: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     worker_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     pack_id: Mapped[int] = mapped_column(ForeignKey("qualification_packs.id"))
     assessor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
@@ -481,6 +525,7 @@ class AssessmentCriterionScore(Base):
     assessor_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     marks_awarded: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
     assessor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewer_identity: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     scored_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
     # P7: which revision_number (Assessment.revision_number at the time)
@@ -560,7 +605,8 @@ class ReassessmentRequest(Base):
     task_codes: Mapped[list] = mapped_column(JSON)  # e.g. ["T4"]
     reason: Mapped[str] = mapped_column(Text)  # mandatory, non-whitespace -- enforced in schemas.py
     capture_instructions: Mapped[str] = mapped_column(Text)  # mandatory, non-whitespace
-    requested_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    requested_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewer_identity: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     requested_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # pending -- waiting on the worker to resubmit.
     # fulfilled -- the targeted revision was resubmitted (back in review).
@@ -598,7 +644,8 @@ class SignedReport(Base):
     computed_recommendation: Mapped[str] = mapped_column(String(40))
     final_recommendation: Mapped[str] = mapped_column(String(40))
     override_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
-    signed_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    signed_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewer_identity: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     signed_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

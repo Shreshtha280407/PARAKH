@@ -26,11 +26,16 @@ import `in`.kaushalpramaan.media.VideoOptimizer
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 
 /**
  * Single source of truth for the whole worker flow. Declaration/consent/registration/match
@@ -40,6 +45,9 @@ import kotlinx.coroutines.launch
  * offline in background work; the existing P6/P7 repositories own sync and update requests.
  */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
+    private val security by lazy { CandidateSecurity(application) }
+    private var foreground = true
+    private var draftObservationScope: CoroutineScope? = null
 
     val rules: Rules by lazy { RulesLoader.load() }
 
@@ -96,7 +104,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         language = resumedLanguage,
-                        registration = active.workerId?.let { workerId -> WorkerRegistration(workerId = workerId, phone = "", pin = "") },
+                        registration = security.profile() ?: active.workerId?.let { workerId ->
+                            WorkerRegistration(workerId, active.candidatePhone.orEmpty(), active.candidateFullName.orEmpty()) },
+                        localLocked = true,
+                        legacyPinRequired = !security.configured(),
                         assessmentDraftId = active.id,
                         assessmentIsTestOnly = active.isTestOnly,
                         gapTaskIds = gapIds,
@@ -106,7 +117,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 observeDraft(active.id)
             } else {
-                _uiState.update { it.copy(startRouteResolved = true) }
+                _uiState.update { it.copy(startRouteResolved = true, localLocked = security.configured(), registration = security.profile()) }
             }
         }
     }
@@ -119,9 +130,48 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(consentAcknowledged = acknowledged) }
     }
 
-    fun register(phone: String, pin: String) {
-        val workerId = "KP-" + UUID.randomUUID().toString().take(8).uppercase()
-        _uiState.update { it.copy(registration = WorkerRegistration(workerId = workerId, phone = phone, pin = pin)) }
+    suspend fun register(fullName: String, phone: String, pin: CharArray, publicNameConsent: Boolean) {
+        require(fullName.trim().length in 2..120 && fullName.any(Char::isLetter))
+        require(phone.matches(Regex("[6-9][0-9]{9}")))
+        val candidate = withContext(Dispatchers.IO) { security.register(fullName.trim(), phone, publicNameConsent, pin) }
+        _uiState.update { it.copy(registration = candidate, localLocked = !foreground) }
+    }
+
+    fun lockLocalData() {
+        foreground = false
+        if (_uiState.value.startRouteResolved && (security.configured() || _uiState.value.assessmentDraftId != null)) {
+            _uiState.update { it.copy(localLocked = true) }
+        }
+    }
+    fun enteredForeground() { foreground = true }
+
+    suspend fun unlockLocalData(pin: CharArray): Boolean {
+        val valid = withContext(Dispatchers.Default) { security.unlock(pin) }
+        if (valid && foreground) _uiState.update { it.copy(localLocked = false) }
+        return valid
+    }
+
+    fun pinLockRemainingMillis(): Long = security.remainingLockMillis()
+
+    /** Called only after Android's device-credential activity reports RESULT_OK.
+     * Legacy drafts had no PIN verifier; they are never unlocked by guessing a new PIN. */
+    suspend fun protectLegacyDraft(pin: CharArray) {
+        withContext(Dispatchers.IO) { security.setLegacyPin(pin) }
+        _uiState.update { it.copy(localLocked = !foreground, legacyPinRequired = false) }
+    }
+
+    suspend fun forgetPinAndEraseLocalData() {
+        draftObservationScope?.cancel()
+        var active = repository.getActiveAssessment()
+        while (active != null) {
+            val current = active
+            current.revisionId?.let { SyncWorker.cancel(getApplication(), current.id, it) }
+            WorkerUpdatesWorker.cancel(getApplication(), current.id)
+            repository.deleteAssessment(current.id)
+            active = repository.getActiveAssessment()
+        }
+        withContext(Dispatchers.IO) { security.clear() }
+        _uiState.value = AppUiState(startRouteResolved = true, localLocked = false)
     }
 
     fun setAnswer(itemId: String, answer: String) {
@@ -175,6 +225,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 language = state.language.localeTag,
                 matchOutput = state.matchOutput,
                 declaration = state.declaration,
+                candidate = state.registration,
             )
             val gapIds = state.matchOutput?.applicableTasks
                 ?.filter { it.extraEvidenceNeeded }
@@ -189,18 +240,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun observeDraft(assessmentId: String) {
-        viewModelScope.launch {
+        draftObservationScope?.cancel()
+        val scope = CoroutineScope(viewModelScope.coroutineContext + SupervisorJob(viewModelScope.coroutineContext[Job]))
+        draftObservationScope = scope
+        scope.launch {
             database.assistanceDao().observe(assessmentId).collect { records ->
                 _uiState.update { it.copy(assistanceByEvidence = records.associateBy { r -> r.evidenceId }) }
             }
         }
-        viewModelScope.launch {
+        scope.launch {
             repository.observeTasks(assessmentId).collect { list ->
                 _uiState.update { it.copy(taskDrafts = list.associateBy { task -> task.taskId }) }
             }
         }
         for (task in rules.tasksFile.tasks) {
-            viewModelScope.launch {
+            scope.launch {
                 repository.observeEvidenceForTask(assessmentId, task.id).collect { items ->
                     _uiState.update { it.copy(evidenceByTask = it.evidenceByTask + (task.id to items)) }
                 }
@@ -208,7 +262,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         // P5 seal state machine + attestation -- live, never a locally-faked flag (see
         // SealOrchestrator, which is the only writer of these columns).
-        viewModelScope.launch {
+        scope.launch {
             repository.observeActiveAssessment().collect { assessment ->
                 if (assessment != null && assessment.id == assessmentId) {
                     _uiState.update {
@@ -392,8 +446,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteCurrentAssessmentDraft(onDone: () -> Unit) {
         val assessmentId = _uiState.value.assessmentDraftId ?: return
         viewModelScope.launch {
+            draftObservationScope?.cancel()
             repository.deleteAssessment(assessmentId)
-            _uiState.value = AppUiState(startRouteResolved = true)
+            withContext(Dispatchers.IO) { security.clear() }
+            _uiState.value = AppUiState(startRouteResolved = true, localLocked = false)
             onDone()
         }
     }

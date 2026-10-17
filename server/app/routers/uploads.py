@@ -264,6 +264,13 @@ def open_upload_session(
             db.commit()
             return _status_payload(db, existing)
 
+    try:
+        quota.check_storage_capacity(db, body.claimed_size_bytes)
+    except quota.QuotaExceeded as e:
+        raise HTTPException(409, str(e)) from e
+    if db.query(models.UploadSession).filter_by(assessment_id=assessment.id).count() >= 500 or db.query(models.UploadSession).count() >= 5000:
+        raise HTTPException(429, "upload session capacity reached; contact the operator")
+
     if body.target == "manifest":
         if body.claimed_size_bytes > manifest_verify.MANIFEST_MAX_BYTES:
             raise HTTPException(409, f"manifest exceeds the {manifest_verify.MANIFEST_MAX_BYTES}-byte ceiling")

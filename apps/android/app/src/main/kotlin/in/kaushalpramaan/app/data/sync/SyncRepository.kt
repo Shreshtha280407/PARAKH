@@ -96,9 +96,20 @@ class SyncRepository(
 
         val bootstrap = SyncBootstrapClient(endpointConfig)
         val deviceWorkerId = assessment.workerId ?: "KP-${assessment.id.take(8).uppercase()}"
-        val workerId = bootstrap.registerWorker(deviceWorkerId, "Worker")
-        val packId = bootstrap.resolvePackId(assessment.qpCode, assessment.qpVersion)
-        val (serverAssessmentId, workerToken) = bootstrap.createAssessment(workerId, packId)
+        val (serverAssessmentId, workerToken) = if (assessment.enrollmentSecret != null && assessment.candidateFullName != null) {
+            bootstrap.enrollCandidate(CandidateEnrollmentRequest(
+                deviceWorkerId = deviceWorkerId, enrollmentSecret = assessment.enrollmentSecret,
+                clientAssessmentId = assessment.id, fullName = assessment.candidateFullName,
+                phone = "+91" + requireNotNull(assessment.candidatePhone),
+                publicNameConsent = assessment.candidatePublicNameConsent,
+                qpCode = assessment.qpCode, qpVersion = assessment.qpVersion,
+            ))
+        } else {
+            // Historical drafts keep their existing protocol and stay outside public browsing.
+            val workerId = bootstrap.registerWorker(deviceWorkerId, assessment.candidateFullName ?: deviceWorkerId)
+            val packId = bootstrap.resolvePackId(assessment.qpCode, assessment.qpVersion)
+            bootstrap.createAssessment(workerId, packId)
+        }
 
         val updated = assessment.copy(serverAssessmentId = serverAssessmentId, serverWorkerToken = workerToken)
         assessmentDraftDao.update(updated)

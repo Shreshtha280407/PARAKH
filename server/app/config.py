@@ -1,4 +1,5 @@
 import secrets
+import json
 from pathlib import Path
 
 from pydantic import model_validator
@@ -13,6 +14,17 @@ class Settings(BaseSettings):
     # "development" | "staging" | "production" -- gates the fail-fast
     # checks below (and CORS defaults, see main.py).
     app_env: str = "development"
+    source_sha: str = (json.loads(Path(__file__).with_name("source_version.json").read_text())["source_sha"]
+                       if Path(__file__).with_name("source_version.json").exists() else "local")
+    # Account-free review is fail-closed until an operator configures both.
+    reviewer_allowed_emails: str = ""
+    reviewer_smtp_host: str | None = None
+    reviewer_smtp_port: int = 587
+    reviewer_smtp_username: str | None = None
+    reviewer_smtp_password: str | None = None
+    reviewer_email_from: str | None = None
+    public_enrollment_max_assessments: int = 200
+    public_storage_max_bytes: int = 512 * 1024 * 1024
 
     database_url: str = "postgresql+psycopg://parakh:parakh@localhost:5432/parakh"
     evidence_dir: Path = REPO_ROOT / "server" / "data" / "evidence"

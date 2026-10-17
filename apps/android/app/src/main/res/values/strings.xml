@@ -19,7 +19,19 @@
     <string name="consent_continue_disabled_hint">Please agree to the consent above to continue.</string>
 
     <!-- Registration screen -->
-    <string name="registration_title">Register</string>
+    <string name="registration_title">Candidate details</string>
+    <string name="registration_name_label">Full name</string>
+    <string name="registration_error_name">Enter your full name.</string>
+    <string name="registration_public_name_consent">Optional: I agree to show my full name with my assessment status and outcome on the public dashboard. Anyone can see it. Leave unchecked to use a candidate number.</string>
+    <string name="registration_privacy">Your phone number stays private. Your security PIN protects this phone and is never uploaded. No online account is needed.</string>
+    <string name="pin_unlock_title">Unlock local assessment</string>
+    <string name="pin_unlock_action">Unlock</string>
+    <string name="pin_unlock_error">Unable to unlock. Check the PIN and try again after %1$d seconds.</string>
+    <string name="pin_forgot_action">Forgot security PIN?</string>
+    <string name="pin_erase_explanation">There is no PIN recovery. Starting again permanently removes this phone’s assessment, recordings and sync credentials. Unsynced work will be lost. Already submitted cloud records remain private and cannot be recovered with a new PIN.</string>
+    <string name="pin_erase_action">Erase local assessment and start again</string>
+    <string name="pin_legacy_explanation">This older draft has no security PIN. Confirm the phone’s screen lock, then set and confirm a new four-digit security PIN. If unavailable, you can only erase local work.</string>
+    <string name="pin_device_verify">Confirm phone screen lock</string>
     <string name="registration_phone_label">Phone number</string>
     <string name="registration_pin_label">4-digit PIN (to protect your entries on this phone)</string>
     <string name="registration_pin_confirm_label">Re-enter PIN</string>

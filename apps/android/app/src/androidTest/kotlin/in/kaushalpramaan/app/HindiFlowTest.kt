@@ -62,11 +62,13 @@ class HindiFlowTest {
         composeRule.tapTag("btn_continue")
 
         // Registration screen in Hindi.
-        composeRule.onNodeWithText("पंजीकरण करें").assertIsDisplayed() // "Register"
+        composeRule.onNodeWithText("उम्मीदवार का विवरण").assertIsDisplayed()
+        composeRule.onNodeWithTag("reg_name").performTextInput("आशा कुमार")
         composeRule.onNodeWithTag("reg_phone").performTextInput("9988776655")
         composeRule.onNodeWithTag("reg_pin").performTextInput("4321")
         composeRule.onNodeWithTag("reg_pin_confirm").performTextInput("4321")
         composeRule.tapTag("btn_register")
+        composeRule.waitUntilExactlyOneExists(hasTestTag("declaration_lazy_column"), timeoutMillis = 15_000)
 
         // Declaration screen in Hindi -- answer everything "often" (अक्सर) for a
         // clean appropriate_match, same reference scenario as G001.

@@ -1,6 +1,12 @@
 # PARAKH
 Prior-skill Assessment &amp; Recognition through AI-driven Knowledge
 
+The open-access workflow and CI-gated hosted release changes are documented in
+[Open access and release operations](docs/deployment/OPEN_ACCESS_RELEASE.md).
+Hosted auto-deployment remains unverified until the owner's approved push completes
+the release workflow. Reviewer email delivery and approved Android release signing
+require operator configuration.
+
 ## Phase status
 
 | Phase | Scope | Status | Gate doc |

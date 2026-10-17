@@ -1,5 +1,12 @@
 # Hosted deployment: Vercel + Railway + Neon
 
+> Historical deployment record. The reviewed open-access implementation and
+> CI-coordinated release procedure are in [OPEN_ACCESS_RELEASE.md](OPEN_ACCESS_RELEASE.md).
+> Git auto-deployment remains **NOT VERIFIED** until the owner pushes the
+> implementation to `main` and the new workflows complete. Do not treat the
+> historical branch counts, region or manual release instructions below as a
+> current provider audit. Unsigned APKs now replace the old debug-signing fallback.
+
 The three-provider hosted deployment of the P10 system. Complements
 `docs/deployment/README.md` (local dev, offline/LAN, and the generic hosted
 path) with the specific, actually-provisioned cloud deployment.

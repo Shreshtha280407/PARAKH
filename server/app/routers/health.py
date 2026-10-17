@@ -3,6 +3,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..db import get_db
+from ..config import settings
+from .. import models
 from ..schemas import HealthOut
 from . import uploads
 
@@ -23,5 +25,13 @@ def health(db: Session = Depends(get_db)) -> HealthOut:
     # is reachable, and /health returning "ok" while evidence uploads were
     # silently failing is exactly the false pass this must not give.
     storage_status = "ok" if uploads._storage.probe() else "unreachable"
+    heartbeat = db.get(models.WorkerHeartbeat, "worker") if db_status == "ok" else None
+    worker_sha = None
+    if heartbeat:
+        from datetime import timezone
+        seen = heartbeat.seen_at.replace(tzinfo=timezone.utc) if heartbeat.seen_at.tzinfo is None else heartbeat.seen_at
+        if (models.utcnow() - seen).total_seconds() < 120:
+            worker_sha = heartbeat.source_sha
 
-    return HealthOut(status="ok", database=db_status, storage=storage_status)
+    return HealthOut(status="ok" if db_status == storage_status == "ok" else "degraded",
+                     database=db_status, storage=storage_status, source_sha=settings.source_sha, worker_source_sha=worker_sha)

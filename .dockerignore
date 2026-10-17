@@ -24,3 +24,12 @@ ml
 docs
 .github
 .env.deploy
+.env
+.env.*
+.aws
+.codex
+.agents
+android-release-receipt.json
+deployment-result.json
+migration-result.json
+previous-*.json

@@ -110,6 +110,19 @@ data class ApiErrorBody(
 // ---- P6 sync bootstrap (first-ever contact with the server for this device/assessment) ----
 
 @Serializable
+data class CandidateEnrollmentRequest(
+    @SerialName("device_worker_id") val deviceWorkerId: String,
+    @SerialName("enrollment_secret") val enrollmentSecret: String,
+    @SerialName("client_assessment_id") val clientAssessmentId: String,
+    @SerialName("full_name") val fullName: String,
+    val phone: String,
+    @SerialName("public_name_consent") val publicNameConsent: Boolean,
+    @SerialName("consent_version") val consentVersion: String = "public-name-v1",
+    @SerialName("qp_code") val qpCode: String,
+    @SerialName("qp_version") val qpVersion: String,
+)
+
+@Serializable
 data class WorkerRegisterRequest(
     @SerialName("device_worker_id") val deviceWorkerId: String,
     @SerialName("display_name") val displayName: String,

@@ -228,6 +228,13 @@ class SyncBootstrapClient(private val endpointConfig: SyncEndpointConfig) {
     }
 
     /** Idempotent: the same [deviceWorkerId] always resolves to the same worker_id. */
+    fun enrollCandidate(body: CandidateEnrollmentRequest): Pair<Long, String> {
+        val request = Request.Builder().url("$base/workers/enroll")
+            .post(json.encodeToString(body).toRequestBody(JSON_MEDIA_TYPE)).build()
+        val out = execute<AssessmentCreatedOut>(request, expectCode = 200)
+        return out.id to out.workerToken
+    }
+
     fun registerWorker(deviceWorkerId: String, displayName: String): Long {
         val body = json.encodeToString(WorkerRegisterRequest(deviceWorkerId, displayName))
         val request = Request.Builder().url("$base/workers/register")
