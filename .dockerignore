@@ -13,3 +13,14 @@ server/alembic/versions/__pycache__
 apps/dashboard/node_modules
 apps/dashboard/dist
 tests/fixtures
+
+# Not copied by server/Dockerfile and not needed by the API/worker image --
+# excluded so a `railway up` upload (and any docker build context) stays
+# small instead of shipping ~110 MB of Android/ML artifacts. tools/ is still
+# copied in full; only tools/verify_assistance_assets.py reaches into these
+# directories, and that is a host-side CI check, never run in the container.
+apps/android
+ml
+docs
+.github
+.env.deploy

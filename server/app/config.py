@@ -114,6 +114,47 @@ class Settings(BaseSettings):
     # below), regardless of APP_ENV.
     cors_allow_origins: str = "http://localhost:5173"
 
+    # --- evidence storage backend (server/app/storage.py) ---
+    # "local" (default) keeps the existing private-Docker-volume
+    # LocalDiskStorage used by infra/docker-compose.yml, the offline/LAN
+    # deployment and every existing test -- unchanged, and requiring no
+    # cloud credential whatsoever. "s3" selects the S3-compatible backend
+    # (Neon Object Storage, MinIO, or any S3 API) for a hosted deployment
+    # where the API and worker run on ephemeral filesystems and cannot
+    # share a volume.
+    storage_backend: str = "local"
+    # S3-compatible endpoint, e.g. Neon Object Storage's bucket endpoint.
+    # Required when storage_backend == "s3"; ignored otherwise.
+    s3_endpoint_url: str | None = None
+    s3_region: str = "auto"
+    s3_bucket: str | None = None
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: str | None = None
+
+    @model_validator(mode="after")
+    def _storage_backend_fail_fast(self) -> "Settings":
+        if self.storage_backend not in ("local", "s3"):
+            raise ValueError(
+                f"STORAGE_BACKEND must be 'local' or 's3', got {self.storage_backend!r}."
+            )
+        if self.storage_backend == "s3":
+            missing = [
+                name for name, value in (
+                    ("S3_ENDPOINT_URL", self.s3_endpoint_url),
+                    ("S3_BUCKET", self.s3_bucket),
+                    ("S3_ACCESS_KEY_ID", self.s3_access_key_id),
+                    ("S3_SECRET_ACCESS_KEY", self.s3_secret_access_key),
+                )
+                if not value
+            ]
+            if missing:
+                raise ValueError(
+                    "STORAGE_BACKEND='s3' requires " + ", ".join(missing) + " -- a hosted "
+                    "deployment must never silently fall back to a local disk the worker "
+                    "and API do not share."
+                )
+        return self
+
     # Optional cookie Domain attribute (P10 hosted-deployment readiness).
     # None (the default) makes the session/CSRF cookies host-only, which is
     # correct and sufficient when the dashboard and API are served from the

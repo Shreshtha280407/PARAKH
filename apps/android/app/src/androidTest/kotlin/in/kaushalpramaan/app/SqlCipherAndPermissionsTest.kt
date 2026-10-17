@@ -34,8 +34,8 @@ class SqlCipherAndPermissionsTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Test
-    fun app_has_no_internet_and_no_network_state_permission() {
-        NetworkAssertions.assertAppHasNoInternetCapability(context)
+    fun app_holds_only_the_network_permissions_p6_sync_needs() {
+        NetworkAssertions.assertAppHasOnlyExpectedNetworkPermissions(context)
     }
 
     @Test

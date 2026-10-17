@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from ..config import settings
 from ..db import get_db
 from ..schemas import HealthOut
+from . import uploads
 
 router = APIRouter(tags=["health"])
 
@@ -17,13 +17,11 @@ def health(db: Session = Depends(get_db)) -> HealthOut:
     except Exception:
         db_status = "unreachable"
 
-    try:
-        settings.evidence_dir.mkdir(parents=True, exist_ok=True)
-        probe = settings.evidence_dir / ".health_probe"
-        probe.write_text("ok")
-        probe.unlink()
-        storage_status = "ok"
-    except OSError:
-        storage_status = "unreachable"
+    # The ACTIVE backend (LocalDiskStorage or S3Storage), not a hardcoded
+    # local directory -- on Railway + Neon Object Storage, a writable
+    # container filesystem says nothing about whether the private bucket
+    # is reachable, and /health returning "ok" while evidence uploads were
+    # silently failing is exactly the false pass this must not give.
+    storage_status = "ok" if uploads._storage.probe() else "unreachable"
 
     return HealthOut(status="ok", database=db_status, storage=storage_status)

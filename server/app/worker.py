@@ -10,15 +10,17 @@ at MVP scale (one verification per evidence upload) doesn't need it.
 import json
 import logging
 import os
+import pathlib
 import signal
 import socket
 import subprocess
+import tempfile
 import time
 
 from . import jobs, models
 from .config import settings
 from .db import SessionLocal
-from .storage import LocalDiskStorage
+from .storage import get_storage
 
 logger = logging.getLogger("parakh.worker")
 
@@ -42,7 +44,7 @@ def _verify_evidence(db, job: models.Job) -> None:
     evidence = db.get(models.EvidenceItem, evidence_id)
     if evidence is None:
         raise RuntimeError(f"evidence item {evidence_id} not found")
-    storage = LocalDiskStorage(settings.evidence_dir)
+    storage = get_storage()
     if not storage.exists(evidence.storage_key):
         raise RuntimeError(f"evidence item {evidence_id} has no file at {evidence.storage_key}")
     actual = storage.sha256(evidence.storage_key)
@@ -70,31 +72,42 @@ def _generate_thumbnail(db, job: models.Job) -> None:
         evidence.thumbnail_status = "not_applicable"
         return
 
-    storage = LocalDiskStorage(settings.evidence_dir)
-    source_path = storage.path_for(evidence.storage_key)
+    storage = get_storage()
     thumbnail_key = evidence.storage_key + ".thumb.jpg"
-    thumbnail_path = storage.path_for(thumbnail_key)
 
-    try:
-        result = subprocess.run(
-            [
-                "ffmpeg", "-y", "-i", str(source_path), "-ss", "00:00:00.5",
-                "-frames:v", "1", "-vf", "scale=320:-1", str(thumbnail_path),
-            ],
-            capture_output=True, timeout=30,
-        )
-    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
-        evidence.thumbnail_status = "unavailable"
-        logger.warning("thumbnail extraction unavailable for evidence id=%s: %s", evidence_id, e)
-        return
+    # ffmpeg is a subprocess taking file PATHS, so cloud mode has to
+    # materialise the source locally and then upload the frame it writes.
+    # storage.local_path() is a no-op passthrough on local disk (the file
+    # is already there) and a bounded temp-file download on S3 that is
+    # always removed on the way out -- Railway's container disk is small,
+    # and only one evidence item is ever resident at a time.
+    with tempfile.TemporaryDirectory(prefix="parakh-thumb-") as scratch:
+        thumbnail_path = pathlib.Path(scratch) / "thumb.jpg"
+        try:
+            with storage.local_path(evidence.storage_key) as source_path:
+                result = subprocess.run(
+                    [
+                        "ffmpeg", "-y", "-i", str(source_path), "-ss", "00:00:00.5",
+                        "-frames:v", "1", "-vf", "scale=320:-1", str(thumbnail_path),
+                    ],
+                    capture_output=True, timeout=30,
+                )
+        except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+            evidence.thumbnail_status = "unavailable"
+            logger.warning("thumbnail extraction unavailable for evidence id=%s: %s", evidence_id, e)
+            return
 
-    if result.returncode != 0 or not thumbnail_path.exists():
-        evidence.thumbnail_status = "unavailable"
-        logger.warning(
-            "thumbnail extraction failed for evidence id=%s: %s",
-            evidence_id, result.stderr.decode(errors="replace")[:500],
-        )
-        return
+        if result.returncode != 0 or not thumbnail_path.exists():
+            evidence.thumbnail_status = "unavailable"
+            logger.warning(
+                "thumbnail extraction failed for evidence id=%s: %s",
+                evidence_id, result.stderr.decode(errors="replace")[:500],
+            )
+            return
+
+        # Into the private bucket (or the private volume) under the key the
+        # evidence router will serve it from.
+        storage.write(thumbnail_key, thumbnail_path.read_bytes())
 
     evidence.thumbnail_status = "completed"
     evidence.thumbnail_key = thumbnail_key
@@ -118,18 +131,18 @@ def _extract_metadata(db, job: models.Job) -> None:
     if evidence is None:
         raise RuntimeError(f"evidence item {evidence_id} not found")
 
-    storage = LocalDiskStorage(settings.evidence_dir)
-    source_path = storage.path_for(evidence.storage_key)
+    storage = get_storage()
 
     try:
-        result = subprocess.run(
-            [
-                "ffprobe", "-v", "error", "-print_format", "json",
-                "-show_entries", "stream=width,height,duration:format=duration",
-                str(source_path),
-            ],
-            capture_output=True, timeout=30,
-        )
+        with storage.local_path(evidence.storage_key) as source_path:
+            result = subprocess.run(
+                [
+                    "ffprobe", "-v", "error", "-print_format", "json",
+                    "-show_entries", "stream=width,height,duration:format=duration",
+                    str(source_path),
+                ],
+                capture_output=True, timeout=30,
+            )
     except (FileNotFoundError, subprocess.TimeoutExpired) as e:
         evidence.metadata_status = "unavailable"
         logger.warning("metadata extraction unavailable for evidence id=%s: %s", evidence_id, e)
