@@ -15,3 +15,7 @@ reportlab==5.0.1
 qrcode==8.2
 jsonschema==4.26.0
 boto3==1.43.114
+# Test-only, alongside pytest above: server/tests/test_storage_s3.py runs the
+# S3 evidence backend against moto's in-process S3 so CI needs no cloud
+# credential. CI installs only this file before running pytest.
+moto[s3]==5.2.4
