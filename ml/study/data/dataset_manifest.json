@@ -38,7 +38,7 @@
       "one_step_probability": "0.10 + 0.38 * ambiguity; multiply by 0.55 on critical PCs",
       "severity": {
         "SIM_RATER_01": -0.18,
-        "SIM_RATER_02": 0,
+        "SIM_RATER_02": 0.0,
         "SIM_RATER_03": 0.18
       },
       "unobservable_decision_probability": "0.035 * ambiguity on demonstrated PCs only"
