@@ -57,6 +57,6 @@ class AppropriateMatchFlowTest {
         composeRule.onNodeWithTag("attestation_checkbox").scrollToIfPossible().assertIsDisplayed()
         composeRule.onNodeWithText("Before you seal").assertIsDisplayed()
 
-        NetworkAssertions.assertAppHasNoInternetCapability(composeRule.activity)
+        NetworkAssertions.assertAppHasOnlyExpectedNetworkPermissions(composeRule.activity)
     }
 }

@@ -134,7 +134,15 @@ android {
             // a real device on the same Wi-Fi/hotspot must be told the laptop's
             // actual LAN IP via the in-app debug-only field (see PreviewScreen).
             buildConfigField("boolean", "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED", "true")
-            val debugSyncBaseUrl = if (p8ValidationBuild) "http://127.0.0.1:18008" else "http://10.0.2.2:8000"
+            // Overridable with -PdebugSyncBaseUrl=..., same pattern as
+            // releaseSyncBaseUrl below. 10.0.2.2 is the emulator-to-host alias
+            // and is unreachable from a REAL device, so an on-device sync test
+            // needs either the laptop's LAN IP or -- simpler and with no
+            // network configuration at all -- "http://127.0.0.1:8000" combined
+            // with `adb reverse tcp:8000 tcp:8000`, which tunnels the phone's
+            // own localhost to the host's.
+            val debugSyncBaseUrl = (project.findProperty("debugSyncBaseUrl") as String?)
+                ?: if (p8ValidationBuild) "http://127.0.0.1:18008" else "http://10.0.2.2:8000"
             buildConfigField("String", "P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL", "\"$debugSyncBaseUrl\"")
         }
         release {

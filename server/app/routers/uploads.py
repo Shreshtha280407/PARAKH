@@ -68,12 +68,16 @@ from sqlalchemy.orm import Session
 from .. import jobs, manifest_verify, models, quota, schemas
 from ..config import settings
 from ..db import get_db
-from ..storage import LocalDiskStorage, manifest_upload_key_for, upload_key_for
+from ..storage import get_storage, manifest_upload_key_for, upload_key_for
 from ..worker_tokens import hash_worker_token
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
-_storage = LocalDiskStorage(settings.evidence_dir)
+# The one storage instance the whole API shares (routers/evidence.py,
+# routers/reports.py and routers/verify.py all reach it through here, and
+# the test suite monkeypatches it here). get_storage() picks LocalDiskStorage
+# or S3Storage from STORAGE_BACKEND -- see server/app/storage.py.
+_storage = get_storage()
 
 
 def _utcnow() -> datetime.datetime:
@@ -520,6 +524,13 @@ def _complete_evidence_upload(db: Session, session: models.UploadSession, body: 
             409, f"size mismatch: received {session.received_bytes} bytes, declared {session.claimed_size_bytes}"
         )
 
+    # Turn the received chunks into one directly readable object before
+    # anything hashes, serves or ffmpegs it. A no-op on local disk (append
+    # already built the file in place); on S3 this coalesces the staged
+    # per-chunk objects into the single object EvidenceItem.storage_key
+    # will point at. Idempotent, so a replayed complete() is safe.
+    _storage.finalize(session.storage_key, content_type=session.mime)
+
     server_sha256 = _storage.sha256(session.storage_key)
     if server_sha256 != body.client_sha256.lower():
         raise HTTPException(
@@ -651,6 +662,8 @@ def _complete_manifest_upload(db: Session, session: models.UploadSession, body: 
         raise HTTPException(
             409, f"size mismatch: received {session.received_bytes} bytes, declared {session.claimed_size_bytes}"
         )
+
+    _storage.finalize(session.storage_key, content_type="application/json")
 
     server_sha256 = _storage.sha256(session.storage_key)
     if server_sha256 != body.client_sha256.lower():

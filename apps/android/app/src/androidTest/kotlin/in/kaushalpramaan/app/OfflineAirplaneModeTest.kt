@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
  * emulator into airplane mode via a shell command (matching the master
  * plan's own `adb shell cmd connectivity airplane-mode enable` check) and
  * drives a normal navigation sequence while it is on, then restores it.
- * Combined with NetworkAssertions (no INTERNET permission at all) and
+ * Combined with NetworkAssertions (only the two permissions P6 sync needs) and
  * app/build.gradle.kts's verifyNoNetworkDependencies, this is the runtime
  * half of "no network is possible, and the app doesn't need it anyway."
  */
@@ -44,7 +44,7 @@ class OfflineAirplaneModeTest {
 
     @Test
     fun app_completes_match_with_airplane_mode_on() {
-        NetworkAssertions.assertAppHasNoInternetCapability(composeRule.activity)
+        NetworkAssertions.assertAppHasOnlyExpectedNetworkPermissions(composeRule.activity)
 
         composeRule.completeIntake(languageTag = "en")
         composeRule.answerAllDeclarationItems("often")

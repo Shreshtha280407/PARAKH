@@ -10,3 +10,5 @@ server/data/
 dist/
 apps/dashboard/node_modules/
 apps/dashboard/dist/
+.env.deploy
+.neon
