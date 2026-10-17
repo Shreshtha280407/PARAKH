@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { logout as apiLogout, me } from "./api";
+import { logout as apiLogout, me, onSessionExpired } from "./api";
 import { LoginPage } from "./pages/LoginPage";
 import { QueuePage } from "./pages/QueuePage";
 import { AssessmentDetailPage } from "./pages/AssessmentDetailPage";
@@ -12,7 +12,17 @@ type AuthState = "checking" | "signed-out" | "signed-in";
 function App() {
   const [authState, setAuthState] = useState<AuthState>("checking");
   const [user, setUser] = useState<MeOut | null>(null);
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const hash = useHashRoute();
+
+  useEffect(() => {
+    onSessionExpired(() => {
+      setUser(null);
+      setSessionMessage("Your session expired. Please sign in again.");
+      setAuthState("signed-out");
+    });
+    return () => onSessionExpired(null);
+  }, []);
 
   // P7: /verify/:reportId is PUBLIC -- the exact page a signed PDF's QR code
   // points at, meant for an arbitrary third party who scanned it, not a
@@ -65,7 +75,15 @@ function App() {
   }
 
   if (authState === "signed-out") {
-    return <LoginPage onLoggedIn={checkAuth} />;
+    return (
+      <LoginPage
+        onLoggedIn={() => {
+          setSessionMessage(null);
+          checkAuth();
+        }}
+        sessionMessage={sessionMessage}
+      />
+    );
   }
 
   const assessmentMatch = hash.match(/^#\/assessments\/(\d+)$/);

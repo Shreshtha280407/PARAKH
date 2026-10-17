@@ -134,10 +134,12 @@ function ScoreRow({
   assessmentId,
   item,
   onSaved,
+  onConflict,
 }: {
   assessmentId: number;
   item: CriterionReviewItemOut;
   onSaved: (updated: CriterionReviewItemOut) => void;
+  onConflict: () => void;
 }) {
   const [scoreLevel, setScoreLevel] = useState(item.score?.score_level ?? 0);
   const [evidenceStatus, setEvidenceStatus] = useState<EvidenceStatus>(
@@ -147,8 +149,14 @@ function ScoreRow({
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const commentRequired = evidenceStatus !== "DEMONSTRATED";
+
   async function save() {
     setErr(null);
+    if (commentRequired && !comment.trim()) {
+      setErr("A comment is required when evidence status is not DEMONSTRATED.");
+      return;
+    }
     setSaving(true);
     try {
       const score = await putScore(assessmentId, {
@@ -160,13 +168,16 @@ function ScoreRow({
       });
       onSaved({ ...item, score });
     } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        setErr("Someone else updated this item since it was loaded. Reloading the latest version — please re-enter your score.");
+        onConflict();
+        return;
+      }
       setErr(e instanceof ApiError ? e.message : "Could not save this score.");
     } finally {
       setSaving(false);
     }
   }
-
-  const commentRequired = evidenceStatus !== "DEMONSTRATED";
 
   return (
     <tr>
@@ -653,6 +664,7 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                         onSaved={(updated) =>
                           setReview((prev) => prev!.map((r) => (r.pc_full_id === updated.pc_full_id ? updated : r)))
                         }
+                        onConflict={loadReview}
                       />
                     ))}
                   </tbody>

@@ -2,7 +2,13 @@ import { useState, type FormEvent } from "react";
 import { login } from "../api";
 import { ApiError } from "../types";
 
-export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
+export function LoginPage({
+  onLoggedIn,
+  sessionMessage,
+}: {
+  onLoggedIn: () => void;
+  sessionMessage?: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +34,7 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: () => void }) {
     <div className="centered-page">
       <form onSubmit={handleSubmit} className="card">
         <h1>KaushalPramaan — Assessor Login</h1>
+        {sessionMessage && <p className="hint">{sessionMessage}</p>}
         <label>
           Email
           <input

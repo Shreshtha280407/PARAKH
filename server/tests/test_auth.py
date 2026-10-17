@@ -113,6 +113,36 @@ def test_bearer_authenticated_mutating_request_never_needs_csrf(client, assessor
     assert r.status_code == 200, r.text
 
 
+# ---- P10: naive per-process login throttle ----
+
+def test_login_locks_out_after_too_many_failed_attempts(client, assessor):
+    for _ in range(5):
+        r = client.post("/auth/login", json={"email": assessor.email, "password": "wrong password"})
+        assert r.status_code == 401
+    # The 6th attempt is locked out before the password is even checked --
+    # even the CORRECT password must not succeed while locked out.
+    r = client.post("/auth/login", json={"email": assessor.email, "password": "correct horse battery staple"})
+    assert r.status_code == 429
+
+
+def test_login_lockout_is_per_email_not_global(client, assessor):
+    for _ in range(5):
+        client.post("/auth/login", json={"email": assessor.email, "password": "wrong password"})
+    # A different email is unaffected by another account's lockout.
+    r = client.post("/auth/login", json={"email": "nobody@test.local", "password": "anything"})
+    assert r.status_code == 401  # unknown user, not 429
+
+
+def test_successful_login_clears_the_failed_attempt_counter(client, assessor):
+    for _ in range(4):
+        client.post("/auth/login", json={"email": assessor.email, "password": "wrong password"})
+    r = client.post("/auth/login", json={"email": assessor.email, "password": "correct horse battery staple"})
+    assert r.status_code == 200
+    # Back under the threshold -- a fresh wrong attempt is a normal 401, not 429.
+    r = client.post("/auth/login", json={"email": assessor.email, "password": "wrong password"})
+    assert r.status_code == 401
+
+
 def test_logout_clears_cookies_and_ends_the_session(client, assessor):
     client.post("/auth/login", json={"email": assessor.email, "password": "correct horse battery staple"})
     assert client.get("/auth/me").status_code == 200

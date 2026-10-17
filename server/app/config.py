@@ -114,6 +114,17 @@ class Settings(BaseSettings):
     # below), regardless of APP_ENV.
     cors_allow_origins: str = "http://localhost:5173"
 
+    # Optional cookie Domain attribute (P10 hosted-deployment readiness).
+    # None (the default) makes the session/CSRF cookies host-only, which is
+    # correct and sufficient when the dashboard and API are served from the
+    # exact same origin (e.g. one reverse proxy forwarding both). Only set
+    # this if the dashboard and API are deployed on different subdomains of
+    # the same parent domain (e.g. dashboard.example.org + api.example.org),
+    # in which case it should be the shared parent (".example.org"). Never
+    # set it to a bare localhost/IP host in development -- browsers reject
+    # a Domain attribute on cookies for those.
+    cookie_domain: str | None = None
+
     @model_validator(mode="after")
     def _cors_origins_fail_fast(self) -> "Settings":
         origins = [o.strip() for o in self.cors_allow_origins.split(",")]

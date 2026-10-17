@@ -14,6 +14,26 @@ val p8ValidationBuild = providers.gradleProperty("p8Validation").orNull == "true
 val p8ValidationShrink = providers.gradleProperty("p8ValidationShrink").orNull == "true"
 check(!p8ValidationShrink || p8ValidationBuild) { "Shrunk validation must use the isolated QA package" }
 
+// P10: real release signing, same placeholder-unless-configured pattern as
+// releaseSyncBaseUrl below -- never a hardcoded/committed keystore or
+// password. Reads a Gradle property first (-PreleaseStoreFile=...), then
+// the matching environment variable (CI secrets convention), so either a
+// local release build or a CI job can supply real signing material without
+// touching this file. When nothing is supplied, falls back to Android's
+// own auto-generated debug keystore so `assembleRelease` still produces an
+// installable (debug-signed, clearly not a real release) APK for local/CI
+// builds that have no real keystore -- this is a loud, logged fallback,
+// not a silent one.
+fun releaseSigningProperty(name: String): String? =
+    (project.findProperty(name) as String?) ?: System.getenv(name)
+
+val releaseStoreFile = releaseSigningProperty("RELEASE_STORE_FILE")
+val releaseStorePassword = releaseSigningProperty("RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = releaseSigningProperty("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = releaseSigningProperty("RELEASE_KEY_PASSWORD")
+val hasRealReleaseSigning =
+    releaseStoreFile != null && releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null
+
 android {
     namespace = "in.kaushalpramaan.app"
     // compileSdk 36, not 35: several AndroidX libraries pulled in transitively
@@ -56,6 +76,17 @@ android {
             if (p8ValidationBuild) {
                 kotlin.srcDir("src/p8Validation/kotlin")
                 manifest.srcFile("src/p8Validation/AndroidManifest.xml")
+            }
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            if (hasRealReleaseSigning) {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -107,7 +138,32 @@ android {
             buildConfigField("String", "P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL", "\"$debugSyncBaseUrl\"")
         }
         release {
-            isMinifyEnabled = false
+            // P10: real release signing when RELEASE_STORE_FILE/PASSWORD/
+            // RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD are supplied (see
+            // hasRealReleaseSigning above); otherwise this intentionally
+            // falls back to the debug signing config so a release build
+            // without real signing material is still debug-signed and
+            // installable, not unsigned/unbuildable -- never silently
+            // claim a build is really release-signed when it is not.
+            signingConfig = if (hasRealReleaseSigning) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            if (!hasRealReleaseSigning) {
+                logger.warn(
+                    "RELEASE_STORE_FILE/RELEASE_STORE_PASSWORD/RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD not set -- " +
+                        "this release APK is debug-signed, not real-release-signed. Set all four (as Gradle " +
+                        "properties or environment variables) before distributing a real release build.",
+                )
+            }
+            // R8/shrink-safe since the 2026-10-16 QA-UID shrunk-build run (see
+            // docs/evidence/IC2_Q4_P8_20261016.md): SQLCipher JNI entry points,
+            // MediaPipe native callbacks and protobuf-reflected fields all
+            // survive shrinking under proguard-rules.pro's keep rules, and
+            // native initialization/encrypted reopen/inference were verified
+            // on-device against the shrunk artifact. Enabling it for every
+            // normal release build (not just the opt-in QA variant) was the
+            // one remaining step; no new keep rule was needed.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
             buildConfigField("boolean", "P4_TEST_ONLY_CEILING_ENABLED", "false")
             buildConfigField("long", "P4_TEST_ONLY_CEILING_BYTES", "0L")
             buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "false")

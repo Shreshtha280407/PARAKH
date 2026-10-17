@@ -1,0 +1,63 @@
+{
+  "branch": "p10/engineering-completion",
+  "base_commit": "6cd169330b4744432b1f27ebf03b71e7b6caf477",
+  "committed": false,
+  "note": "Uncommitted working-tree changes on top of base_commit; owner decides when to commit/merge.",
+  "backend_tests": {"passed": 281, "failed": 0, "database": "real isolated PostgreSQL"},
+  "android_regression": {"result": "BUILD SUCCESSFUL", "failed": 0},
+  "android_instrumented_physical_device": {
+    "device": "OnePlus 13R CPH2691, Android 16 / API 36",
+    "serial": "d34cebae",
+    "tests_passed": 22,
+    "tests_failed": 0,
+    "duration_seconds": 20.868,
+    "classes": [
+      "AssistanceIntegrationInstrumentedTest",
+      "AssistanceMigrationInstrumentedTest",
+      "AssistanceUiInstrumentedTest",
+      "SealOrchestratorInstrumentedTest",
+      "data.sync.SyncRepositoryInstrumentedTest",
+      "data.sync.WorkerUpdatesRepositoryInstrumentedTest",
+      "AssistanceWorkManagerInstrumentedTest"
+    ]
+  },
+  "release_apk_device_check": {
+    "device_serial": "d34cebae",
+    "signing": "debug-keystore fallback (no real distribution keystore configured)",
+    "minify_shrink_enabled": true,
+    "install_result": "non-destructive update, signature matched existing app",
+    "launch_result": "clean, no FATAL EXCEPTION / app-level error in logcat",
+    "pre_existing_app_data": "untouched -- restored debug build afterward"
+  },
+  "dashboard": {
+    "build": "clean",
+    "lint": "clean (2 pre-existing unrelated warnings)",
+    "new_e2e_suite": "apps/dashboard/e2e/p10-workflow.mjs",
+    "new_e2e_checks_passed": 21,
+    "new_e2e_checks_failed": 0
+  },
+  "offline_docker_bundle": {
+    "tool": "tools/offline_bundle.py",
+    "method": "built images deleted from local store, reloaded from exported tar, started with --no-build",
+    "result": "healthy; /health ok; dashboard http 200"
+  },
+  "dashboard_runtime_api_config": {
+    "mechanism": "nginx entrypoint regenerates /config.json from DASHBOARD_RUNTIME_API_BASE_URL at container start",
+    "verified": "same built image confirmed pointing at two different API origins without rebuilding, exercised by a real browser login"
+  },
+  "performance": {
+    "tool": "tools/perf_report.py",
+    "real_measurements_file": "docs/evidence/P10/perf-backend-2026-10-16.json",
+    "scenarios_measured": ["auth_login", "queue_retrieval", "assessment_bootstrap_register_plus_create", "rubric_retrieval"],
+    "not_measured_this_pass": [
+      "pc_score_save", "competency_profile_generation", "reassessment_request",
+      "report_signing", "public_verify", "manifest_verification", "chunked_evidence_upload",
+      "dashboard_browser_interaction", "android_on_device_timing", "network_constrained_upload"
+    ]
+  },
+  "not_reexecuted_this_pass_already_recorded_elsewhere": [
+    "docs/gates/Q4_device_protocol.md 20-scenario field-capture matrix",
+    "original P8 exit A/B independent captures",
+    "2026-10-15/16 physical CameraX / kill-process-recovery / interrupted-sync runs"
+  ]
+}

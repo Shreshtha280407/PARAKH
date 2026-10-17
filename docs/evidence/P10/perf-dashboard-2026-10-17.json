@@ -1,0 +1,49 @@
+{
+  "provenance": {
+    "base_url": "http://127.0.0.1:18473",
+    "api_url": "http://127.0.0.1:18400",
+    "measurement_kind": "real browser (Playwright/Chrome) wall-clock timing; not synthetic, not a Lighthouse score"
+  },
+  "results": [
+    {
+      "scenario": "login_page_load",
+      "status": "ok",
+      "observations": 10,
+      "median_ms": 97.5,
+      "p95_ms": 118,
+      "min_ms": 89,
+      "max_ms": 118,
+      "provenance": "real Playwright/Chrome timing against a live dashboard + backend"
+    },
+    {
+      "scenario": "login_submit_to_queue_visible",
+      "status": "ok",
+      "observations": 10,
+      "median_ms": 238,
+      "p95_ms": 255,
+      "min_ms": 229,
+      "max_ms": 255,
+      "provenance": "real Playwright/Chrome timing against a live dashboard + backend"
+    },
+    {
+      "scenario": "queue_reload_authenticated",
+      "status": "ok",
+      "observations": 10,
+      "median_ms": 77,
+      "p95_ms": 118,
+      "min_ms": 65,
+      "max_ms": 118,
+      "provenance": "real Playwright/Chrome timing against a live dashboard + backend"
+    },
+    {
+      "scenario": "assessment_detail_load",
+      "status": "ok",
+      "observations": 10,
+      "median_ms": 12,
+      "p95_ms": 89,
+      "min_ms": 8,
+      "max_ms": 89,
+      "provenance": "real Playwright/Chrome timing against a live dashboard + backend"
+    }
+  ]
+}

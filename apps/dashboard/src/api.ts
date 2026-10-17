@@ -21,9 +21,49 @@ import {
   type WorkerTokenOut,
 } from "./types";
 
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+// Build-time default (Vite inlines import.meta.env.* when the Docker image
+// is built, see apps/dashboard/Dockerfile). This alone would tie one built
+// image to one backend origin forever -- loadRuntimeConfig() below lets
+// the SAME built image be redeployed against a different backend by only
+// changing an environment variable and restarting the container, no
+// rebuild required.
+export let BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+
+/** P10: optional runtime override, read once at startup (see main.tsx) from
+ * /config.json -- a plain static file nginx's docker-entrypoint regenerates
+ * from $DASHBOARD_RUNTIME_API_BASE_URL at container start (see
+ * apps/dashboard/docker/write-runtime-config.sh). Deliberately silent/best-
+ * effort: a missing or empty config.json (local `npm run dev`, or a
+ * deployment that intentionally only uses the build-time default) just
+ * keeps the build-time BASE_URL -- this is progressive configuration, not
+ * a required step. */
+export async function loadRuntimeConfig(): Promise<void> {
+  try {
+    const res = await fetch("/config.json", { cache: "no-store" });
+    if (!res.ok) return;
+    const config = await res.json();
+    if (typeof config.apiBaseUrl === "string" && config.apiBaseUrl.length > 0) {
+      BASE_URL = config.apiBaseUrl;
+    }
+  } catch {
+    // No runtime config available -- keep the build-time default.
+  }
+}
 
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+// Fired on any 401 from an authenticated call other than the login attempt
+// itself (a wrong password on /auth/login is a normal, expected failure
+// the login form already shows inline -- not a session expiry). App.tsx
+// registers a handler that drops back to the login screen with a clear
+// "your session expired" message instead of letting a mid-action 401 show
+// up as a confusing generic "That action failed" on whatever panel the
+// assessor happened to be using (queue, scoring, sign-off, ...).
+let sessionExpiredHandler: (() => void) | null = null;
+
+export function onSessionExpired(handler: (() => void) | null): void {
+  sessionExpiredHandler = handler;
+}
 
 // Double-submit CSRF pattern (see server/app/auth.py): the server sets this
 // as a readable (non-HttpOnly) cookie at login; every mutating request must
@@ -52,6 +92,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       detail = body.detail ?? detail;
     } catch {
       // body wasn't JSON -- keep statusText
+    }
+    if (res.status === 401 && path !== "/auth/login") {
+      sessionExpiredHandler?.();
     }
     throw new ApiError(res.status, detail);
   }
