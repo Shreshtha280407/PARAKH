@@ -398,3 +398,15 @@ textarea {
 .assistance-hands_not_detected { background: #9a3412; color: white; }
 .assistance-marker:focus-visible { outline: 3px solid #0891b2; outline-offset: 2px; }
 .assistance-marker:disabled { opacity: .6; cursor: default; }
+
+/* P8 mobile overflow regression: long assessor/assessment metadata must not
+   enlarge the two-column definition grid beyond a narrow phone viewport.
+   Keep desktop labels/values in columns; stack on narrow screens. */
+@media (max-width: 480px) {
+  main, .page { padding: 0.75rem; }
+  .card { padding: 0.875rem; }
+  dl { grid-template-columns: minmax(0, 1fr); }
+  dl dt, dl dd { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  dl dd { margin-bottom: 0.6rem; }
+  .card form { min-width: 0; }
+}
