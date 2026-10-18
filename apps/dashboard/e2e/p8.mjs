@@ -92,11 +92,19 @@ try {
   assert.equal(response.status(), 401);
   check("unauthenticated evidence access denied");
   await unauth.close();
-  await context.route(`**/evidence/${fixture.videoEvidenceId}/content`, r => r.abort());
+  let blockedEvidenceRequests = 0;
+  await context.route(`**/evidence/${fixture.videoEvidenceId}/content`, route => {
+    blockedEvidenceRequests++;
+    return route.abort();
+  });
   await page.reload();
-  await page.getByRole("button", { name: /^T2 \(/ }).click();
-  await page.getByText("media unavailable", { exact: true }).waitFor();
-  const failed = page.locator(".evidence-gallery-item").filter({ has: page.getByText("media unavailable", { exact: true }) });
+  await page.getByRole("button", { name: /^T2 \\(/ }).click();
+  const failed = page.locator(".evidence-gallery-item").filter({ hasText: /v1 · historical/i });
+  // Wait for the player's real error state rather than a phrase the UI
+  // no longer displays; the interrupted media request must be observed.
+  await failed.locator(".media-fallback[role='status']")
+    .filter({ hasText: /This recording could not be opened/i }).waitFor();
+  assert(blockedEvidenceRequests > 0, "the media route must be interrupted for this negative test");
   assert.equal(await failed.locator("button.assistance-marker:disabled").count(), fixture.expectedMarkers.length);
   assert.equal(await failed.locator(".assistance-range").count(), 0);
   check("unavailable media / missing playable duration disables seek without fake positions");
