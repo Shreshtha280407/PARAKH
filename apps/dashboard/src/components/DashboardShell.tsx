@@ -32,9 +32,3 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 export function StatusBadge({ value }: { value: string }) {
   return <span className={`status status-${value.toLowerCase()}`}>{humanize(value)}</span>;
 }
-
-export function LandingPage() {
-  return <div className="landing"><div className="brandpane"><Brand /><div><h2>Prior-skill Assessment &amp; Recognition through AI-driven Knowledge</h2><p>Review evidence, score performance criteria, and sign off NSQF-aligned RPL assessments.</p></div><span className="foot">NSQF-ALIGNED · RPL ASSESSMENT PLATFORM</span></div>
-    <main className="formpane"><div className="formcard"><BrandEmblem className="landing-logo" /><h1>Assessor dashboard</h1><p className="sub">A clearer view of every worker’s skills.</p><a href="#/queue" className="button enter-button">Enter <span aria-hidden="true">→</span></a></div></main>
-  </div>;
-}

@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-10-18T14:13:25.168Z",
+  "checks": [
+    "Landing loads with one main heading, original logo, local fonts, and unique element IDs",
+    "All three top navigation controls scroll to their section without leaving the landing route",
+    "Desktop scrolling advances Capture → Preserve → Recognise and updates the cinematic scene",
+    "All three workflow chapter buttons select and scroll to the corresponding chapter",
+    "Five task controls show distinct schematics and the real 15/20/30/25/30 MB pack budgets",
+    "Task tabs support arrow keys, Home/End, wrapping, focus, and correct tab-panel labelling",
+    "Pause/enable motion works and paused motion leaves all content visible",
+    "Offscreen decorative animation pauses instead of continuously using resources",
+    "No horizontal overflow at 320, 390, 640, 768, 900, 1024, 1440, or 1920 px",
+    "Phone workflow controls switch both the cinematic scene and its readable explanation",
+    "Back-to-top control returns to the hero",
+    "Operating-system reduced-motion preference is respected; explicit motion control remains usable",
+    "Keyboard skip-to-content moves focus into the main content without breaking hash routing",
+    "Enter opens the existing assessor queue, reads the real local API, retains all dashboard navigation, and starts at the top",
+    "Footer report verification opens the existing verification page",
+    "Header and closing dashboard entry links work after repeated landing-page mounts",
+    "No JavaScript errors or failed asset/network requests across the checked flows"
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "queueRequests": [
+    {
+      "url": "http://127.0.0.1:18178/public/assessments",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18178/public/assessments",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18178/public/assessments",
+      "status": 200
+    }
+  ],
+  "viewports": [
+    320,
+    390,
+    640,
+    768,
+    900,
+    1024,
+    1440,
+    1920
+  ],
+  "source": "Local Vite server + dedicated local test API; read-only verification; no deployment or device mutation"
+}
