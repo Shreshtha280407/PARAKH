@@ -4,6 +4,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { QueuePage } from "./pages/QueuePage";
 import { AssessmentDetailPage } from "./pages/AssessmentDetailPage";
 import { VerifyReportPage } from "./pages/VerifyReportPage";
+import { AssessorSessionProvider } from "./components/AssessorSession";
 import { useHashRoute } from "./useHashRoute";
 import type { MeOut } from "./types";
 
@@ -37,7 +38,7 @@ function App() {
   }, [verifyMatch !== null]);
 
   if (verifyMatch) {
-    return <VerifyReportPage reportId={decodeURIComponent(verifyMatch[1])} />;
+    return <AssessorSessionProvider><VerifyReportPage reportId={decodeURIComponent(verifyMatch[1])} /></AssessorSessionProvider>;
   }
 
   function checkAuth() {
