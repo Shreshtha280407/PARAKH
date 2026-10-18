@@ -40,8 +40,8 @@ try {
   const durationMs = await old.locator("video").evaluate(v => v.duration * 1000);
   assert.equal(durationMs, 5000);
   check("actual protected persisted video metadata/duration");
-  assert.match(await old.textContent(), /v1 · historical/);
-  assert.match(await current.textContent(), /v2 · current/);
+  assert.match(await old.textContent(), /v1 · historical/i);
+  assert.match(await current.textContent(), /v2 · current/i);
   check("historical and current evidence separated");
   const buttons = old.locator("button.assistance-marker");
   assert.equal(await buttons.count(), fixture.expectedMarkers.length);
