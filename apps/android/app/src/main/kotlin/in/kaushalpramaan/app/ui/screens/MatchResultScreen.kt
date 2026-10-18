@@ -2,6 +2,7 @@ package `in`.kaushalpramaan.app.ui.screens
 
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpCard as Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -35,16 +36,24 @@ fun MatchResultScreen(viewModel: AppViewModel, onBack: () -> Unit, onViewTasks: 
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { KpBottomBar {
+            Button(
+                onClick = onViewTasks,
+                modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("btn_view_tasks"),
+            ) {
+                Text(stringResource(R.string.action_view_tasks))
+            }
+        } },
     ) { modifier ->
         if (output == null) {
-            Column(modifier = modifier.fillMaxSize().padding(24.dp)) {
+            Column(modifier = modifier.fillMaxSize().padding(18.dp)) {
                 CircularProgressIndicator()
                 Text(stringResource(R.string.loading), modifier = Modifier.padding(top = 8.dp))
             }
             return@KpScaffold
         }
 
-        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
+        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
             val resultLabelRes = when (output.matchResult) {
                 "appropriate_match" -> R.string.match_result_appropriate
                 "partial_match" -> R.string.match_result_partial
@@ -98,12 +107,7 @@ fun MatchResultScreen(viewModel: AppViewModel, onBack: () -> Unit, onViewTasks: 
                 }
             }
 
-            Button(
-                onClick = onViewTasks,
-                modifier = Modifier.fillMaxWidth().padding(top = 32.dp).defaultMinTapTarget().testTag("btn_view_tasks"),
-            ) {
-                Text(stringResource(R.string.action_view_tasks))
-            }
+
         }
     }
 }

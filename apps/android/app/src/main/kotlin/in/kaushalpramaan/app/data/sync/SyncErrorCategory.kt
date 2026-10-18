@@ -5,8 +5,8 @@ package `in`.kaushalpramaan.app.data.sync
  * [in.kaushalpramaan.app.data.draft.OutboxItemEntity.lastErrorCategory]. Deliberately NOT a raw
  * exception message, HTTP response body, server stack trace, file path, or capability token:
  * none of those are safe to show a worker or write to a column a crash report / support
- * screenshot might surface (P6 security rule 8). [RETRYABLE] categories are exactly the ones
- * WorkManager's own exponential backoff should retry; [TERMINAL] categories mean "this exact
+ * screenshot might surface (P6 security rule 8). Retryable categories can succeed
+ * on a later manual retry; no background retry loop is scheduled. Terminal categories mean "this exact
  * attempt will never succeed by retrying the same bytes" -- see [SyncState.FAILED_ACTION_REQUIRED].
  */
 enum class SyncErrorCategory(val retryable: Boolean) {

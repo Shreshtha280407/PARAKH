@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-18",
+  "installed": true,
+  "appLabel": "Parakh",
+  "applicationId": "in.kaushalpramaan.app",
+  "versionName": "0.8.1-sync-review",
+  "versionCode": 4,
+  "device": "OnePlus CPH2691",
+  "apk": "/tmp/parakh-ui-review/Parakh-sync-review.apk",
+  "apkBytes": 98506605,
+  "apkSha256": "552b537dfa1b7d8603fdf8797113474ba4643df8a8fd6a73534325b9e42f25b8",
+  "signing": "Android Debug; existing certificate preserved",
+  "apiBase": "https://api-production-c626.up.railway.app",
+  "mainAppDataPreserved": true,
+  "temporaryQaRemoved": true,
+  "usbTestMappingRemoved": true,
+  "unitTests": {
+    "tests": 104,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "Fatal": 0,
+    "Error": 0,
+    "Warning": 54
+  },
+  "phoneUiServerFlow": "passed",
+  "encryptedUploadRegressionTests": 5,
+  "automaticPolicy": "one initial attempt per sealed revision; failure requires explicit manual retry",
+  "networkReturnStartsAnotherFailedAttempt": false,
+  "localTestSubmittedAssessmentId": 20,
+  "productionSubmissionCreatedByTests": false,
+  "dashboardOrBackendDeployedThisUpdate": false,
+  "gitCommitOrPush": false
+}

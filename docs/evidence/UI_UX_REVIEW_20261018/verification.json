@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-18",
+  "git": {
+    "baseHead": "df6c575383afa1c61b654691d4f382ab30e1570f",
+    "source": "uncommitted working tree",
+    "committed": false,
+    "pushed": false
+  },
+  "installedApp": {
+    "label": "Parakh",
+    "applicationId": "in.kaushalpramaan.app",
+    "versionCode": 3,
+    "versionName": "0.8.0-ui-review",
+    "device": "OnePlus CPH2691",
+    "apk": "/tmp/parakh-ui-review/Parakh-review.apk",
+    "apkBytes": 98475218,
+    "sha256": "bd5e1d1d88a7bf2ab8248f2b2391c103a9652a83189ba9b357227b1b4c8066d6",
+    "signing": "Android Debug",
+    "signingCertificateSha256": "060109bd61004a28dea5b879349f21e19e6e3699eb6ba87c53301051642964e6",
+    "apiBase": "https://api-production-c626.up.railway.app",
+    "testCeilingEnabled": false,
+    "forcedOptimizeEnabled": false,
+    "debugExportEnabled": false,
+    "runtimeEndpointOverrideEnabled": false,
+    "installed": true,
+    "launched": true,
+    "temporaryQaAndRunnerRemoved": true
+  },
+  "logo": {
+    "originalSha256": "3e597c1eca95be201ddd87ca10cff8804b547ca6b111fe4a6f4971212b889968",
+    "unchangedCopies": true,
+    "diagramRegion": [
+      235,
+      15,
+      1095,
+      875
+    ],
+    "generatedCropPixelEquality": true
+  },
+  "tests": {
+    "androidUnit": {
+      "tests": 94,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "androidLint": {
+      "Error": 0,
+      "Fatal": 0,
+      "Warning": 40
+    },
+    "phoneNavigation": 8,
+    "phonePhotoRetakeDelete": "passed",
+    "phoneLiveMeter": "passed",
+    "dashboardBrowserFlows": 9,
+    "backendPostgres": 23
+  },
+  "meter": {
+    "midRecording": "1.2 MB",
+    "beforeStop": "2.4 MB",
+    "remainingLimit": "17.8 MB",
+    "finalBytes": 2592303,
+    "persistedBytes": 2592303,
+    "durationMs": 8090
+  },
+  "deployment": {
+    "project": "parakh-dashboard",
+    "owner": "nipun-kalsotras-projects",
+    "id": "dpl_89iEYwwFN8WieiqgBZnH111kDbk3",
+    "status": "READY",
+    "target": "production",
+    "url": "https://parakh-dashboard-five.vercel.app",
+    "uniqueUrl": "https://parakh-dashboard-7z2ox45ln-nipun-kalsotras-projects.vercel.app",
+    "errorLogRecordsInBoundedScan": 0,
+    "monitoringProvisioned": false,
+    "buildDurationSeconds": 10,
+    "postBuildDurationSeconds": 8
+  },
+  "liveBrowser": {
+    "status": "passed",
+    "url": "https://parakh-dashboard-five.vercel.app",
+    "wordmark": "Parakh",
+    "font": "Fraunces",
+    "apiHealth": "ok",
+    "queueStatus": 200,
+    "reviewerAvailable": false,
+    "reviewerMessage": "Reviewer email delivery is not configured. Scoring and sign-off are unavailable.",
+    "responsiveWidths": [
+      390,
+      768,
+      1440
+    ],
+    "pageErrors": []
+  },
+  "limitations": [
+    "Hosted reviewer email delivery is not configured; private review, scoring and sign-off remain blocked.",
+    "Review APK uses debug signing.",
+    "No new phone-to-production sealed submission was performed.",
+    "Targeted flow checks do not establish exhaustive pixel or platform parity."
+  ]
+}

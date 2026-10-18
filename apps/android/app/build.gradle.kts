@@ -11,6 +11,7 @@ plugins {
 // including a real Room/WorkManager database. Never replace/clear a worker's app
 // merely to obtain a fresh test sandbox. Normal debug/release builds are unchanged.
 val p8ValidationBuild = providers.gradleProperty("p8Validation").orNull == "true"
+val workerReviewBuild = providers.gradleProperty("workerReviewBuild").orNull == "true"
 val p8ValidationShrink = providers.gradleProperty("p8ValidationShrink").orNull == "true"
 check(!p8ValidationShrink || p8ValidationBuild) { "Shrunk validation must use the isolated QA package" }
 
@@ -62,6 +63,7 @@ android {
     sourceSets {
         getByName("main") {
             assets.srcDirs(layout.buildDirectory.dir("generated/integrationAssets").get().asFile)
+            res.srcDir(layout.buildDirectory.dir("generated/emblemRes").get().asFile)
         }
         getByName("androidTest") {
             assets.srcDirs("$projectDir/schemas")
@@ -100,7 +102,7 @@ android {
                 isMinifyEnabled = p8ValidationShrink
                 isShrinkResources = p8ValidationShrink
                 proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
-                resValue("string", "app_name", "KaushalPramaan P8 Validation")
+                resValue("string", "app_name", "PARAKH QA")
             }
             // P4_TEST_ONLY: a debug-build-only override of the per-recording safety
             // ceiling, wired through the SAME production enforcement path as the real
@@ -110,7 +112,7 @@ android {
             // into the debug variant only -- the release block below hardcodes it to
             // false/0, so there is no runtime flag, setting, or code path that could
             // ever enable it in a release build.
-            buildConfigField("boolean", "P4_TEST_ONLY_CEILING_ENABLED", "true")
+            buildConfigField("boolean", "P4_TEST_ONLY_CEILING_ENABLED", (!workerReviewBuild).toString())
             buildConfigField("long", "P4_TEST_ONLY_CEILING_BYTES", "4_194_304L")
             // P5_TEST_ONLY: debug-build-only compile-time constants, same pattern as
             // P4_TEST_ONLY above. FORCE_OPTIMIZE lets a physical-device test force a smaller
@@ -120,8 +122,8 @@ android {
             // DEBUG_EXPORT_ENABLED gates the decrypt-for-verification export screen. Both are
             // hardcoded false in the release block below -- no runtime flag can enable either
             // in a release build.
-            buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", "true")
-            buildConfigField("boolean", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED", "true")
+            buildConfigField("boolean", "P5_TEST_ONLY_FORCE_OPTIMIZE_ENABLED", (!workerReviewBuild).toString())
+            buildConfigField("boolean", "P5_TEST_ONLY_DEBUG_EXPORT_ENABLED", (!workerReviewBuild).toString())
             // P6_TEST_ONLY: debug builds may point sync at a local Docker-Compose
             // test backend over plain HTTP, and the base URL can be overridden
             // in-app at runtime (SyncEndpointConfig, app/src/debug) without a
@@ -130,7 +132,7 @@ android {
             // standard emulator-to-host alias, a reasonable zero-config default;
             // a real device on the same Wi-Fi/hotspot must be told the laptop's
             // actual LAN IP via the in-app debug-only field (see PreviewScreen).
-            buildConfigField("boolean", "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED", "true")
+            buildConfigField("boolean", "P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED", (!workerReviewBuild).toString())
             // Overridable with -PdebugSyncBaseUrl=..., same pattern as
             // releaseSyncBaseUrl below. 10.0.2.2 is the emulator-to-host alias
             // and is unreachable from a REAL device, so an on-device sync test
@@ -224,7 +226,21 @@ val generateIntegrationSourceStamp = tasks.register<Exec>("generateIntegrationSo
     outputs.upToDateWhen { false }
     commandLine("python3", rootDir.resolve("../../tools/integration_source.py").absolutePath, "--output", stamp.get().asFile.absolutePath)
 }
-tasks.named("preBuild") { dependsOn(generateIntegrationSourceStamp) }
+// Lossless source-region composition of the existing logo. The supplied file
+// remains intact; the launcher and welcome screen contain only its diagram.
+val generateParakhEmblem = tasks.register("generateParakhEmblem") {
+    val original = layout.projectDirectory.file("src/main/res/drawable-nodpi/parakh_logo.png")
+    val output = layout.buildDirectory.file("generated/emblemRes/drawable-nodpi/parakh_emblem.png")
+    inputs.file(original)
+    outputs.file(output)
+    doLast {
+        val source = javax.imageio.ImageIO.read(original.asFile)
+        val emblem = source.getSubimage(235, 15, 860, 860)
+        output.get().asFile.parentFile.mkdirs()
+        check(javax.imageio.ImageIO.write(emblem, "png", output.get().asFile))
+    }
+}
+tasks.named("preBuild") { dependsOn(generateIntegrationSourceStamp, generateParakhEmblem) }
 
 // Robolectric 4.17's native-SQLite shadow (needed for the Room DAO tests under
 // EvidenceRepositoryTest) reflects into a few JDK-internal classes that are not open by

@@ -9,6 +9,7 @@ import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
 import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
 import `in`.kaushalpramaan.app.data.draft.SealState
 import `in`.kaushalpramaan.app.data.taskTitleRes
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.SafetyNoticeCard
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
@@ -28,13 +29,13 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpCard as Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import `in`.kaushalpramaan.app.ui.components.KpOutlinedButton as OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -82,6 +83,30 @@ fun TaskDetailScreen(
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { KpBottomBar {
+            if (editable) {
+                OutlinedButton(
+                    onClick = { onCapture(null) },
+                    modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("btn_add_evidence"),
+                ) {
+                    Text(stringResource(R.string.action_add_evidence))
+                }
+            } else if (!taskLocked) {
+                Text(
+                    stringResource(R.string.task_detail_sealed_read_only),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("task_detail_sealed_read_only"),
+                )
+            }
+
+            Button(
+                onClick = onBack,
+                modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("btn_back_to_tasks"),
+            ) {
+                Text(stringResource(R.string.action_back_to_tasks))
+            }
+        } },
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             SafetyNoticeCard()
@@ -177,28 +202,7 @@ fun TaskDetailScreen(
                 }
             }
 
-            if (editable) {
-                OutlinedButton(
-                    onClick = { onCapture(null) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_add_evidence"),
-                ) {
-                    Text(stringResource(R.string.action_add_evidence))
-                }
-            } else if (!taskLocked) {
-                Text(
-                    stringResource(R.string.task_detail_sealed_read_only),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp).testTag("task_detail_sealed_read_only"),
-                )
-            }
 
-            Button(
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_back_to_tasks"),
-            ) {
-                Text(stringResource(R.string.action_back_to_tasks))
-            }
         }
     }
 

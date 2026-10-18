@@ -1,0 +1,36 @@
+{
+  "base_commit": "df6c575383afa1c61b654691d4f382ab30e1570f",
+  "uncommitted_review_build": true,
+  "source_sha256": "31f2a86b06f7cd74f22af5331432da42ef2386a743a3fe2bc4775569ccebbbfb",
+  "dashboard": "https://parakh-dashboard-five.vercel.app",
+  "vercel_deployment_id": "dpl_2TT1Qh6YfV6PHWN3u8DwFgqSJraU",
+  "railway_api_deployment_id": "740b0810-fa42-46f3-862a-5b487f815ef5",
+  "migration": "e53a28c09b12",
+  "temporary_migration_branch": "br-aged-base-b3on6qtj",
+  "temporary_branch_expires_utc": "2026-10-19T12:46:17Z",
+  "android": {
+    "application_id": "in.kaushalpramaan.app",
+    "name": "Parakh",
+    "version_name": "0.8.2-sync-review",
+    "version_code": 5,
+    "installed_in_place": true,
+    "main_data_preserved": true,
+    "qa_package_removed": true,
+    "apk_sha256": "7fecb2aa068709e96335a986848f6fdfef570e3cbb068580725e75b888cda8a9",
+    "device_animation_scale": 0,
+    "unit_results": {
+      "tests": 106,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "physical_spinner_tests": 1,
+    "lint_errors": 0,
+    "lint_warnings": 54
+  },
+  "backend_postgres_tests": 26,
+  "browser_local_checks": 12,
+  "browser_deployed_checks": 4,
+  "committed": false,
+  "pushed": false
+}

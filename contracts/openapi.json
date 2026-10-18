@@ -1010,6 +1010,19 @@
             "title": "Confirmed",
             "type": "boolean"
           },
+          "password": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
           "reason": {
             "title": "Reason",
             "type": "string"
@@ -1040,6 +1053,11 @@
             "title": "Anchors",
             "type": "object"
           },
+          "criterion_text": {
+            "default": "",
+            "title": "Criterion Text",
+            "type": "string"
+          },
           "critical": {
             "title": "Critical",
             "type": "boolean"
@@ -1054,6 +1072,16 @@
           },
           "marks": {
             "title": "Marks",
+            "type": "string"
+          },
+          "nos_code": {
+            "default": "",
+            "title": "Nos Code",
+            "type": "string"
+          },
+          "nos_title": {
+            "default": "",
+            "title": "Nos Title",
             "type": "string"
           },
           "pc_full_id": {
@@ -1073,6 +1101,22 @@
                 "type": "null"
               }
             ]
+          },
+          "task_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Code"
+          },
+          "task_title": {
+            "default": "",
+            "title": "Task Title",
+            "type": "string"
           }
         },
         "required": [
@@ -1700,6 +1744,11 @@
             "title": "Pack Code",
             "type": "string"
           },
+          "pack_name": {
+            "default": "",
+            "title": "Pack Name",
+            "type": "string"
+          },
           "report_available": {
             "title": "Report Available",
             "type": "boolean"
@@ -2023,12 +2072,128 @@
         "title": "ReviewerChallengeIn",
         "type": "object"
       },
+      "ReviewerHistoryOut": {
+        "properties": {
+          "audit": {
+            "items": {
+              "$ref": "#/components/schemas/AuditLogEntryOut"
+            },
+            "title": "Audit",
+            "type": "array"
+          },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/ReassessmentRequestOut"
+            },
+            "title": "Requests",
+            "type": "array"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentRevisionOut"
+            },
+            "title": "Revisions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "revisions",
+          "requests",
+          "audit"
+        ],
+        "title": "ReviewerHistoryOut",
+        "type": "object"
+      },
+      "ReviewerLoginIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "ReviewerLoginIn",
+        "type": "object"
+      },
+      "ReviewerRegisterIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          },
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "password_acknowledged": {
+            "const": true,
+            "title": "Password Acknowledged",
+            "type": "boolean"
+          },
+          "phone": {
+            "maxLength": 16,
+            "pattern": "^\\+?[1-9][0-9]{9,14}$",
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "name",
+          "phone",
+          "password_acknowledged"
+        ],
+        "title": "ReviewerRegisterIn",
+        "type": "object"
+      },
       "ReviewerRejectIn": {
         "properties": {
           "confirmed": {
             "const": true,
             "title": "Confirmed",
             "type": "boolean"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "format": "password",
+                "maxLength": 128,
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
           },
           "reason": {
             "maxLength": 4000,
@@ -2072,6 +2237,20 @@
               }
             ],
             "title": "Override Reason"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "format": "password",
+                "maxLength": 128,
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
           }
         },
         "required": [
@@ -2099,6 +2278,34 @@
           "code"
         ],
         "title": "ReviewerVerifyIn",
+        "type": "object"
+      },
+      "ReviewerWorkspaceOut": {
+        "properties": {
+          "assessment": {
+            "$ref": "#/components/schemas/AssessmentOut"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/CompetencyProfileOut"
+          },
+          "review": {
+            "items": {
+              "$ref": "#/components/schemas/CriterionReviewItemOut"
+            },
+            "title": "Review",
+            "type": "array"
+          },
+          "sync": {
+            "$ref": "#/components/schemas/SyncStatusOut"
+          }
+        },
+        "required": [
+          "assessment",
+          "review",
+          "profile",
+          "sync"
+        ],
+        "title": "ReviewerWorkspaceOut",
         "type": "object"
       },
       "RubricItemOut": {
@@ -5673,6 +5880,64 @@
         ]
       }
     },
+    "/reviewer/account": {
+      "get": {
+        "operationId": "current_account_reviewer_account_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current Account",
+        "tags": [
+          "assessor review"
+        ]
+      }
+    },
+    "/reviewer/accounts": {
+      "post": {
+        "operationId": "register_account_reviewer_accounts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerRegisterIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register Account",
+        "tags": [
+          "assessor review"
+        ]
+      }
+    },
     "/reviewer/assessments/{assessment_id}": {
       "get": {
         "operationId": "detail_reviewer_assessments__assessment_id__get",
@@ -5711,7 +5976,7 @@
         },
         "summary": "Detail",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -5757,7 +6022,7 @@
         },
         "summary": "Audit",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -5799,7 +6064,7 @@
         },
         "summary": "Profile",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -5848,7 +6113,7 @@
         },
         "summary": "Content",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -5897,7 +6162,50 @@
         },
         "summary": "Thumbnail",
         "tags": [
-          "account-free review"
+          "assessor review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/history": {
+      "get": {
+        "description": "History is loaded only when the assessor opens its tab.",
+        "operationId": "review_history_reviewer_assessments__assessment_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewerHistoryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review History",
+        "tags": [
+          "assessor review"
         ]
       }
     },
@@ -5943,7 +6251,7 @@
         },
         "summary": "History",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       },
       "post": {
@@ -5993,7 +6301,7 @@
         },
         "summary": "Request Reassessment",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6045,7 +6353,7 @@
         },
         "summary": "Reject",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6095,7 +6403,7 @@
         },
         "summary": "Report",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6141,7 +6449,7 @@
         },
         "summary": "Review",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       },
       "put": {
@@ -6191,7 +6499,7 @@
         },
         "summary": "Score",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6237,7 +6545,7 @@
         },
         "summary": "Revisions",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6283,7 +6591,7 @@
         },
         "summary": "Rubric",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6335,7 +6643,7 @@
         },
         "summary": "Sign",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6377,7 +6685,7 @@
         },
         "summary": "Start",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6435,7 +6743,50 @@
         },
         "summary": "Sync",
         "tags": [
-          "account-free review"
+          "assessor review"
+        ]
+      }
+    },
+    "/reviewer/assessments/{assessment_id}/workspace": {
+      "get": {
+        "description": "One authorized read for the initial review, without seven auth/DB round trips.",
+        "operationId": "workspace_reviewer_assessments__assessment_id__workspace_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewerWorkspaceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Workspace",
+        "tags": [
+          "assessor review"
         ]
       }
     },
@@ -6454,7 +6805,7 @@
         },
         "summary": "Availability",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },
@@ -6493,7 +6844,65 @@
         },
         "summary": "Challenge",
         "tags": [
-          "account-free review"
+          "assessor review"
+        ]
+      }
+    },
+    "/reviewer/logout": {
+      "post": {
+        "operationId": "logout_account_reviewer_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout Account",
+        "tags": [
+          "assessor review"
+        ]
+      }
+    },
+    "/reviewer/sessions": {
+      "post": {
+        "operationId": "login_account_reviewer_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerLoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login Account",
+        "tags": [
+          "assessor review"
         ]
       }
     },
@@ -6532,7 +6941,7 @@
         },
         "summary": "Verify",
         "tags": [
-          "account-free review"
+          "assessor review"
         ]
       }
     },

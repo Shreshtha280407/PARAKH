@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Deployed desktop and mobile keep all three top links with the selected page highlighted",
+    "Same-origin dashboard API, database and private storage are healthy",
+    "Deployed assessment form creates an assessor account and opens private review without email delivery",
+    "Live secure HttpOnly session, CSRF enforcement, logout, wrong-password rejection and password login pass"
+  ],
+  "passed": 4,
+  "browserErrors": [],
+  "syntheticAssessorAccountsCreated": 1,
+  "productionAssessmentsCreated": 0,
+  "productionDecisionsChanged": 0
+}

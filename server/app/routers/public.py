@@ -9,12 +9,13 @@ from ..db import get_db
 router = APIRouter(prefix="/public", tags=["public summaries"])
 
 
-def summary(db, assessment):
-    report = db.query(models.SignedReport).filter_by(assessment_id=assessment.id).one_or_none()
+def summary(db, assessment, *, reports=None):
+    report = (reports.get(assessment.id) if reports is not None else
+              db.query(models.SignedReport).filter_by(assessment_id=assessment.id).one_or_none())
     return schemas.PublicAssessmentOut(
         id=assessment.id,
         candidate_display_name=assessment.worker.display_name if assessment.public_name_consent else f"Candidate #{assessment.id}",
-        pack_code=assessment.pack.qp_code, submitted_at=assessment.submitted_at,
+        pack_code=assessment.pack.qp_code, pack_name=assessment.pack.qp_name, submitted_at=assessment.submitted_at,
         status=assessment.status, tasks_completed=sum(t.status == "evidence_added" for t in assessment.tasks),
         tasks_total=len(assessment.tasks), review_status="signed_off" if report else assessment.status,
         revision_number=assessment.revision_number, report_available=report is not None,
@@ -37,7 +38,10 @@ def list_public(request: Request, response: Response, before_id: int | None = Qu
     rows = visible(db)
     if before_id is not None:
         rows = rows.filter(models.Assessment.id < before_id)
-    return [summary(db, a) for a in rows.order_by(models.Assessment.id.desc()).limit(limit).all()]
+    assessments = rows.order_by(models.Assessment.id.desc()).limit(limit).all()
+    reports = {r.assessment_id: r for r in db.query(models.SignedReport)
+               .filter(models.SignedReport.assessment_id.in_([a.id for a in assessments])).all()} if assessments else {}
+    return [summary(db, a, reports=reports) for a in assessments]
 
 
 @router.get("/assessments/{assessment_id}", response_model=schemas.PublicAssessmentOut)

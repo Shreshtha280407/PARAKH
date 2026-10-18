@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PARAKH</string>
+    <string name="app_name">Parakh</string>
 
     <!-- Language screen -->
     <string name="language_title">Choose your language</string>
@@ -183,7 +183,7 @@
 
     <!-- Sealed (post-seal) screen -->
     <string name="submitted_title">Assessment sealed</string>
-    <string name="submitted_body">Assessment sealed on this device. Ready to sync when connectivity is available.</string>
+    <string name="submitted_body">Assessment sealed on this phone. Check Sync status above to confirm server submission.</string>
     <string name="submitted_worker_id">Worker ID: %1$s</string>
     <string name="action_view_preview_again">View sealed evidence</string>
 
@@ -249,4 +249,34 @@
     <string name="assistance_stage_hands">Checking hands visibility on sampled frames. You can leave this screen.</string>
     <string name="assistance_warning_count">%1$d advisory observation types. Open the evidence to review.</string>
     <string name="assistance_overall_review">Evidence quality review</string>
+    <string name="online_badge">Internet connected</string>
+    <string name="wifi_signal_badge">Wi-Fi internet connected, signal %1$d of 4</string>
+    <string name="wifi_online_badge">Wi-Fi internet connected, signal strength unavailable</string>
+    <string name="mobile_online_badge">Mobile data internet connected</string>
+    <string name="capture_size_used">Recorded on this phone: %1$s of %2$s</string>
+    <string name="capture_local_size_note">This is recording storage, not uploaded data. Upload starts after sealing.</string>
+    <string name="sync_before_seal_title">Seal to start syncing</string>
+    <string name="sync_before_seal_body">After you seal, one upload attempt starts automatically. If it fails, tap Retry syncing when internet is available.</string>
+    <string name="sync_offline_title">Sync not completed — no internet</string>
+    <string name="sync_offline_body">Your sealed evidence is safe on this phone. Connect to the internet, then tap Retry syncing. Reconnecting alone will not restart a failed attempt.</string>
+    <string name="sync_queued_title">Waiting to sync</string>
+    <string name="sync_queued_body">Your sealed package is queued. The first sync attempt starts automatically.</string>
+    <string name="sync_uploading_title">Syncing evidence…</string>
+    <string name="sync_uploading_body">Connecting and uploading to the assessment server. Progress below shows bytes acknowledged by the server.</string>
+    <string name="sync_verifying_title">Confirming submission…</string>
+    <string name="sync_verifying_body">The uploaded evidence is being verified and submitted for assessor review. Sync is complete only after server confirmation.</string>
+    <string name="sync_retrying_title">Sync failed — retry needed</string>
+    <string name="sync_retrying_body">The last attempt did not finish. Check your internet connection, then tap Retry syncing. Your sealed evidence stays on this phone.</string>
+    <string name="sync_failed_title">Sync failed</string>
+    <string name="sync_failed_body">The server has not confirmed submission. Check your connection and tap Retry syncing. If it fails again, keep the package on this phone and ask for help.</string>
+    <string name="sync_stalled_title">Sync is taking longer than usual</string>
+    <string name="sync_stalled_body">No recent upload progress was reported. The current request may still finish. Check your connection; after it stops, tap Retry syncing if needed.</string>
+    <string name="sync_complete_body">The server confirmed your submission. It is now available in the assessor dashboard.</string>
+    <string name="sync_uploaded_bytes">Uploaded %1$s of %2$s</string>
+    <string name="sync_verified_items">Server verified %1$d of %2$d package items</string>
+    <string name="sync_keep_local">Keep this assessment on your phone until sync is confirmed. Erasing it cancels pending uploads.</string>
+    <string name="sync_upload_running">Upload in progress</string>
+    <string name="sync_action_retry">Retry syncing</string>
+    <string name="sync_notice_done">Done</string>
+    <string name="sync_notice_later">Keep for later</string>
 </resources>

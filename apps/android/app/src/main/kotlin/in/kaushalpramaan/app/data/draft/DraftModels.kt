@@ -262,7 +262,7 @@ enum class OutboxItemKind { MANIFEST, EVIDENCE }
  * currently satisfied; the row is queued but genuinely not running. [UPLOADING] -- a
  * begin/recover session exists server-side and chunk PUTs are in flight or about to resume.
  * [RETRYING] -- the last attempt failed with a retryable error (timeout, 5xx, connection
- * drop) and WorkManager's exponential backoff is waiting before the next attempt.
+ * drop) and the package is retained while waiting for a manual retry.
  * [VERIFYING] -- all bytes sent; waiting on the server's complete()/sync-status response to
  * confirm server-side hash/signature verification. [SYNCED] -- server receipt verified; this
  * item's encrypted vault file (and, once every row for the assessment is SYNCED, the whole

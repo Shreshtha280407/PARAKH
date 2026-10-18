@@ -290,14 +290,33 @@ export function evidenceThumbnailUrl(assessmentId: number, evidenceId: number): 
 }
 
 export interface PublicAssessment {
-  id: number; candidate_display_name: string; pack_code: string; submitted_at: string;
+  id: number; candidate_display_name: string; pack_code: string; pack_name?: string; submitted_at: string;
   status: string; tasks_completed: number; tasks_total: number; review_status: string;
   revision_number: number; report_available: boolean; report_id: string | null; outcome: string | null;
 }
 export type ReviewerAction = "review" | "reject" | "reassessment" | "sign_off";
-export function publicAssessments(beforeId?: number): Promise<PublicAssessment[]> {
-  return request(`/public/assessments${beforeId ? `?before_id=${beforeId}` : ""}`);
+const publicQueueCache = new Map<number | undefined, PublicAssessment[]>();
+const publicQueueInFlight = new Map<number | undefined, Promise<PublicAssessment[]>>();
+export function publicQueueSnapshot(beforeId?: number): PublicAssessment[] | undefined { return publicQueueCache.get(beforeId); }
+export function publicAssessmentSnapshot(id: number): PublicAssessment | undefined {
+  for (const items of publicQueueCache.values()) { const item = items.find(row => row.id === id); if (item) return item; }
 }
+export function updatePublicAssessmentSnapshot(item: PublicAssessment): void {
+  for (const [page, items] of publicQueueCache) publicQueueCache.set(page, items.map(row => row.id === item.id ? item : row));
+}
+export function publicAssessments(beforeId?: number): Promise<PublicAssessment[]> {
+  const pending = publicQueueInFlight.get(beforeId);
+  if (pending) return pending;
+  const promise = request<PublicAssessment[]>(`/public/assessments${beforeId ? `?before_id=${beforeId}` : ""}`, {cache: 'no-store'})
+    .then(items => { publicQueueCache.set(beforeId, items); return items; })
+    .finally(() => publicQueueInFlight.delete(beforeId));
+  publicQueueInFlight.set(beforeId, promise);
+  return promise;
+}
+export interface ReviewWorkspace { assessment: AssessmentOut; review: CriterionReviewItemOut[]; profile: CompetencyProfileOut; sync: SyncStatusOut }
+export interface ReviewHistory { revisions: AssessmentRevisionOut[]; requests: ReassessmentRequestOut[]; audit: AuditLogEntryOut[] }
+export function getReviewWorkspace(id: number): Promise<ReviewWorkspace> { return request(`/reviewer/assessments/${id}/workspace`); }
+export function getReviewHistory(id: number): Promise<ReviewHistory> { return request(`/reviewer/assessments/${id}/history`); }
 export function publicAssessment(id: number): Promise<PublicAssessment> { return request(`/public/assessments/${id}`); }
 export function reviewerAvailability(): Promise<{available: boolean; message: string}> { return request("/reviewer/availability"); }
 export function requestReviewerCode(assessmentId: number, name: string, email: string, action: ReviewerAction): Promise<{challenge_id: string}> {
@@ -306,12 +325,21 @@ export function requestReviewerCode(assessmentId: number, name: string, email: s
 export function verifyReviewerCode(challengeId: string, code: string): Promise<{name: string; email: string}> {
   return request("/reviewer/verify", {method: "POST", body: JSON.stringify({challenge_id: challengeId, code})});
 }
-export function rejectAssessment(id: number, reason: string): Promise<AssessmentOut> {
-  return request(`/reviewer/assessments/${id}/reject`, {method: "POST", body: JSON.stringify({reason, confirmed: true})});
+export interface AssessorAccount { id: string; name: string; email: string; phone: string; email_verified: boolean; expires_at: string }
+export function getAssessorAccount(): Promise<AssessorAccount> { return request('/reviewer/account'); }
+export function registerAssessor(body: {name: string; email: string; phone: string; password: string; password_acknowledged: true}): Promise<AssessorAccount> {
+  return request('/reviewer/accounts', {method:'POST',body:JSON.stringify(body)});
 }
-export function reviewerSignOff(id: number, finalRecommendation: string, overrideReason: string): Promise<SignedReportOut> {
-  return request(`/reviewer/assessments/${id}/sign-off`, {method: "POST", body: JSON.stringify({final_recommendation: finalRecommendation, override_reason: overrideReason || null, confirmed: true})});
+export function loginAssessor(email: string, password: string): Promise<AssessorAccount> {
+  return request('/reviewer/sessions', {method:'POST',body:JSON.stringify({email,password})});
 }
-export function reviewerReassessment(id: number, body: ReassessmentRequestIn): Promise<ReassessmentRequestOut> {
-  return request(`/reviewer/assessments/${id}/reassessment-requests`, {method: "POST", body: JSON.stringify({...body, confirmed: true})});
+export function logoutAssessor(): Promise<{status: string}> { return request('/reviewer/logout', {method:'POST'}); }
+export function rejectAssessment(id: number, reason: string, password: string): Promise<AssessmentOut> {
+  return request(`/reviewer/assessments/${id}/reject`, {method: "POST", body: JSON.stringify({reason, password, confirmed: true})});
+}
+export function reviewerSignOff(id: number, finalRecommendation: string, overrideReason: string, password: string): Promise<SignedReportOut> {
+  return request(`/reviewer/assessments/${id}/sign-off`, {method: "POST", body: JSON.stringify({final_recommendation: finalRecommendation, override_reason: overrideReason || null, password, confirmed: true})});
+}
+export function reviewerReassessment(id: number, body: ReassessmentRequestIn, password: string): Promise<ReassessmentRequestOut> {
+  return request(`/reviewer/assessments/${id}/reassessment-requests`, {method: "POST", body: JSON.stringify({...body, password, confirmed: true})});
 }

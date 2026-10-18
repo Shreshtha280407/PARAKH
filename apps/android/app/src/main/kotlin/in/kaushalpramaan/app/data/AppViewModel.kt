@@ -48,6 +48,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val security by lazy { CandidateSecurity(application) }
     private var foreground = true
     private var draftObservationScope: CoroutineScope? = null
+    private val shownSyncNotices = mutableSetOf<String>()
+    fun claimSyncNotice(key: String): Boolean = shownSyncNotices.add(key)
 
     val rules: Rules by lazy { RulesLoader.load() }
 
@@ -280,15 +282,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             reportStatus = assessment.reportStatus,
                         )
                     }
-                    // P6: react to the package becoming ready (just sealed, or resumed already
-                    // READY_TO_SYNC from a prior session) by enqueueing sync -- enqueueUniqueWork
-                    // with ExistingWorkPolicy.KEEP (see SyncWorker.enqueue) makes this safe to
-                    // call on every single emission, not just a detected transition.
+                    // Recover scheduling of the first sealed attempt only. The
+                    // persisted once marker prevents retries on later emissions
+                    // or relaunch after a failed attempt.
                     if (assessment.sealState == SealState.READY_TO_SYNC &&
                         assessment.syncedAtMillis == null &&
                         assessment.revisionId != null
                     ) {
-                        SyncWorker.enqueue(getApplication(), assessment.id, assessment.revisionId)
+                        SyncWorker.enqueueInitial(getApplication(), assessment.id, assessment.revisionId)
                     }
                     // P7: once this device has a server identity, start polling for
                     // reassessment requests/report status -- enqueueUniquePeriodicWork with
@@ -302,16 +303,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Manual "Sync now" -- safe to tap repeatedly (see SyncWorker.enqueue's doc comment); a
-     * no-op while a sync attempt is already pending/running, and a genuine fresh retry once a
-     * previous attempt has actually finished (succeeded, or failed and the worker fixed the
-     * underlying problem with a new seal). */
-    fun syncNow() {
+    /** Explicit retry after a failed attempt. Ordinary duplicate taps preserve
+     * running work; the stalled-state action can request a serialized restart. */
+    fun syncNow(restartRunning: Boolean = false) {
         val state = _uiState.value
         val assessmentId = state.assessmentDraftId ?: return
         val revisionId = state.revisionId ?: return
         if (state.sealState != SealState.READY_TO_SYNC || state.syncedAtMillis != null) return
-        SyncWorker.enqueue(getApplication(), assessmentId, revisionId)
+        viewModelScope.launch { SyncWorker.retryNow(getApplication(), assessmentId, revisionId, restartRunning) }
     }
 
     /** P7: immediate, on-demand pull of GET /assessments/{id}/worker-updates -- the exact
@@ -400,11 +399,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(sealActionInFlight = true) }
         val reopenedTasks = _uiState.value.pendingReassessmentTaskCodes.toSet()
         return try {
-            if (reopenedTasks.isNotEmpty()) {
+            val outcome = if (reopenedTasks.isNotEmpty()) {
                 sealOrchestrator.sealTargetedRevision(currentAssessmentId(), reopenedTasks)
             } else {
                 sealOrchestrator.seal(currentAssessmentId())
             }
+            if (outcome == SealOutcome.Sealed) {
+                // Schedule before returning to the UI; the Room observer is a
+                // second recovery path, never the only trigger for auto-sync.
+                val sealed = repository.getActiveAssessment()
+                if (sealed?.sealState == SealState.READY_TO_SYNC && sealed.revisionId != null && sealed.syncedAtMillis == null) {
+                    SyncWorker.enqueueInitial(getApplication(), sealed.id, sealed.revisionId)
+                }
+            }
+            outcome
         } finally {
             _uiState.update { it.copy(sealActionInFlight = false) }
         }

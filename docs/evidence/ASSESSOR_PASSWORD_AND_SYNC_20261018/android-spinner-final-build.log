@@ -1,0 +1,316 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+RELEASE_STORE_FILE/RELEASE_STORE_PASSWORD/RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD not set -- this release APK is UNSIGNED and cannot be installed. Set all four (as Gradle properties or environment variables) before distributing a real release build.
+
+> Task :app:generateIntegrationSourceStamp
+> Task :app:generateParakhEmblem UP-TO-DATE
+> Task :app:verifyExpectedNetworkPermissions
+> Task :app:verifyNoGalleryImportPath
+> Task :app:preBuild
+> Task :app:preDebugBuild
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :core:mapping:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:mapping:compileKotlin UP-TO-DATE
+> Task :core:mapping:compileJava NO-SOURCE
+> Task :core:mapping:syncGoldenVectors UP-TO-DATE
+> Task :core:mapping:syncPackResources UP-TO-DATE
+> Task :core:mapping:processResources UP-TO-DATE
+> Task :core:mapping:classes UP-TO-DATE
+> Task :core:mapping:jar UP-TO-DATE
+> Task :core:budget:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:budget:compileKotlin UP-TO-DATE
+> Task :core:budget:compileJava NO-SOURCE
+> Task :core:budget:processResources NO-SOURCE
+> Task :core:budget:classes UP-TO-DATE
+> Task :core:budget:jar UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :assist-hands:preBuild UP-TO-DATE
+> Task :assist-hands:preDebugBuild UP-TO-DATE
+> Task :assist-hands:processDebugNavigationResources UP-TO-DATE
+> Task :assist-quality:preBuild UP-TO-DATE
+> Task :assist-quality:preDebugBuild UP-TO-DATE
+> Task :assist-quality:processDebugNavigationResources UP-TO-DATE
+> Task :media:preBuild UP-TO-DATE
+> Task :media:preDebugBuild UP-TO-DATE
+> Task :media:processDebugNavigationResources UP-TO-DATE
+> Task :core:seal:preBuild UP-TO-DATE
+> Task :core:seal:preDebugBuild UP-TO-DATE
+> Task :core:seal:processDebugNavigationResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :assist-hands:generateDebugResources UP-TO-DATE
+> Task :assist-hands:packageDebugResources UP-TO-DATE
+> Task :assist-hands:parseDebugLocalResources UP-TO-DATE
+> Task :assist-hands:generateDebugRFile UP-TO-DATE
+> Task :assist-quality:generateDebugResources UP-TO-DATE
+> Task :assist-quality:packageDebugResources UP-TO-DATE
+> Task :assist-quality:parseDebugLocalResources UP-TO-DATE
+> Task :assist-quality:generateDebugRFile UP-TO-DATE
+> Task :assist-quality:compileDebugKotlin UP-TO-DATE
+> Task :assist-quality:javaPreCompileDebug UP-TO-DATE
+> Task :assist-quality:compileDebugJavaWithJavac NO-SOURCE
+> Task :assist-quality:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :assist-hands:compileDebugKotlin UP-TO-DATE
+> Task :assist-hands:javaPreCompileDebug UP-TO-DATE
+> Task :assist-hands:compileDebugJavaWithJavac NO-SOURCE
+> Task :assist-hands:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :media:generateDebugResources UP-TO-DATE
+> Task :media:packageDebugResources UP-TO-DATE
+> Task :media:parseDebugLocalResources UP-TO-DATE
+> Task :media:generateDebugRFile UP-TO-DATE
+> Task :media:compileDebugKotlin UP-TO-DATE
+> Task :media:javaPreCompileDebug UP-TO-DATE
+> Task :media:compileDebugJavaWithJavac NO-SOURCE
+> Task :media:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:seal:generateDebugResources UP-TO-DATE
+> Task :core:seal:packageDebugResources UP-TO-DATE
+> Task :core:seal:parseDebugLocalResources UP-TO-DATE
+> Task :core:seal:generateDebugRFile UP-TO-DATE
+> Task :core:seal:compileDebugKotlin UP-TO-DATE
+> Task :core:seal:javaPreCompileDebug UP-TO-DATE
+> Task :core:seal:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:seal:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :assist-hands:generateDebugAssets UP-TO-DATE
+> Task :assist-hands:mergeDebugAssets UP-TO-DATE
+> Task :assist-quality:generateDebugAssets UP-TO-DATE
+> Task :assist-quality:mergeDebugAssets UP-TO-DATE
+> Task :media:generateDebugAssets UP-TO-DATE
+> Task :media:mergeDebugAssets UP-TO-DATE
+> Task :core:seal:generateDebugAssets UP-TO-DATE
+> Task :core:seal:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:generateDebugGlobalSynthetics UP-TO-DATE
+> Task :assist-hands:processDebugJavaRes UP-TO-DATE
+> Task :assist-quality:processDebugJavaRes UP-TO-DATE
+> Task :media:processDebugJavaRes UP-TO-DATE
+> Task :core:seal:processDebugJavaRes UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :media:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :core:seal:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :assist-hands:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :assist-quality:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :assist-hands:writeDebugAarMetadata UP-TO-DATE
+> Task :assist-quality:writeDebugAarMetadata UP-TO-DATE
+> Task :media:writeDebugAarMetadata UP-TO-DATE
+> Task :core:seal:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :assist-hands:extractDeepLinksDebug UP-TO-DATE
+> Task :assist-hands:processDebugManifest UP-TO-DATE
+> Task :assist-quality:extractDeepLinksDebug UP-TO-DATE
+> Task :assist-quality:processDebugManifest UP-TO-DATE
+> Task :media:extractDeepLinksDebug UP-TO-DATE
+> Task :media:processDebugManifest UP-TO-DATE
+> Task :core:seal:extractDeepLinksDebug UP-TO-DATE
+> Task :core:seal:processDebugManifest UP-TO-DATE
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :assist-hands:mapDebugSourceSetPaths UP-TO-DATE
+> Task :assist-hands:compileDebugLibraryResources UP-TO-DATE
+> Task :assist-quality:mapDebugSourceSetPaths UP-TO-DATE
+> Task :assist-quality:compileDebugLibraryResources UP-TO-DATE
+> Task :media:mapDebugSourceSetPaths UP-TO-DATE
+> Task :media:compileDebugLibraryResources UP-TO-DATE
+> Task :core:seal:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:seal:compileDebugLibraryResources UP-TO-DATE
+> Task :app:processDebugResources
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :assist-hands:mergeDebugJniLibFolders UP-TO-DATE
+> Task :assist-hands:mergeDebugNativeLibs NO-SOURCE
+> Task :assist-hands:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :assist-quality:mergeDebugJniLibFolders UP-TO-DATE
+> Task :assist-quality:mergeDebugNativeLibs NO-SOURCE
+> Task :assist-quality:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :media:mergeDebugJniLibFolders UP-TO-DATE
+> Task :media:mergeDebugNativeLibs NO-SOURCE
+> Task :media:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :core:seal:mergeDebugJniLibFolders UP-TO-DATE
+> Task :core:seal:mergeDebugNativeLibs NO-SOURCE
+> Task :core:seal:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :core:seal:checkDebugAarMetadata UP-TO-DATE
+> Task :core:seal:extractDebugAnnotations UP-TO-DATE
+> Task :core:seal:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :core:seal:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :core:seal:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :core:seal:prepareDebugArtProfile UP-TO-DATE
+> Task :core:seal:prepareLintJarForPublish UP-TO-DATE
+> Task :core:seal:mergeDebugJavaResource UP-TO-DATE
+> Task :core:seal:syncDebugLibJars UP-TO-DATE
+> Task :core:seal:bundleDebugLocalLintAar UP-TO-DATE
+> Task :media:checkDebugAarMetadata UP-TO-DATE
+> Task :media:extractDebugAnnotations UP-TO-DATE
+> Task :media:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :media:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :media:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :media:prepareDebugArtProfile UP-TO-DATE
+> Task :media:prepareLintJarForPublish UP-TO-DATE
+> Task :media:mergeDebugJavaResource UP-TO-DATE
+> Task :media:syncDebugLibJars UP-TO-DATE
+> Task :media:bundleDebugLocalLintAar UP-TO-DATE
+> Task :assist-hands:checkDebugAarMetadata UP-TO-DATE
+> Task :assist-hands:extractDebugAnnotations UP-TO-DATE
+> Task :assist-hands:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :assist-hands:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :assist-hands:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :assist-hands:prepareDebugArtProfile UP-TO-DATE
+> Task :assist-hands:prepareLintJarForPublish UP-TO-DATE
+> Task :assist-hands:mergeDebugJavaResource UP-TO-DATE
+> Task :assist-hands:syncDebugLibJars UP-TO-DATE
+> Task :assist-hands:bundleDebugLocalLintAar UP-TO-DATE
+> Task :assist-quality:checkDebugAarMetadata UP-TO-DATE
+> Task :assist-quality:extractDebugAnnotations UP-TO-DATE
+> Task :assist-quality:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :assist-quality:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :assist-quality:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :assist-quality:prepareDebugArtProfile UP-TO-DATE
+> Task :assist-quality:prepareLintJarForPublish UP-TO-DATE
+> Task :assist-quality:mergeDebugJavaResource UP-TO-DATE
+> Task :assist-quality:syncDebugLibJars UP-TO-DATE
+> Task :assist-quality:bundleDebugLocalLintAar UP-TO-DATE
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :assist-hands:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :assist-hands:createFullJarDebug UP-TO-DATE
+> Task :assist-hands:writeDebugLintModelMetadata UP-TO-DATE
+> Task :assist-quality:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :assist-quality:createFullJarDebug UP-TO-DATE
+> Task :assist-quality:writeDebugLintModelMetadata UP-TO-DATE
+> Task :media:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :media:createFullJarDebug UP-TO-DATE
+> Task :media:writeDebugLintModelMetadata UP-TO-DATE
+> Task :core:seal:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:seal:createFullJarDebug UP-TO-DATE
+> Task :core:seal:writeDebugLintModelMetadata UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :assist-hands:extractProguardFiles UP-TO-DATE
+> Task :assist-quality:extractProguardFiles UP-TO-DATE
+> Task :assist-quality:generateDebugLintModel UP-TO-DATE
+> Task :assist-hands:generateDebugLintModel UP-TO-DATE
+> Task :media:extractProguardFiles UP-TO-DATE
+> Task :media:generateDebugLintModel UP-TO-DATE
+> Task :core:seal:extractProguardFiles UP-TO-DATE
+> Task :core:seal:generateDebugLintModel UP-TO-DATE
+> Task :app:preDebugUnitTestBuild
+> Task :app:preReleaseBuild
+> Task :app:generateReleaseBuildConfig
+> Task :app:generateReleaseResources UP-TO-DATE
+> Task :app:packageReleaseResources UP-TO-DATE
+> Task :assist-hands:preReleaseBuild UP-TO-DATE
+> Task :assist-hands:processReleaseNavigationResources UP-TO-DATE
+> Task :assist-quality:preReleaseBuild UP-TO-DATE
+> Task :assist-quality:processReleaseNavigationResources UP-TO-DATE
+> Task :media:preReleaseBuild UP-TO-DATE
+> Task :media:processReleaseNavigationResources UP-TO-DATE
+> Task :core:seal:preReleaseBuild UP-TO-DATE
+> Task :core:seal:processReleaseNavigationResources UP-TO-DATE
+> Task :app:processReleaseNavigationResources UP-TO-DATE
+> Task :app:parseReleaseLocalResources UP-TO-DATE
+> Task :app:generateReleaseRFile UP-TO-DATE
+> Task :assist-hands:generateReleaseResources UP-TO-DATE
+> Task :assist-hands:packageReleaseResources UP-TO-DATE
+> Task :assist-hands:parseReleaseLocalResources UP-TO-DATE
+> Task :assist-hands:generateReleaseRFile UP-TO-DATE
+> Task :assist-quality:generateReleaseResources UP-TO-DATE
+> Task :assist-quality:packageReleaseResources UP-TO-DATE
+> Task :assist-quality:parseReleaseLocalResources UP-TO-DATE
+> Task :assist-quality:generateReleaseRFile UP-TO-DATE
+> Task :assist-quality:compileReleaseKotlin UP-TO-DATE
+> Task :assist-quality:javaPreCompileRelease UP-TO-DATE
+> Task :assist-quality:compileReleaseJavaWithJavac NO-SOURCE
+> Task :assist-quality:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :assist-hands:compileReleaseKotlin UP-TO-DATE
+> Task :assist-hands:javaPreCompileRelease UP-TO-DATE
+> Task :assist-hands:compileReleaseJavaWithJavac NO-SOURCE
+> Task :assist-hands:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :media:generateReleaseResources UP-TO-DATE
+> Task :media:packageReleaseResources UP-TO-DATE
+> Task :media:parseReleaseLocalResources UP-TO-DATE
+> Task :media:generateReleaseRFile UP-TO-DATE
+> Task :media:compileReleaseKotlin UP-TO-DATE
+> Task :media:javaPreCompileRelease UP-TO-DATE
+> Task :media:compileReleaseJavaWithJavac NO-SOURCE
+> Task :media:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :core:seal:generateReleaseResources UP-TO-DATE
+> Task :core:seal:packageReleaseResources UP-TO-DATE
+> Task :core:seal:parseReleaseLocalResources UP-TO-DATE
+> Task :core:seal:generateReleaseRFile UP-TO-DATE
+> Task :core:seal:compileReleaseKotlin UP-TO-DATE
+> Task :core:seal:javaPreCompileRelease UP-TO-DATE
+> Task :core:seal:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core:seal:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :app:kspDebugKotlin
+> Task :app:kspReleaseKotlin
+> Task :assist-quality:lintAnalyzeDebug UP-TO-DATE
+> Task :assist-hands:lintAnalyzeDebug UP-TO-DATE
+> Task :media:lintAnalyzeDebug UP-TO-DATE
+> Task :core:seal:lintAnalyzeDebug UP-TO-DATE
+> Task :assist-hands:preDebugAndroidTestBuild UP-TO-DATE
+> Task :assist-hands:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :assist-hands:preDebugUnitTestBuild UP-TO-DATE
+> Task :assist-hands:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :assist-hands:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :assist-hands:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :assist-quality:preDebugAndroidTestBuild UP-TO-DATE
+> Task :assist-quality:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :assist-quality:preDebugUnitTestBuild UP-TO-DATE
+> Task :assist-quality:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :assist-quality:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :assist-quality:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :media:preDebugAndroidTestBuild UP-TO-DATE
+> Task :media:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :media:preDebugUnitTestBuild UP-TO-DATE
+> Task :media:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :media:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :media:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :core:seal:preDebugAndroidTestBuild UP-TO-DATE
+> Task :core:seal:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :core:seal:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:seal:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :core:seal:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :core:seal:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :app:compileDebugKotlin
+> Task :app:compileDebugJavaWithJavac
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:mergeDebugJavaResource
+> Task :app:dexBuilderDebug
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:mergeProjectDexDebug
+> Task :app:generateDebugAndroidTestLintModel
+> Task :app:generateDebugLintReportModel
+> Task :app:generateDebugUnitTestLintModel
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:assembleDebug
+> Task :app:lintAnalyzeDebug
+> Task :app:lintAnalyzeDebugAndroidTest
+> Task :app:lintAnalyzeDebugUnitTest
+
+> Task :app:lintReportDebug
+Wrote HTML report to file:///home/nipun/Documents/Projects/PARAKH/apps/android/app/build/reports/lint-results-debug.html
+Wrote SARIF report to file:///home/nipun/Documents/Projects/PARAKH/apps/android/app/build/reports/lint-results-debug.sarif
+
+> Task :app:lintDebug
+
+BUILD SUCCESSFUL in 2m 1s
+251 actionable tasks: 30 executed, 221 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html

@@ -8,6 +8,7 @@ import `in`.kaushalpramaan.app.capture.PhotoResult
 import `in`.kaushalpramaan.app.capture.VideoQualityChoice
 import `in`.kaushalpramaan.app.capture.VideoResult
 import `in`.kaushalpramaan.app.data.AppViewModel
+import `in`.kaushalpramaan.app.data.taskTitleRes
 import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.draft.BeginCaptureResult
 import `in`.kaushalpramaan.app.data.draft.CaptureRejectionReason
@@ -25,6 +26,18 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.FiberManualRecord
+import androidx.compose.material3.*
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,11 +45,11 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpFilterChip as FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import `in`.kaushalpramaan.app.ui.components.KpOutlinedButton as OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -168,7 +181,7 @@ fun CaptureScreen(
         }
     }
 
-    KpCaptureScaffold(onCancel = { scope.launch { if (cleanupActiveCapture()) onDone() } }) {
+    KpCaptureScaffold(title = "$taskId — " + stringResource(taskTitleRes(taskId)), onCancel = { scope.launch { if (cleanupActiveCapture()) onDone() } }) {
         when (permissionState) {
             PermissionState.UNKNOWN -> {
                 PermissionRationale(
@@ -192,17 +205,17 @@ fun CaptureScreen(
                 )
             }
             PermissionState.GRANTED -> {
-                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
                         FilterChip(
                             selected = mode == CaptureMode.PHOTO,
-                            onClick = { if (!isRecording) mode = CaptureMode.PHOTO },
+                            onClick = { if (!captureInFlight) mode = CaptureMode.PHOTO },
                             label = { Text(stringResource(R.string.evidence_type_photo)) },
                             modifier = Modifier.testTag("capture_mode_photo"),
                         )
                         FilterChip(
                             selected = mode == CaptureMode.VIDEO,
-                            onClick = { if (!isRecording) mode = CaptureMode.VIDEO },
+                            onClick = { if (!captureInFlight) mode = CaptureMode.VIDEO },
                             label = { Text(stringResource(R.string.evidence_type_video)) },
                             modifier = Modifier.testTag("capture_mode_video"),
                         )
@@ -212,13 +225,13 @@ fun CaptureScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
                             FilterChip(
                                 selected = quality == VideoQualityChoice.SD,
-                                onClick = { if (!isRecording) quality = VideoQualityChoice.SD },
+                                onClick = { if (!captureInFlight) quality = VideoQualityChoice.SD },
                                 label = { Text(stringResource(R.string.capture_quality_sd)) },
                                 modifier = Modifier.testTag("capture_quality_sd"),
                             )
                             FilterChip(
                                 selected = quality == VideoQualityChoice.HD,
-                                onClick = { if (!isRecording) quality = VideoQualityChoice.HD },
+                                onClick = { if (!captureInFlight) quality = VideoQualityChoice.HD },
                                 label = { Text(stringResource(R.string.capture_quality_hd)) },
                                 modifier = Modifier.testTag("capture_quality_hd"),
                             )
@@ -242,7 +255,7 @@ fun CaptureScreen(
 
                     AndroidView(
                         factory = { previewView },
-                        modifier = Modifier.fillMaxWidth().aspectRatio(3f / 4f).testTag("capture_preview_view"),
+                        modifier = Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(14.dp)).testTag("capture_preview_view"),
                     )
 
                     if (isRecording) {
@@ -252,6 +265,11 @@ fun CaptureScreen(
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 12.dp).testTag("capture_recording_indicator"),
                         )
+                        Text(
+                            stringResource(R.string.capture_size_used, formatMb(bytesRecorded), formatMb(ceilingBytes)),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp).testTag("capture_size_used"),
+                        )
                         LinearProgressIndicator(
                             progress = { if (ceilingBytes > 0) (bytesRecorded.toFloat() / ceilingBytes).coerceIn(0f, 1f) else 0f },
                             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -259,8 +277,9 @@ fun CaptureScreen(
                         Text(
                             stringResource(R.string.capture_remaining_budget, formatMb(ceilingBytes - bytesRecorded)),
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag("capture_remaining_budget"),
+                            modifier = Modifier.fillMaxWidth().testTag("capture_remaining_budget"),
                         )
+                        Text(stringResource(R.string.capture_local_size_note), style = MaterialTheme.typography.bodySmall, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
                     }
 
                     statusMessageRes?.let {
@@ -272,7 +291,7 @@ fun CaptureScreen(
                         )
                     }
 
-                    Button(
+                    FilledIconButton(
                         onClick = {
                             scope.launch {
                                 statusMessageRes = null
@@ -307,7 +326,7 @@ fun CaptureScreen(
                                         onEvidenceStarted = { activeEvidenceId = it },
                                         onCeilingKnown = { ceilingBytes = it },
                                         onBytesRecorded = { bytesRecorded = it },
-                                        onRecordingStateChanged = { isRecording = it },
+                                        onRecordingStateChanged = { if (it) bytesRecorded = 0L; isRecording = it },
                                         onStatus = { statusMessageRes = it },
                                     )
                                     captureInFlight = false
@@ -319,16 +338,13 @@ fun CaptureScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget()
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp).size(76.dp)
                             .testTag(if (mode == CaptureMode.PHOTO) "btn_capture_shutter" else "btn_capture_record"),
+                        enabled = !captureInFlight || isRecording,
+                        shape = CircleShape,
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = if (mode == CaptureMode.VIDEO) Color(0xFFFF6B57) else Color(0xFFFBF6EC), contentColor = if (mode == CaptureMode.VIDEO) Color(0xFFFBF6EC) else Color(0xFF4C2C17)),
                     ) {
-                        Text(
-                            when {
-                                mode == CaptureMode.PHOTO -> stringResource(R.string.capture_action_take_photo)
-                                isRecording -> stringResource(R.string.capture_action_stop_recording)
-                                else -> stringResource(R.string.capture_action_start_recording)
-                            },
-                        )
+                        Icon(imageVector = when { mode == CaptureMode.PHOTO -> Icons.Filled.PhotoCamera; isRecording -> Icons.Filled.Stop; else -> Icons.Filled.FiberManualRecord }, contentDescription = when { mode == CaptureMode.PHOTO -> stringResource(R.string.capture_action_take_photo); isRecording -> stringResource(R.string.capture_action_stop_recording); else -> stringResource(R.string.capture_action_start_recording) }, modifier = Modifier.size(32.dp))
                     }
                 }
             }
@@ -337,14 +353,17 @@ fun CaptureScreen(
 }
 
 @Composable
-private fun KpCaptureScaffold(onCancel: () -> Unit, content: @Composable () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.End) {
-            OutlinedButton(onClick = onCancel, modifier = Modifier.defaultMinTapTarget().testTag("btn_capture_cancel")) {
-                Text(stringResource(R.string.action_cancel))
+private fun KpCaptureScaffold(title: String, onCancel: () -> Unit, content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFC9A06B), onPrimary = Color(0xFF2A1C0F), background = Color(0xFF17120C), surface = Color(0xFF17120C), onSurface = Color(0xFFFBF6EC), outline = Color(0xFF6B5744), error = Color(0xFFFF6B57))) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+                Row(Modifier.fillMaxWidth().heightIn(min = 54.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onCancel, modifier = Modifier.testTag("btn_capture_cancel")) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_cancel)) }
+                    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                }
+                Box(Modifier.weight(1f)) { content() }
             }
         }
-        content()
     }
 }
 

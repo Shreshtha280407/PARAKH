@@ -1,0 +1,32 @@
+{
+  "before_ms": [
+    13792,
+    13136
+  ],
+  "after_ms": [
+    2062,
+    1657
+  ],
+  "navigation_ms": [
+    96,
+    77,
+    69,
+    95,
+    50,
+    72
+  ],
+  "browserErrors": [],
+  "syntheticAssessorAccountsCreated": 1,
+  "productionAssessmentsCreated": 0,
+  "productionDecisionsChanged": 0,
+  "initialRequestsBefore": 7,
+  "initialRequestsAfter": 1,
+  "checks": [
+    "Existing assessment read only; zero decision mutations",
+    "Task names and criterion descriptions match server data",
+    "Live bundled workspace and lazy history return 200",
+    "All scoring task buttons work on desktop and mobile",
+    "Persistent navigation and no horizontal overflow",
+    "Private workspace remains no-store; session revoked after checks"
+  ]
+}

@@ -15,6 +15,10 @@ import `in`.kaushalpramaan.core.seal.VaultKeysetProvider
 import `in`.kaushalpramaan.core.seal.VaultStreamCipher
 import android.util.Log
 import java.security.MessageDigest
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /** Outcome of one [SyncRepository.syncAssessment] call -- the sole thing [SyncWorker] maps to
  * a WorkManager [androidx.work.ListenableWorker.Result]. */
@@ -22,8 +26,8 @@ sealed class SyncRunOutcome {
     /** Nothing to do (not sealed, already synced, or discarded out from under this run), or
      * every declared item is now server-verified and the assessment has been submitted. */
     object Success : SyncRunOutcome()
-    /** A transient failure (network, timeout, 5xx) -- WorkManager should back off and retry
-     * the whole job; already-synced items are skipped instantly on the next attempt. */
+    /** A transient failure (network, timeout, 5xx). The UI waits for an explicit
+     * retry; already-synced items are skipped on that next attempt. */
     data class Retryable(val category: SyncErrorCategory) : SyncRunOutcome()
     /** A non-retryable rejection (wrong hash, bad signature, superseded revision) -- retrying
      * the same bytes will never succeed; the worker needs a new seal (P5's existing discard/
@@ -33,6 +37,9 @@ sealed class SyncRunOutcome {
 
 private const val LOG_TAG = "KP-Sync"
 private const val CHUNK_SIZE_BYTES = 1 * 1024 * 1024 // 1 MiB, per P6 spec -- never configurable
+// Retry can replace a waiting worker just as Android starts it. A cancelled
+// blocking HTTP call must finish before its replacement writes the same outbox.
+private val syncRunMutex = Mutex()
 
 /**
  * P6's sync orchestrator -- the single place that consumes P5's READY_TO_SYNC outbox, the
@@ -50,7 +57,12 @@ class SyncRepository(
     private val vaultKeysetProvider: VaultKeysetProvider,
     private val endpointConfig: SyncEndpointConfig,
 ) {
-    suspend fun syncAssessment(assessmentId: String): SyncRunOutcome {
+    suspend fun syncAssessment(assessmentId: String): SyncRunOutcome = syncRunMutex.withLock {
+        currentCoroutineContext().ensureActive()
+        syncAssessmentLocked(assessmentId)
+    }
+
+    private suspend fun syncAssessmentLocked(assessmentId: String): SyncRunOutcome {
         val assessment = assessmentDraftDao.getById(assessmentId) ?: return SyncRunOutcome.Success
         if (assessment.syncedAtMillis != null) return SyncRunOutcome.Success
         if (assessment.sealState != SealState.READY_TO_SYNC) return SyncRunOutcome.Success
@@ -60,6 +72,8 @@ class SyncRepository(
             ensureBootstrapped(assessment)
         } catch (e: SyncApiException) {
             Log.w(LOG_TAG, "sync result=bootstrap_failed category=${e.category}")
+            outboxDao.getAllForAssessmentOnce(assessmentId).firstOrNull { it.syncState != SyncState.SYNCED }
+                ?.let { markAttemptFailed(it, e.category) }
             return e.toOutcome()
         }
 
@@ -68,6 +82,7 @@ class SyncRepository(
 
         val rows = outboxDao.getAllForAssessmentOnce(assessmentId).filter { it.revisionId == revisionId }
         for (row in rows.sortedBy { it.priority }) {
+            currentCoroutineContext().ensureActive()
             if (row.syncState == SyncState.SYNCED) continue
             val outcome = syncOneItem(serverAssessmentId, revisionId, row, apiClient)
             if (outcome != null) {
@@ -112,6 +127,7 @@ class SyncRepository(
         }
 
         val updated = assessment.copy(serverAssessmentId = serverAssessmentId, serverWorkerToken = workerToken)
+        currentCoroutineContext().ensureActive()
         assessmentDraftDao.update(updated)
         Log.d(LOG_TAG, "sync result=bootstrapped serverAssessmentId=$serverAssessmentId")
         return updated
@@ -267,12 +283,13 @@ class SyncRepository(
         var chunkIndex = (startAtByte / CHUNK_SIZE_BYTES).toInt()
         val buffer = ByteArray(CHUNK_SIZE_BYTES)
         while (received < totalBytes) {
+            currentCoroutineContext().ensureActive()
             val n = readFully(stream, buffer)
             if (n <= 0) break
             val ack = apiClient.putChunk(sessionId, chunkIndex, buffer.copyOf(n))
             received = ack.receivedBytes
             chunkIndex = ack.nextChunkIndex
-            outboxDao.update(row.copy(bytesUploaded = received, syncState = SyncState.UPLOADING))
+            outboxDao.update(row.copy(serverSessionId = sessionId, bytesUploaded = received, syncState = SyncState.UPLOADING, lastAttemptAtMillis = System.currentTimeMillis(), lastErrorCategory = null))
         }
     }
 
@@ -282,11 +299,12 @@ class SyncRepository(
         var offset = startAtByte.toInt()
         var chunkIndex = (startAtByte / CHUNK_SIZE_BYTES).toInt()
         while (offset < full.size) {
+            currentCoroutineContext().ensureActive()
             val end = minOf(offset + CHUNK_SIZE_BYTES, full.size)
             val ack = apiClient.putChunk(sessionId, chunkIndex, full.copyOfRange(offset, end))
             offset = end
             chunkIndex = ack.nextChunkIndex
-            outboxDao.update(row.copy(bytesUploaded = offset.toLong(), syncState = SyncState.UPLOADING))
+            outboxDao.update(row.copy(serverSessionId = sessionId, bytesUploaded = ack.receivedBytes, syncState = SyncState.UPLOADING, lastAttemptAtMillis = System.currentTimeMillis(), lastErrorCategory = null))
         }
     }
 
@@ -301,6 +319,7 @@ class SyncRepository(
     }
 
     private suspend fun markSynced(row: OutboxItemEntity, serverObjectId: Long) {
+        currentCoroutineContext().ensureActive()
         val now = System.currentTimeMillis()
         outboxDao.update(
             row.copy(
@@ -324,9 +343,12 @@ class SyncRepository(
             apiClient.submitAssessment(serverAssessmentId)
         } catch (e: SyncApiException) {
             if (e.httpCode == 409) {
-                // Already submitted by a previous attempt whose local write was lost --
-                // idempotent-equivalent, not a real failure. Any other 409 (e.g. a real
-                // server-side state problem) still surfaces as a terminal/retryable outcome.
+                // A conflict alone is not a successful submission. Resolve a
+                // possibly lost acknowledgement through the actual server state.
+                val status = try { apiClient.getSyncStatus(serverAssessmentId, revisionId) }
+                    catch (statusError: SyncApiException) { return statusError.toOutcome() }
+                if (status.assessmentStatus !in setOf("submitted", "in_review", "recommended", "not_recommended", "rejected") ||
+                    !status.allItemsVerified || status.revisionId != revisionId) return e.toOutcome()
                 Log.d(LOG_TAG, "sync result=submit_already_done")
             } else {
                 return e.toOutcome()

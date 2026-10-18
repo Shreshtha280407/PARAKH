@@ -5,12 +5,11 @@ import `in`.kaushalpramaan.app.data.AppViewModel
 import `in`.kaushalpramaan.app.data.EvidenceType
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftEntity
 import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
-import `in`.kaushalpramaan.app.data.draft.OutboxItemEntity
-import `in`.kaushalpramaan.app.data.draft.OutboxItemKind
 import `in`.kaushalpramaan.app.data.draft.SealState
-import `in`.kaushalpramaan.app.data.draft.SyncState
+import `in`.kaushalpramaan.app.ui.components.AssessmentSyncStatus
 import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.taskTitleRes
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import `in`.kaushalpramaan.app.ui.components.formatMb
@@ -28,15 +27,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpCard as Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import `in`.kaushalpramaan.app.ui.components.KpOutlinedButton as OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -96,8 +95,59 @@ fun PreviewScreen(
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { if (!sealed) KpBottomBar {
+
+                Text(stringResource(R.string.attestation_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).defaultMinTapTarget(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(
+                        checked = uiState.attestationConfirmed,
+                        onCheckedChange = { viewModel.setAttestation(it) },
+                        enabled = hasAnyEvidence && allProcessed && !anyOverBudget && !uiState.sealActionInFlight,
+                        modifier = Modifier.testTag("attestation_checkbox"),
+                    )
+                    Text(stringResource(R.string.attestation_text), modifier = Modifier.padding(start = 8.dp))
+                }
+                if (!canSeal) {
+                    Text(
+                        stringResource(R.string.action_submit_disabled_hint),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                sealErrorMessage?.let {
+                    Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
+                }
+                Button(
+                    onClick = {
+                        scope.launch {
+                            when (val outcome = viewModel.seal()) {
+                                // Match capture/delete navigation: sealing includes
+                                // Room/IO suspensions, while NavController lifecycle
+                                // transitions must always execute on Android's main thread.
+                                SealOutcome.Sealed -> withContext(Dispatchers.Main.immediate) { onSubmitted() }
+                                SealOutcome.ItemsNotReady, SealOutcome.NotReady -> sealErrorMessage = R.string.final_review_item_exceeds_budget
+                                SealOutcome.AttestationRequired -> sealErrorMessage = R.string.action_submit_disabled_hint
+                                SealOutcome.NoEvidence -> sealErrorMessage = R.string.preview_empty_task
+                                SealOutcome.VerificationFailed, SealOutcome.NoActiveAssessment -> sealErrorMessage = R.string.capture_error_finalize_failed
+                            }
+                        }
+                    },
+                    enabled = canSeal,
+                    modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("btn_submit"),
+                ) {
+                    Text(stringResource(R.string.action_submit))
+                }
+
+        } },
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+            AssessmentSyncStatus(viewModel, modifier = Modifier.padding(bottom = 18.dp))
+            if (sealed) Text(stringResource(R.string.submitted_body), style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 16.dp).testTag("sealed_status_message"))
             Text(
                 stringResource(R.string.preview_total_usage, formatMb(totalUsed), formatMb(totalBudget)),
                 style = MaterialTheme.typography.titleMedium,
@@ -212,60 +262,7 @@ fun PreviewScreen(
                 }
             }
 
-            if (!sealed) {
-                Text(stringResource(R.string.attestation_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).defaultMinTapTarget(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(
-                        checked = uiState.attestationConfirmed,
-                        onCheckedChange = { viewModel.setAttestation(it) },
-                        enabled = allProcessed && !anyOverBudget,
-                        modifier = Modifier.testTag("attestation_checkbox"),
-                    )
-                    Text(stringResource(R.string.attestation_text), modifier = Modifier.padding(start = 8.dp))
-                }
-                if (!canSeal) {
-                    Text(
-                        stringResource(R.string.action_submit_disabled_hint),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                sealErrorMessage?.let {
-                    Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
-                }
-                Button(
-                    onClick = {
-                        scope.launch {
-                            when (val outcome = viewModel.seal()) {
-                                // Match capture/delete navigation: sealing includes
-                                // Room/IO suspensions, while NavController lifecycle
-                                // transitions must always execute on Android's main thread.
-                                SealOutcome.Sealed -> withContext(Dispatchers.Main.immediate) { onSubmitted() }
-                                SealOutcome.ItemsNotReady, SealOutcome.NotReady -> sealErrorMessage = R.string.final_review_item_exceeds_budget
-                                SealOutcome.AttestationRequired -> sealErrorMessage = R.string.action_submit_disabled_hint
-                                SealOutcome.NoEvidence -> sealErrorMessage = R.string.preview_empty_task
-                                SealOutcome.VerificationFailed, SealOutcome.NoActiveAssessment -> sealErrorMessage = R.string.capture_error_finalize_failed
-                            }
-                        }
-                    },
-                    enabled = canSeal,
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).defaultMinTapTarget().testTag("btn_submit"),
-                ) {
-                    Text(stringResource(R.string.action_submit))
-                }
-            } else {
-                Text(stringResource(R.string.submitted_body), style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("sealed_status_message"))
-
-                SyncStatusSection(
-                    viewModel = viewModel,
-                    assessmentId = uiState.assessmentDraftId.orEmpty(),
-                    syncedAtMillis = uiState.syncedAtMillis,
-                )
-
+            if (sealed) {
                 if (viewModel.debugExportHooks.isAvailable) {
                     DebugExportCard(viewModel = viewModel, assessmentId = uiState.assessmentDraftId.orEmpty())
                 }
@@ -411,78 +408,6 @@ private fun DebugExportCard(viewModel: AppViewModel, assessmentId: String) {
 /** P6: functional sync state/progress display (spec requirement -- "no visual redesign
  * required"), reading [AppViewModel.observeOutbox]'s live Room flow directly -- never a
  * locally-faked state, same discipline as the seal-state mirror above. */
-@Composable
-private fun SyncStatusSection(viewModel: AppViewModel, assessmentId: String, syncedAtMillis: Long?) {
-    val outboxItems by viewModel.observeOutbox(assessmentId).collectAsState(initial = emptyList<OutboxItemEntity>())
-
-    Card(modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag("sync_status_card")) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.sync_section_title), style = MaterialTheme.typography.titleMedium)
-
-            if (syncedAtMillis != null) {
-                Text(
-                    stringResource(R.string.sync_overall_synced),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 8.dp).testTag("sync_overall_synced"),
-                )
-            } else {
-                val doneCount = outboxItems.count { it.syncState == SyncState.SYNCED }
-                val total = outboxItems.size
-                Text(
-                    if (total > 0) stringResource(R.string.sync_overall_in_progress, doneCount, total)
-                    else stringResource(R.string.sync_overall_not_started),
-                    modifier = Modifier.padding(top = 8.dp).testTag("sync_overall_status"),
-                )
-
-                for (item in outboxItems.sortedBy { it.priority }) {
-                    SyncItemRow(item)
-                }
-
-                Button(
-                    onClick = { viewModel.syncNow() },
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp).defaultMinTapTarget().testTag("btn_sync_now"),
-                ) {
-                    Text(stringResource(R.string.sync_action_sync_now))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SyncItemRow(item: OutboxItemEntity) {
-    val label = if (item.kind == OutboxItemKind.MANIFEST) {
-        stringResource(R.string.sync_item_manifest_label)
-    } else {
-        item.taskId.orEmpty()
-    }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("sync_item_${item.id}"),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                when (item.syncState) {
-                    SyncState.QUEUED -> stringResource(R.string.sync_state_queued)
-                    SyncState.WAITING_FOR_NETWORK -> stringResource(R.string.sync_state_waiting_for_network)
-                    SyncState.UPLOADING -> stringResource(R.string.sync_state_uploading, formatMb(item.bytesUploaded))
-                    SyncState.RETRYING -> stringResource(R.string.sync_state_retrying, item.retryCount)
-                    SyncState.VERIFYING -> stringResource(R.string.sync_state_verifying)
-                    SyncState.SYNCED -> stringResource(R.string.sync_state_synced)
-                    SyncState.FAILED_ACTION_REQUIRED -> stringResource(R.string.sync_state_failed_action_required)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = if (item.syncState == SyncState.FAILED_ACTION_REQUIRED) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
-        }
-    }
-}
-
 private fun BuildConfigP6SyncEndpointOverrideEnabled(): Boolean =
     `in`.kaushalpramaan.app.BuildConfig.P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED
 

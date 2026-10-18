@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -51,6 +52,17 @@ class P8ValidationUiTest {
     @get:Rule(order = 1) val ui = createAndroidComposeRule<MainActivity>()
 
     @Test fun production_ui_phase() {
+        if (args.getString("p8Phase") != "intake") {
+            waitFor {
+                ui.onAllNodesWithTag("task_list_lazy_column").fetchSemanticsNodes().isNotEmpty() ||
+                    ui.onAllNodesWithTag("unlock_pin").fetchSemanticsNodes().isNotEmpty()
+            }
+            if (ui.onAllNodesWithTag("unlock_pin").fetchSemanticsNodes().isNotEmpty()) {
+                ui.onNodeWithTag("unlock_pin").performTextInput(args.getString("p8Pin") ?: "1234")
+                ui.tapTag("btn_unlock")
+                waitTag("task_list_lazy_column")
+            }
+        }
         when (val phase = args.getString("p8Phase")) {
             "intake" -> {
                 assertNull(runBlocking { db.assessmentDraftDao().getActiveOnce() })
@@ -176,11 +188,30 @@ class P8ValidationUiTest {
         ui.tapTag("capture_quality_sd")
         ui.tapTag("btn_capture_record")
         waitTag("capture_recording_indicator")
-        Thread.sleep(seconds * 1000)
+        // Check the visible live label, not merely the final Room/file size.
+        // This catches a frozen/zero meter while CameraX is still recording.
+        Thread.sleep(seconds * 500)
+        val firstLiveLabel = ui.onNodeWithTag("capture_size_used").fetchSemanticsNode().config[SemanticsProperties.Text].joinToString { it.text }
+        Thread.sleep(seconds * 500)
+        ui.onNodeWithTag("capture_size_used").assertIsDisplayed()
+        val secondLiveLabel = ui.onNodeWithTag("capture_size_used").fetchSemanticsNode().config[SemanticsProperties.Text].joinToString { it.text }
+        assertNotEquals("The visible size meter must advance during recording", firstLiveLabel, secondLiveLabel)
+        instrumentation.sendStatus(2, Bundle().apply {
+            putString("live_size_mid_recording", firstLiveLabel)
+            putString("live_size_before_stop", secondLiveLabel)
+        })
         ui.tapTag("btn_capture_record")
         waitTag("btn_add_evidence", 30_000)
         val item = taskItems(task).last()
         assertTrue((item.durationMillis ?: 0) >= 1_000)
+        val storedFile = `in`.kaushalpramaan.app.data.draft.EvidenceFileManager(instrumentation.targetContext).resolveRelativePath(item.relativePath)
+        assertTrue(storedFile.isFile)
+        assertEquals("Saved evidence meter must equal actual bytes on disk", storedFile.length(), item.byteSize)
+        instrumentation.sendStatus(2, Bundle().apply {
+            putLong("actual_recorded_file_bytes", storedFile.length())
+            putLong("persisted_recorded_bytes", item.byteSize)
+            putLong("recorded_duration_ms", item.durationMillis ?: 0L)
+        })
         // Navigation away while the real background decoder runs is a product
         // path assertion, independent of whether the observation reports warnings.
         pressBack()

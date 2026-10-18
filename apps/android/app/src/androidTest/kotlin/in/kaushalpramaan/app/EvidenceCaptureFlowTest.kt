@@ -40,7 +40,7 @@ class EvidenceCaptureFlowTest {
     @Test
     fun real_photo_capture_add_replace_remove_roundtrip() {
         composeRule.completeIntake(languageTag = "en")
-        composeRule.tapInLazyColumn("declaration_lazy_column", "btn_see_match")
+        composeRule.tapTag("btn_see_match")
         composeRule.tapTag("btn_view_tasks")
         composeRule.tapTag("task_card_T1")
 

@@ -70,6 +70,24 @@ class ReviewerSession(Base):
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
 
 
+class ReviewerAccount(Base):
+    __tablename__ = "reviewer_accounts"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(254), unique=True)
+    phone: Mapped[str] = mapped_column(String(16))
+    password_hash: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ReviewerAccountSession(Base):
+    __tablename__ = "reviewer_account_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("reviewer_accounts.id"), index=True)
+    csrf_hash: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+
+
 class UserRole(str, enum.Enum):
     worker = "worker"
     assessor = "assessor"

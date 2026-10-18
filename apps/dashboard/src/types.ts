@@ -209,6 +209,11 @@ export interface CriterionScoreOut {
 
 export interface CriterionReviewItemOut {
   pc_full_id: string;
+  criterion_text: string;
+  task_code: string | null;
+  task_title: string;
+  nos_code: string;
+  nos_title: string;
   rubric_version: string;
   marks: string;
   critical: boolean;

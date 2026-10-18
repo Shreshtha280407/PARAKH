@@ -2,6 +2,7 @@ package `in`.kaushalpramaan.app.ui.screens
 
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import `in`.kaushalpramaan.app.ui.components.rememberTtsController
@@ -14,11 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material3.Button
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import `in`.kaushalpramaan.app.ui.components.KpOutlinedButton as OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,14 +41,28 @@ fun ConsentScreen(viewModel: AppViewModel, onBack: () -> Unit, onContinue: () ->
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { KpBottomBar {
+            Button(
+                onClick = onContinue,
+                enabled = uiState.consentAcknowledged,
+                modifier = Modifier
+                    .fillMaxWidth()
+
+                    .defaultMinTapTarget()
+                    .testTag("btn_continue"),
+            ) {
+                Text(stringResource(R.string.action_continue))
+            }
+        } },
     ) { modifier ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(18.dp),
         ) {
-            Text(consentBody, style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.consent_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 16.dp).testTag("consent_heading"))
+            `in`.kaushalpramaan.app.ui.components.KpCard { Text(consentBody, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(18.dp)) }
 
             OutlinedButton(
                 onClick = { tts.speak(consentBody, uiState.language.toLocale()) },
@@ -91,17 +106,7 @@ fun ConsentScreen(viewModel: AppViewModel, onBack: () -> Unit, onContinue: () ->
                 )
             }
 
-            Button(
-                onClick = onContinue,
-                enabled = uiState.consentAcknowledged,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .defaultMinTapTarget()
-                    .testTag("btn_continue"),
-            ) {
-                Text(stringResource(R.string.action_continue))
-            }
+
         }
     }
 }

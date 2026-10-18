@@ -2,6 +2,7 @@ package `in`.kaushalpramaan.app.ui.screens
 
 import `in`.kaushalpramaan.app.R
 import `in`.kaushalpramaan.app.data.AppViewModel
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -50,8 +51,35 @@ fun RegistrationScreen(viewModel: AppViewModel, onBack: () -> Unit, onContinue: 
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { KpBottomBar {
+            Button(
+                onClick = {
+                    errorRes = when {
+                        fullName.trim().length < 2 || !fullName.any(Char::isLetter) -> R.string.registration_error_name
+                        !phone.matches(Regex("[6-9][0-9]{9}")) -> R.string.registration_error_phone
+                        pin.length != 4 -> R.string.registration_error_pin
+                        pin != pinConfirm -> R.string.registration_error_pin_mismatch
+                        else -> null
+                    }
+                    if (errorRes == null) {
+                        busy = true
+                        scope.launch(Dispatchers.Main.immediate) {
+                            try {
+                                viewModel.register(fullName, phone, pin.toCharArray(), publicNameConsent)
+                                pin = ""; pinConfirm = ""
+                                onContinue()
+                            } finally { busy = false }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("btn_register"),
+                enabled = !busy,
+            ) {
+                Text(stringResource(R.string.registration_action_register))
+            }
+        } },
     ) { modifier ->
-        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
+        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp)) {
             OutlinedTextField(value = fullName, onValueChange = { fullName = it.take(120) },
                 label = { Text(stringResource(R.string.registration_name_label)) },
                 singleLine = true, modifier = Modifier.fillMaxWidth().testTag("reg_name"))
@@ -60,7 +88,7 @@ fun RegistrationScreen(viewModel: AppViewModel, onBack: () -> Unit, onContinue: 
                 onValueChange = { if (it.length <= 10) phone = it.filter(Char::isDigit) },
                 label = { Text(stringResource(R.string.registration_phone_label)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth().defaultMinTapTarget().testTag("reg_phone"),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp).defaultMinTapTarget().testTag("reg_phone"),
                 singleLine = true,
             )
             OutlinedTextField(
@@ -89,11 +117,11 @@ fun RegistrationScreen(viewModel: AppViewModel, onBack: () -> Unit, onContinue: 
                     modifier = Modifier.padding(top = 12.dp),
                 )
             }
-            Row {
+            Row(modifier = Modifier.padding(top = 18.dp)) {
                 Checkbox(checked = publicNameConsent, onCheckedChange = { publicNameConsent = it }, modifier = Modifier.testTag("reg_public_name"))
                 Text(stringResource(R.string.registration_public_name_consent))
             }
-            Text(stringResource(R.string.registration_privacy))
+            `in`.kaushalpramaan.app.ui.components.KpCard(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) { Text(stringResource(R.string.registration_privacy), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(14.dp)) }
 
             if (uiState.registration != null) {
                 Text(
@@ -103,31 +131,7 @@ fun RegistrationScreen(viewModel: AppViewModel, onBack: () -> Unit, onContinue: 
                 )
             }
 
-            Button(
-                onClick = {
-                    errorRes = when {
-                        fullName.trim().length < 2 || !fullName.any(Char::isLetter) -> R.string.registration_error_name
-                        !phone.matches(Regex("[6-9][0-9]{9}")) -> R.string.registration_error_phone
-                        pin.length != 4 -> R.string.registration_error_pin
-                        pin != pinConfirm -> R.string.registration_error_pin_mismatch
-                        else -> null
-                    }
-                    if (errorRes == null) {
-                        busy = true
-                        scope.launch(Dispatchers.Main.immediate) {
-                            try {
-                                viewModel.register(fullName, phone, pin.toCharArray(), publicNameConsent)
-                                pin = ""; pinConfirm = ""
-                                onContinue()
-                            } finally { busy = false }
-                        }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 24.dp).defaultMinTapTarget().testTag("btn_register"),
-                enabled = !busy,
-            ) {
-                Text(stringResource(R.string.registration_action_register))
-            }
+
         }
     }
 }

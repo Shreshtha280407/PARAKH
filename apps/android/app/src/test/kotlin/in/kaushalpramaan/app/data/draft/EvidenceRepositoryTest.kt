@@ -204,10 +204,12 @@ class EvidenceRepositoryTest {
         val assessment = repository.createOrResumeAssessment("w", "en", null)
         val begin = repository.beginCapture(assessment.id, "T3", EvidenceType.VIDEO, debugOverrideRequested = true)
         check(begin is BeginCaptureResult.Started)
-        // BuildConfig.P4_TEST_ONLY_CEILING_ENABLED is true in the debug variant these tests
-        // compile against (see app/build.gradle.kts) -- so requesting the override here
-        // must cap the ceiling at BuildConfig.P4_TEST_ONLY_CEILING_BYTES, not T3's real 30MB.
-        assertEquals(`in`.kaushalpramaan.app.BuildConfig.P4_TEST_ONLY_CEILING_BYTES, begin.ceilingBytes)
+        // Ordinary debug builds enable test limits; phone review builds must keep
+        // the real task budget even if an old preference requests a test limit.
+        val expected = if (`in`.kaushalpramaan.app.BuildConfig.P4_TEST_ONLY_CEILING_ENABLED)
+            `in`.kaushalpramaan.app.BuildConfig.P4_TEST_ONLY_CEILING_BYTES
+        else rules.tasksFile.tasks.first { it.id == "T3" }.budgetBytes
+        assertEquals(expected, begin.ceilingBytes)
     }
 
     // ---- replace: old item preserved until new item is READY, then removed ----

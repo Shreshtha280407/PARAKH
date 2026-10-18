@@ -169,5 +169,5 @@ fun ComposeTestRule.answerAllDeclarationItems(answer: String) {
     for (id in ALL_DECLARATION_ITEM_IDS) {
         tapInLazyColumn("declaration_lazy_column", "answer_${id}_$answer")
     }
-    tapInLazyColumn("declaration_lazy_column", "btn_see_match")
+    tapTag("btn_see_match")
 }

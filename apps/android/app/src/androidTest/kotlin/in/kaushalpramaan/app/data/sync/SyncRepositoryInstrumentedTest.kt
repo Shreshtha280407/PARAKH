@@ -102,6 +102,9 @@ class SyncRepositoryInstrumentedTest {
         val sessions = mutableMapOf<Long, FakeSession>()
         val nextSessionId = AtomicInteger(1)
         var rejectEvidenceComplete = false
+        var submitConflict = false
+        var alreadySubmitted = false
+        var statusRevision = "rev"
         val chunkPutCount = AtomicInteger(0)
         val chunkBytesReceivedTotal = AtomicInteger(0)
         var firstOpenReportsPartialProgress: Long? = null
@@ -120,7 +123,9 @@ class SyncRepositoryInstrumentedTest {
                 request.method == "POST" && path == "/assessments" ->
                     MockResponse().setResponseCode(201).setBody("""{"id":1,"worker_token":"fake-token"}""")
                 request.method == "POST" && path == "/assessments/1/submit" ->
-                    MockResponse().setBody("{}")
+                    if (submitConflict) MockResponse().setResponseCode(409).setBody("""{"detail":"submission conflict"}""") else MockResponse().setBody("{}")
+                request.method == "GET" && path == "/assessments/1/sync-status" ->
+                    MockResponse().setBody("""{"assessment_id":1,"assessment_status":"${if (alreadySubmitted) "submitted" else "draft"}","revision_id":"$statusRevision","manifest_state":"complete","items":[],"all_items_verified":true}""")
                 request.method == "POST" && path == "/uploads" -> openSession(request)
                 request.method == "GET" && path.startsWith("/uploads/") -> statusFor(path.removePrefix("/uploads/").toLong())
                 request.method == "PUT" && path.startsWith("/uploads/") -> putChunk(path, request)
@@ -170,6 +175,39 @@ class SyncRepositoryInstrumentedTest {
                 MockResponse().setBody("""{"session_id":1,"manifest_id":1,"assessment_id":1,"revision_id":"rev","sha256":"x","item_count":1,"declared_total_bytes":${s.declaredSize},"status":"received"}""")
             } else {
                 MockResponse().setBody("""{"session_id":2,"evidence_id":2,"sha256":"x","byte_count":${s.declaredSize},"mime":"image/jpeg","kind":"photo","storage_status":"stored"}""")
+            }
+        }
+    }
+
+    @Test
+    fun submissionConflictOnlySucceedsWhenServerConfirmsThatRevisionWasSubmitted() = runBlocking {
+        for (confirmed in listOf(false, true)) {
+            val (repo, orchestrator, db) = freshHarness()
+            val server = MockWebServer()
+            val dispatcher = FakeServerDispatcher().apply { submitConflict = true; alreadySubmitted = confirmed }
+            server.dispatcher = dispatcher
+            server.start()
+            val assessment = repo.createOrResumeAssessment("conflict-worker", "en", null)
+            try {
+                captureRealPhoto(repo, assessment.id, "T1")
+                assertEquals(ProcessOutcome.AllFit, orchestrator.processEvidence(assessment.id))
+                orchestrator.setAttestation(assessment.id, true)
+                assertEquals(SealOutcome.Sealed, orchestrator.seal(assessment.id))
+                dispatcher.statusRevision = db.assessmentDraftDao().getById(assessment.id)!!.revisionId!!
+                val endpoint = object : SyncEndpointConfig {
+                    override fun baseUrl() = server.url("/").toString().removeSuffix("/")
+                    override fun supportsRuntimeOverride() = false
+                    override fun setOverrideBaseUrl(url: String?) {}
+                }
+                val sync = SyncRepository(db.assessmentDraftDao(), db.evidenceDraftDao(), db.outboxDao(), EvidenceFileManager(context), VaultKeysetProvider(context), endpoint)
+                val outcome = sync.syncAssessment(assessment.id)
+                assertEquals(confirmed, outcome is SyncRunOutcome.Success)
+                assertEquals(confirmed, db.assessmentDraftDao().getById(assessment.id)!!.syncedAtMillis != null)
+                assertEquals(confirmed, db.outboxDao().getAllForAssessmentOnce(assessment.id).isEmpty())
+            } finally {
+                server.shutdown()
+                repo.deleteAssessment(assessment.id)
+                db.close()
             }
         }
     }

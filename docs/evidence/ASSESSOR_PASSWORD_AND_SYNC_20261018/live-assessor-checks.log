@@ -1,0 +1,4 @@
+PASS Deployed desktop and mobile keep all three top links with the selected page highlighted
+PASS Same-origin dashboard API, database and private storage are healthy
+PASS Deployed assessment form creates an assessor account and opens private review without email delivery
+PASS Live secure HttpOnly session, CSRF enforcement, logout, wrong-password rejection and password login pass

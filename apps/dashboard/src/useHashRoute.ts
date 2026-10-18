@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 // is a few lines and keeps the dependency list to exactly what the backend
 // stack needs.
 export function useHashRoute(): string {
-  const [hash, setHash] = useState(window.location.hash || "#/queue");
+  const [hash, setHash] = useState(window.location.hash || "#/");
 
   useEffect(() => {
-    const onChange = () => setHash(window.location.hash || "#/queue");
+    const onChange = () => setHash(window.location.hash || "#/");
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
   }, []);

@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { EvidenceAssistance } from "../components/EvidenceAssistance";
+import { EvidenceViewer as EvidencePreview } from "../components/EvidenceViewer";
 import {
   createReassessmentRequest,
   decideAssessment,
-  evidenceContentUrl,
-  evidenceThumbnailUrl,
   getAssessment,
   getAssessmentRubric,
   getAuditLog,
@@ -33,7 +31,6 @@ import {
   type CompetencyProfileOut,
   type ComputedOutcomeValue,
   type CriterionReviewItemOut,
-  type EvidenceReceiptOut,
   type EvidenceStatus,
   type ReassessmentRequestOut,
   type ReportVerifyOut,
@@ -48,87 +45,7 @@ function formatBytes(n: number): string {
   return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-function formatDuration(ms: number | null): string {
-  if (ms === null) return "";
-  const totalSeconds = Math.round(ms / 1000);
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-/** The protected evidence gallery/player item: plays video inline and shows the photo at
- * preview size directly in the page (both authorised by the browser's own cookie-based
- * dashboard session -- the same credentialed request the thumbnail/content endpoints already
- * require, see server/app/routers/evidence.py's dual auth). A failed/queued thumbnail job
- * (section B.4 of the P6 spec) shows a clear, safe fallback rather than a broken image or a
- * claim that the media itself is missing -- the ORIGINAL content is always still playable
- * regardless of thumbnail/metadata job outcome. */
-export function EvidencePreview({ assessmentId, evidence }: { assessmentId: number; evidence: EvidenceReceiptOut }) {
-  const contentUrl = evidenceContentUrl(assessmentId, evidence.id);
-  const [mediaFailed, setMediaFailed] = useState(false);
-  const player = useRef<HTMLVideoElement>(null);
-  const [playableDurationMs, setPlayableDurationMs] = useState<number | null>(null);
-
-  return (
-    <li className="evidence-gallery-item">
-      <div className="evidence-media">
-        {mediaFailed ? (
-          <div className="thumb evidence-media-fallback">media unavailable</div>
-        ) : evidence.kind === "video" ? (
-          <video
-            ref={player}
-            className="thumb"
-            controls
-            preload="metadata"
-            src={contentUrl}
-            poster={evidence.thumbnail_status === "completed" ? evidenceThumbnailUrl(assessmentId, evidence.id) : undefined}
-            onError={() => setMediaFailed(true)}
-            aria-label={`Evidence video v${evidence.revision_number}`}
-            onLoadedMetadata={() => {
-              const duration = player.current?.duration;
-              setPlayableDurationMs(duration && Number.isFinite(duration) ? duration * 1000 : null);
-            }}
-          />
-        ) : (
-          <img className="thumb" src={contentUrl} alt="evidence" onError={() => setMediaFailed(true)} />
-        )}
-      </div>
-      <div className="evidence-meta">
-        {evidence.kind} · {evidence.mime} · {formatBytes(evidence.declared_size_bytes)}
-        {evidence.width_px && evidence.height_px && (
-          <>
-            {" "}
-            · {evidence.width_px}×{evidence.height_px}
-          </>
-        )}
-        {evidence.kind === "video" && evidence.duration_ms && <> · {formatDuration(evidence.duration_ms)}</>}
-        <br />
-        <code title="Server-verified SHA-256">{evidence.sha256.slice(0, 16)}…</code>{" "}
-        <span className="badge-ok">hash verified</span>
-        {evidence.metadata_status === "unavailable" && (
-          <span className="hint"> · metadata unavailable (media itself is unaffected)</span>
-        )}
-        <br />
-        {evidence.is_current_revision ? (
-          <span className="status status-submitted">v{evidence.revision_number} · current</span>
-        ) : (
-          <span className="status status-needs_reassessment">v{evidence.revision_number} · historical</span>
-        )}{" "}
-        <span className="hint" title="Device-reported, not independently verified">
-          captured {evidence.device_captured_at ? new Date(evidence.device_captured_at).toLocaleString() : "not recorded"}
-        </span>
-        <br />
-        <a href={contentUrl} target="_blank" rel="noreferrer">
-          open in a new tab
-        </a>
-      </div>
-      <EvidenceAssistance snapshot={evidence.assistance ?? null} durationMs={playableDurationMs}
-        mediaAvailable={!mediaFailed} onSeek={ms => {
-          if (player.current && playableDurationMs !== null && ms >= 0 && ms < playableDurationMs) player.current.currentTime = ms / 1000;
-        }} />
-    </li>
-  );
-}
+export { EvidenceViewer as EvidencePreview } from "../components/EvidenceViewer";
 
 export function ScoreRow({
   assessmentId,

@@ -86,7 +86,7 @@ class DeclarationContractAndSafetyTest {
         for (id in ALL_DECLARATION_ITEM_IDS) {
             composeRule.tapInLazyColumn("declaration_lazy_column", "answer_${id}_never")
         }
-        composeRule.tapInLazyColumn("declaration_lazy_column", "btn_see_match")
+        composeRule.tapTag("btn_see_match")
 
         composeRule.onNodeWithText("Not an appropriate match right now").assertIsDisplayed()
         composeRule.onNodeWithText("Overall declared-experience coverage: 0%").assertIsDisplayed()

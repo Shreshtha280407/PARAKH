@@ -1,18 +1,29 @@
 import { PUBLIC_DASHBOARD } from "./api";
-import PrivateApp from "./PrivateApp";
 import { PublicQueuePage } from "./pages/PublicQueuePage";
 import { OpenAssessmentPage } from "./pages/OpenAssessmentPage";
 import { VerifyReportPage } from "./pages/VerifyReportPage";
 import { useHashRoute } from "./useHashRoute";
+import { DashboardShell, LandingPage } from "./components/DashboardShell";
+import { AssessorSessionProvider } from "./components/AssessorSession";
+import { lazy, Suspense, useCallback, useState } from 'react';
+import { DecisionComplete, type CompletedDecision } from './components/DecisionComplete';
+const PrivateApp = lazy(() => import('./PrivateApp'));
 
 export default function App() {
+  if (!PUBLIC_DASHBOARD) return <Suspense fallback={<p role="status">Loading dashboard…</p>}><PrivateApp /></Suspense>;
+  return <AssessorSessionProvider><PublicApp /></AssessorSessionProvider>;
+}
+
+function PublicApp() {
   const hash = useHashRoute();
-  if (!PUBLIC_DASHBOARD) return <PrivateApp />;
-  const verify = hash.match(/^#\/verify\/([^/]+)$/);
-  if (verify) return <VerifyReportPage reportId={decodeURIComponent(verify[1])} />;
+  const [completed, setCompleted] = useState<CompletedDecision>();
+  const closeCompletion = useCallback(() => setCompleted(undefined), []);
+  if (!hash || hash === '#/' || hash === '#') return <LandingPage />;
+  const verify = hash.match(/^#\/verify(?:\/([^/]+))?$/);
+  if (verify) return <VerifyReportPage key={verify[1] ?? "search"} reportId={verify[1] ? decodeURIComponent(verify[1]) : undefined} />;
   const assessment = hash.match(/^#\/assessments\/(\d+)$/);
-  return <div className="app-shell">
-    <header className="top-bar"><span className="brand">PARAKH</span><nav><a href="#/queue">Submitted assessments</a></nav></header>
-    <main>{assessment ? <OpenAssessmentPage key={assessment[1]} id={Number(assessment[1])} /> : <PublicQueuePage />}</main>
-  </div>;
+  const publicView = hash === '#/public';
+  return <><DashboardShell>
+    {assessment ? <OpenAssessmentPage key={assessment[1]} id={Number(assessment[1])} onCompleted={setCompleted} /> : <PublicQueuePage publicView={publicView} />}
+  </DashboardShell>{completed && <DecisionComplete decision={completed} onDone={closeCompletion} />}</>;
 }

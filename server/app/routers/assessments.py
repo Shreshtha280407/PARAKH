@@ -181,10 +181,11 @@ def _evidence_currency(db: Session, assessment: models.Assessment) -> tuple[dict
 
 
 def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.AssessmentOut:
-    assessment = db.get(
-        models.Assessment, assessment.id,
-        options=[joinedload(models.Assessment.tasks).joinedload(models.AssessmentTask.evidence_items)],
-    )
+    # db.get() ignores eager-load options when capability() has already put
+    # this object in the identity map. Explicitly load the collection here.
+    assessment = db.query(models.Assessment).options(
+        joinedload(models.Assessment.tasks).joinedload(models.AssessmentTask.evidence_items)
+    ).filter_by(id=assessment.id).populate_existing().one()
     pack = db.get(models.QualificationPack, assessment.pack_id)
     worker_user = db.get(models.User, assessment.worker_id)
     revision_number_by_id, current_pairs = _evidence_currency(db, assessment)
@@ -447,24 +448,22 @@ def get_sync_status(
 
     items: list[schemas.SyncItemStatusOut] = []
     all_verified = manifest.status == "complete"
+    # A sealed package can contain many photos/clips. Fetch its state in
+    # three batches rather than performing three DB round trips per item.
+    tasks_by_code = {task.task_code: task for task in db.query(models.AssessmentTask)
+                     .filter_by(assessment_id=assessment.id).all()}
+    evidence_by_key = {(item.assessment_task_id, item.client_evidence_id): item
+        for item in db.query(models.EvidenceItem).join(models.AssessmentTask)
+        .filter(models.AssessmentTask.assessment_id == assessment.id).all()}
+    sessions_by_client = {}
+    for upload in (db.query(models.UploadSession)
+                   .filter_by(assessment_id=assessment.id, target="evidence", revision_id=target_revision)
+                   .order_by(models.UploadSession.id.desc()).all()):
+        sessions_by_client.setdefault(upload.client_evidence_id, upload)
     for declared in manifest.declared_items:
-        task = db.query(models.AssessmentTask).filter_by(
-            assessment_id=assessment.id, task_code=declared["task_code"],
-        ).one_or_none()
-        evidence = None
-        if task is not None:
-            evidence = db.query(models.EvidenceItem).filter_by(
-                assessment_task_id=task.id, client_evidence_id=declared["evidence_id"],
-            ).one_or_none()
-        session = (
-            db.query(models.UploadSession)
-            .filter_by(
-                assessment_id=assessment.id, target="evidence",
-                client_evidence_id=declared["evidence_id"], revision_id=target_revision,
-            )
-            .order_by(models.UploadSession.id.desc())
-            .first()
-        )
+        task = tasks_by_code.get(declared["task_code"])
+        evidence = evidence_by_key.get((task.id, declared["evidence_id"])) if task else None
+        session = sessions_by_client.get(declared["evidence_id"])
 
         if evidence is not None:
             state = "verified"

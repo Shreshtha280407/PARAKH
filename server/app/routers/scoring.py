@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from .. import models, outcome as outcome_module, schemas
 from ..auth import require_assessor
@@ -61,16 +61,20 @@ def get_review(
     rows = _rubric_rows(db, assessment.pack_id)
     existing = {
         s.pc_id: s
-        for s in db.query(models.AssessmentCriterionScore).filter_by(assessment_id=assessment_id).all()
+        for s in db.query(models.AssessmentCriterionScore).options(joinedload(models.AssessmentCriterionScore.pc))
+        .filter_by(assessment_id=assessment_id).all()
     }
+    tasks = {t.task_code: t.title for t in db.query(models.TaskTemplate).filter_by(pack_id=assessment.pack_id).all()}
     return [
         schemas.CriterionReviewItemOut(
             pc_full_id=pc.full_id, rubric_version=item.rubric_version, marks=item.marks,
+            criterion_text=pc.text, task_code=nos.task_code, task_title=tasks.get(nos.task_code, nos.title),
+            nos_code=nos.code, nos_title=nos.title,
             critical=item.critical, anchors=item.anchors, disclaimer=item.disclaimer,
             evidence_hint=item.evidence_hint,
             score=_score_out(existing[pc.id]) if pc.id in existing else None,
         )
-        for item, pc, _nos in rows
+        for item, pc, nos in rows
     ]
 
 
@@ -228,7 +232,7 @@ def get_competency_profile(
         bucket["possible"] += item.marks
 
     overall_percent = float(overall_awarded / overall_possible * 100) if overall_possible else 0.0
-    computed = get_computed_outcome(db, assessment)
+    computed = outcome_module.compute_outcome(rows, scores, pack.minimum_aggregate_passing_percent)
     nos_by_code = {n.nos_code: n for n in computed.nos_results}
     return schemas.CompetencyProfileOut(
         assessment_id=assessment_id,

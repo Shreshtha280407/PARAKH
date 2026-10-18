@@ -4,17 +4,16 @@ import `in`.kaushalpramaan.app.data.draft.AppDatabase
 import `in`.kaushalpramaan.app.data.draft.EvidenceFileManager
 import `in`.kaushalpramaan.core.seal.VaultKeysetProvider
 import android.content.Context
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * WorkManager entry point for P6 resumable sync -- see [SyncRepository] for the actual
@@ -28,6 +27,15 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
 
     override suspend fun doWork(): Result {
         val assessmentId = inputData.getString(KEY_ASSESSMENT_ID) ?: return Result.failure()
+        val startedAt = System.currentTimeMillis()
+        setProgress(workDataOf(KEY_STARTED_AT to startedAt))
+        fun failed(category: SyncErrorCategory, stage: String = "sync_request") = Result.failure(workDataOf(KEY_ERROR to category.name, KEY_STARTED_AT to startedAt, KEY_ERROR_STAGE to stage))
+        val network = applicationContext.getSystemService(ConnectivityManager::class.java)
+        val caps = network.getNetworkCapabilities(network.activeNetwork)
+        if (caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) != true ||
+            !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+            return failed(SyncErrorCategory.NETWORK_UNAVAILABLE, "connectivity_check")
+        }
         val database = AppDatabase.getInstance(applicationContext)
         val repository = SyncRepository(
             assessmentDraftDao = database.assessmentDraftDao(),
@@ -38,45 +46,73 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             endpointConfig = provideSyncEndpointConfig(applicationContext),
         )
         return when (val outcome = repository.syncAssessment(assessmentId)) {
-            SyncRunOutcome.Success -> Result.success()
-            is SyncRunOutcome.Retryable ->
-                if (runAttemptCount < MAX_RETRY_ATTEMPTS) Result.retry() else Result.failure()
-            is SyncRunOutcome.Terminal -> Result.failure()
+            SyncRunOutcome.Success -> Result.success(workDataOf(KEY_STARTED_AT to startedAt))
+            // One attempt per seal or explicit Retry tap. A failed request must
+            // never silently loop or restart merely because internet returns.
+            is SyncRunOutcome.Retryable -> failed(outcome.category)
+            is SyncRunOutcome.Terminal -> failed(outcome.category)
         }
     }
 
     companion object {
         private const val KEY_ASSESSMENT_ID = "assessment_id"
-
-        // A generous ceiling, not a realistic expectation: WorkManager's own exponential
-        // backoff (capped at its own internal maximum delay) means this would take a very
-        // long time to actually exhaust in practice -- it exists purely as a defensive upper
-        // bound against an indefinitely-retrying job, not a target retry count.
-        private const val MAX_RETRY_ATTEMPTS = 50
+        const val KEY_STARTED_AT = "sync_started_at"
+        const val KEY_ERROR = "sync_error"
+        const val KEY_ERROR_STAGE = "sync_error_stage"
 
         fun uniqueWorkName(assessmentId: String, revisionId: String): String = "kp_sync_${assessmentId}_$revisionId"
 
-        /** Enqueue (or, if this exact assessment/revision already has pending/running work,
-         * leave the existing one alone -- [ExistingWorkPolicy.KEEP]) a sync attempt. Safe to
-         * call repeatedly: from SealOrchestrator right after a real seal, from the launch-time
-         * reconcile pass for an assessment that's already READY_TO_SYNC, and from a manual
-         * "Sync now" tap -- none of these can ever produce two concurrent uploads of the same
-         * revision. Once a previous attempt has actually finished (success OR a terminal
-         * failure), KEEP no longer applies and a fresh call runs again from scratch -- exactly
-         * the behaviour "Sync now" needs after a FAILED_ACTION_REQUIRED item is fixed by a new
-         * seal (which also assigns a new revisionId, so it's a genuinely different unique
-         * work name anyway). */
+        /** Low-level scheduling primitive. Automatic callers use [enqueueInitial]
+         * so a failed attempt stays failed until the user requests [retryNow]. */
         fun enqueue(context: Context, assessmentId: String, revisionId: String) {
-            val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            enqueueWithPolicy(context, assessmentId, revisionId, ExistingWorkPolicy.KEEP)
+        }
+
+        /** Restart recovery may schedule an initial attempt that was interrupted
+         * before enqueue, but never retries a completed/failed attempt. */
+        suspend fun enqueueInitial(context: Context, assessmentId: String, revisionId: String) = withContext(Dispatchers.IO) {
+            val manager = WorkManager.getInstance(context)
+            val name = uniqueWorkName(assessmentId, revisionId)
+            // Durable even after WorkManager prunes old finished jobs. Contains
+            // only random local IDs, never names, media or server credentials.
+            val once = context.getSharedPreferences("sync_initial_attempts", Context.MODE_PRIVATE)
+            synchronized(initialEnqueueLock) {
+                if (!once.getBoolean(name, false)) {
+                    if (manager.getWorkInfosForUniqueWork(name).get().isEmpty()) {
+                        enqueueWithPolicy(context, assessmentId, revisionId, ExistingWorkPolicy.KEEP).result.get()
+                    }
+                    check(once.edit().putBoolean(name, true).commit())
+                }
+            }
+        }
+
+        private val initialEnqueueLock = Any()
+
+        private fun enqueueWithPolicy(context: Context, assessmentId: String, revisionId: String, policy: ExistingWorkPolicy): androidx.work.Operation {
             val request = OneTimeWorkRequestBuilder<SyncWorker>()
-                .setConstraints(constraints)
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
                 .setInputData(workDataOf(KEY_ASSESSMENT_ID to assessmentId))
                 .build()
-            WorkManager.getInstance(context).enqueueUniqueWork(
-                uniqueWorkName(assessmentId, revisionId), ExistingWorkPolicy.KEEP, request,
+            return WorkManager.getInstance(context).enqueueUniqueWork(
+                uniqueWorkName(assessmentId, revisionId), policy, request,
             )
         }
+
+        /** A manual retry replaces waiting/finished work. A visibly stalled
+         * request can be explicitly restarted; ordinary duplicate taps preserve
+         * a running upload. The repository serializes the cancellation race. */
+        suspend fun retryNow(context: Context, assessmentId: String, revisionId: String, restartRunning: Boolean = false) = withContext(Dispatchers.IO) {
+            val manager = WorkManager.getInstance(context)
+            val running = manager.getWorkInfosForUniqueWork(uniqueWorkName(assessmentId, revisionId)).get()
+                .any { it.state == androidx.work.WorkInfo.State.RUNNING }
+            // An explicit new attempt should not reuse an idle connection the
+            // server closed while the user was reading the failure message.
+            // This closes only idle sockets; active uploads are unaffected.
+            if (!running || restartRunning) SyncHttpClient.client.connectionPool.evictAll()
+            enqueueWithPolicy(context, assessmentId, revisionId, if (running && !restartRunning) ExistingWorkPolicy.KEEP else ExistingWorkPolicy.REPLACE)
+        }
+
+        fun observeWorkInfoFlow(context: Context, assessmentId: String, revisionId: String) =
+            WorkManager.getInstance(context).getWorkInfosForUniqueWorkFlow(uniqueWorkName(assessmentId, revisionId))
 
         /** Stops a live upload immediately on discard/reopen -- defense in depth alongside
          * [SyncRepository.syncAssessment]'s own natural no-op once sealState leaves

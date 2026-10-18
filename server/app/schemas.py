@@ -2,7 +2,7 @@ import datetime
 from decimal import Decimal
 from typing import Literal, Union
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 from .assistance import AssistanceSnapshot
 
 EvidenceKind = Literal["photo", "video"]
@@ -91,6 +91,7 @@ class PublicAssessmentOut(BaseModel):
     id: int
     candidate_display_name: str
     pack_code: str
+    pack_name: str = ""
     submitted_at: datetime.datetime
     status: str
     tasks_completed: int
@@ -115,15 +116,39 @@ class ReviewerVerifyIn(BaseModel):
     code: str = Field(pattern=r"^[0-9]{6}$", repr=False)
 
 
+class ReviewerLoginIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    email: str = Field(max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+    password: SecretStr = Field(min_length=8, max_length=128)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value):
+        return value.strip().lower() if isinstance(value, str) else value
+
+
+class ReviewerRegisterIn(ReviewerLoginIn):
+    name: str = Field(min_length=2, max_length=120)
+    phone: str = Field(pattern=r"^\+?[1-9][0-9]{9,14}$", max_length=16)
+    password_acknowledged: Literal[True]
+
+    @field_validator("name", "phone", mode="before")
+    @classmethod
+    def trim_identity(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
 class ReviewerSignOffIn(BaseModel):
     final_recommendation: "ComputedOutcomeValue"
     override_reason: str | None = Field(default=None, max_length=4000)
     confirmed: Literal[True]
+    password: SecretStr | None = Field(default=None, max_length=128)
 
 
 class ReviewerRejectIn(BaseModel):
     reason: str = Field(min_length=3, max_length=4000)
     confirmed: Literal[True]
+    password: SecretStr | None = Field(default=None, max_length=128)
 
 
 # ---- pack lookup (P6 sync bootstrap: resolve the pinned QP code/version to a pack_id) ----
@@ -410,6 +435,11 @@ class CriterionReviewItemOut(BaseModel):
     """One rubric item merged with its current score, if any -- the review
     screen's unit of work."""
     pc_full_id: str
+    criterion_text: str = ""
+    task_code: str | None = None
+    task_title: str = ""
+    nos_code: str = ""
+    nos_title: str = ""
     rubric_version: str
     marks: Decimal
     critical: bool

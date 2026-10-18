@@ -57,7 +57,7 @@ class HindiFlowTest {
         composeRule.tapTag("btn_continue")
 
         // Consent screen in Hindi.
-        composeRule.onNodeWithText("शुरू करने से पहले").assertIsDisplayed() // "Before you start"
+        composeRule.onNodeWithTag("consent_heading").assertIsDisplayed() // "Before you start"
         composeRule.tapTag("consent_checkbox")
         composeRule.tapTag("btn_continue")
 

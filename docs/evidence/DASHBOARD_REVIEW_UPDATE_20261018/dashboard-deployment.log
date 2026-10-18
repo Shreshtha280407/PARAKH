@@ -1,0 +1,42 @@
+Vercel CLI 64.5.0 (Node.js 26.10.0)
+Fetching deployment "parakh-dashboard-miqs6oy57-nipun-kalsotras-projects.vercel.app" in nipun-kalsotras-projects
+> Fetched deployment "parakh-dashboard-miqs6oy57-nipun-kalsotras-projects.vercel.app" in nipun-kalsotras-projects [4s]
+
+  General
+
+    id		dpl_7d1N2frwe8zfE3eGw1u3pj9WZFBf
+    name	parakh-dashboard
+    target	production
+    status	● Ready
+    url		https://parakh-dashboard-miqs6oy57-nipun-kalsotras-projects.vercel.app
+    created	Sun Oct 18 2026 18:59:20 GMT+0530 (India Standard Time) [33s ago]
+
+
+  Build Machine
+
+    requested build machine basic
+    actual assigned cores   2 vCPU (actual assignment)
+    memory                  8192 MiB
+    selection type          fixed
+    selection source        plan-default
+
+
+  Duration
+
+    build duration	7s
+    post-build duration	unavailable
+    billable duration	unavailable
+    CPU Minutes Usage	unavailable
+
+
+  Aliases
+
+    ╶ https://parakh-dashboard-five.vercel.app
+    ╶ https://parakh-dashboard-nipun-kalsotras-projects.vercel.app
+    
+
+  Builds
+
+    ╶ .        [0ms]
+    
+

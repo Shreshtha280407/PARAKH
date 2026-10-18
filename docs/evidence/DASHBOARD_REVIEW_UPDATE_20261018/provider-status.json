@@ -1,0 +1,56 @@
+{
+  "apiServiceState": {
+    "environment": {
+      "id": "5f04aba5-58e1-4d7f-8552-d782e6b694fc",
+      "name": "production"
+    },
+    "services": [
+      {
+        "serviceId": "bfbcec3e-ff8d-4bb6-af2d-4e2c2a1aef88",
+        "serviceName": "api",
+        "state": "online",
+        "statusText": "Online",
+        "activeDeployments": [
+          {
+            "id": "96711d76-3854-4e0d-a06f-74f1d08423ee",
+            "status": "SUCCESS",
+            "createdAt": "2026-10-18T13:21:30.946Z",
+            "statusUpdatedAt": "2026-10-18T13:22:06.855Z"
+          }
+        ],
+        "replicaStatus": {
+          "running": 1,
+          "crashed": 0,
+          "total": 1
+        },
+        "cronJob": null,
+        "issues": {
+          "warningCount": 0,
+          "criticalCount": 0
+        },
+        "recentFailures": 0,
+        "recentFailedDeployments": [],
+        "hasIssues": false,
+        "isCronJob": false,
+        "hasVolume": false
+      }
+    ],
+    "pendingWork": [],
+    "summary": {
+      "totalServices": 1,
+      "servicesWithIssues": 0,
+      "totalFailures": 0
+    }
+  },
+  "regionChange": {
+    "service": {
+      "id": "bfbcec3e-ff8d-4bb6-af2d-4e2c2a1aef88",
+      "name": "api"
+    },
+    "environmentId": "5f04aba5-58e1-4d7f-8552-d782e6b694fc",
+    "updatedFields": [
+      "regions"
+    ],
+    "staged": null
+  }
+}

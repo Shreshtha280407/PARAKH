@@ -14,10 +14,10 @@ internal class DebugOverridableSyncEndpointConfig(context: Context) : SyncEndpoi
     private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     override fun baseUrl(): String =
-        prefs.getString(KEY_OVERRIDE_URL, null)?.takeIf { it.isNotBlank() }
+        prefs.getString(KEY_OVERRIDE_URL, null)?.takeIf { it.isNotBlank() && supportsRuntimeOverride() }
             ?: BuildConfig.P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL
 
-    override fun supportsRuntimeOverride(): Boolean = true
+    override fun supportsRuntimeOverride(): Boolean = BuildConfig.P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED
 
     override fun setOverrideBaseUrl(url: String?) {
         prefs.edit().apply {

@@ -1,0 +1,29 @@
+PASS Public dashboard opens without login or demo records; real empty state
+PASS All top navigation links remain visible with one active page, including nested verification and mobile views
+PASS New real submission appears on periodic refresh with pseudonym and no phone/PIN
+PASS Anonymous private evidence access is denied
+PASS Opening an assessment prompts for name, email, phone and password, with required no-reset acknowledgement
+PASS Real private photo opens; video plays, seeks and opens expanded; byte ranges, access expiry and retry work
+PASS Readable task scoring, complete anchors, mobile layout and drafts survive task and evidence navigation
+PASS Assessor session restoration and score/comment validation work
+PASS Human-confirmed scores, wrong-password rejection, password signing and public QR verification
+PASS Targeted reassessment records reason, actor and precise task selection
+PASS Rejection requires verified authorization, explicit confirmation and remarks
+PASS Logout removes private review and the same assessor can sign in again with the saved password
+{
+  "passed": 12,
+  "checks": [
+    "Public dashboard opens without login or demo records; real empty state",
+    "All top navigation links remain visible with one active page, including nested verification and mobile views",
+    "New real submission appears on periodic refresh with pseudonym and no phone/PIN",
+    "Anonymous private evidence access is denied",
+    "Opening an assessment prompts for name, email, phone and password, with required no-reset acknowledgement",
+    "Real private photo opens; video plays, seeks and opens expanded; byte ranges, access expiry and retry work",
+    "Readable task scoring, complete anchors, mobile layout and drafts survive task and evidence navigation",
+    "Assessor session restoration and score/comment validation work",
+    "Human-confirmed scores, wrong-password rejection, password signing and public QR verification",
+    "Targeted reassessment records reason, actor and precise task selection",
+    "Rejection requires verified authorization, explicit confirmation and remarks",
+    "Logout removes private review and the same assessor can sign in again with the saved password"
+  ]
+}

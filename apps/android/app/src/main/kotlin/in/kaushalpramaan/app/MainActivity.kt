@@ -50,9 +50,12 @@ class MainActivity : ComponentActivity() {
         viewModel.enteredForeground()
     }
 
-    override fun onPause() {
+    // A runtime permission dialog pauses this activity without taking the app
+    // into the background. Keep capture navigation intact while granting camera
+    // or microphone access; lock when the activity actually becomes hidden.
+    override fun onStop() {
         viewModel.lockLocalData()
-        super.onPause()
+        super.onStop()
     }
 }
 

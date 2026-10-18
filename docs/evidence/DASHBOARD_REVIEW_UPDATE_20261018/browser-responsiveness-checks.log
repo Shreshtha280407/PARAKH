@@ -1,0 +1,11 @@
+PASS Tabs respond immediately while history is deliberately delayed; loaded history is reused
+PASS Returning to the queue displays cached public rows immediately while refreshing in the background
+PASS Signing a negative recommendation shows the correct success popup and automatically returns to the queue
+{
+  "passed": 3,
+  "timings_ms": {
+    "history_tab_ms": 42,
+    "scoring_tab_ms": 219,
+    "cached_queue_ms": 133
+  }
+}

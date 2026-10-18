@@ -7,6 +7,7 @@ import `in`.kaushalpramaan.app.data.DeclarationCardCatalog
 import `in`.kaushalpramaan.app.data.DeclarationCardUi
 import `in`.kaushalpramaan.app.data.PriorTrainingOptions
 import `in`.kaushalpramaan.app.data.WorkSettingOptions
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
 import androidx.compose.foundation.layout.Arrangement
@@ -18,9 +19,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
+import `in`.kaushalpramaan.app.ui.components.KpCard as Card
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpFilterChip as FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -47,8 +48,20 @@ fun DeclarationScreen(viewModel: AppViewModel, onBack: () -> Unit, onSeeMatch: (
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { KpBottomBar {
+                Button(
+                    onClick = onSeeMatch,
+                    modifier = Modifier
+                        .fillMaxWidth()
+
+                        .defaultMinTapTarget()
+                        .testTag("btn_see_match"),
+                ) {
+                    Text(stringResource(R.string.action_see_match))
+                }
+        } },
     ) { modifier ->
-        LazyColumn(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp).testTag("declaration_lazy_column")) {
+        LazyColumn(modifier = modifier.fillMaxSize().padding(horizontal = 18.dp).testTag("declaration_lazy_column")) {
             item {
                 Text(
                     stringResource(R.string.declaration_instructions),
@@ -148,16 +161,7 @@ fun DeclarationScreen(viewModel: AppViewModel, onBack: () -> Unit, onSeeMatch: (
                     minLines = 3,
                 )
 
-                Button(
-                    onClick = onSeeMatch,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp)
-                        .defaultMinTapTarget()
-                        .testTag("btn_see_match"),
-                ) {
-                    Text(stringResource(R.string.action_see_match))
-                }
+
             }
         }
     }

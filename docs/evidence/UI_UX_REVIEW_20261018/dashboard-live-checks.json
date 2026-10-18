@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "url": "https://parakh-dashboard-five.vercel.app",
+  "wordmark": "Parakh",
+  "font": "Fraunces",
+  "apiHealth": "ok",
+  "queueStatus": 200,
+  "reviewerAvailable": false,
+  "reviewerMessage": "Reviewer email delivery is not configured. Scoring and sign-off are unavailable.",
+  "responsiveWidths": [
+    390,
+    768,
+    1440
+  ],
+  "pageErrors": []
+}

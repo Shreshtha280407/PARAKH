@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PARAKH</string>
+    <string name="app_name">Parakh</string>
 
     <!-- Language screen -->
     <string name="language_title">अपनी भाषा चुनें</string>
@@ -183,7 +183,7 @@
 
     <!-- Sealed (post-seal) screen -->
     <string name="submitted_title">आकलन सील किया गया</string>
-    <string name="submitted_body">आकलन इस डिवाइस पर सील कर दिया गया है। इंटरनेट उपलब्ध होने पर सिंक के लिए तैयार।</string>
+    <string name="submitted_body">आकलन इस फ़ोन पर सील है। सर्वर पर जमा होने की पुष्टि के लिए ऊपर सिंक स्थिति देखें।</string>
     <string name="submitted_worker_id">वर्कर आईडी: %1$s</string>
     <string name="action_view_preview_again">सील किया गया प्रमाण देखें</string>
 
@@ -249,4 +249,34 @@
     <string name="assistance_stage_hands">नमूना फ़्रेमों में हाथों की दृश्यता जाँची जा रही है। आप इस स्क्रीन से जा सकते हैं।</string>
     <string name="assistance_warning_count">सलाह के लिए %1$d प्रकार के संकेत मिले। देखने के लिए रिकॉर्डिंग खोलें।</string>
     <string name="assistance_overall_review">साक्ष्य की गुणवत्ता समीक्षा</string>
+    <string name="online_badge">इंटरनेट जुड़ा है</string>
+    <string name="wifi_signal_badge">वाई-फाई इंटरनेट जुड़ा है, सिग्नल %1$d / 4</string>
+    <string name="wifi_online_badge">वाई-फाई इंटरनेट जुड़ा है, सिग्नल की जानकारी उपलब्ध नहीं है</string>
+    <string name="mobile_online_badge">मोबाइल डेटा इंटरनेट जुड़ा है</string>
+    <string name="capture_size_used">इस फ़ोन पर रिकॉर्ड हुआ: %2$s में से %1$s</string>
+    <string name="capture_local_size_note">यह रिकॉर्डिंग का आकार है, अपलोड हुआ डेटा नहीं। अपलोड सील करने के बाद शुरू होगा।</string>
+    <string name="sync_before_seal_title">सील करने पर सिंक शुरू होगा</string>
+    <string name="sync_before_seal_body">सील करने के बाद अपलोड की पहली कोशिश अपने आप शुरू होगी। असफल होने पर इंटरनेट उपलब्ध होने पर फिर से सिंक करें दबाएँ।</string>
+    <string name="sync_offline_title">सिंक पूरा नहीं हुआ — इंटरनेट नहीं है</string>
+    <string name="sync_offline_body">आपका सील किया प्रमाण इस फ़ोन पर सुरक्षित है। इंटरनेट से जुड़ें, फिर फिर से सिंक करें दबाएँ। केवल इंटरनेट लौटने से असफल कोशिश दोबारा शुरू नहीं होगी।</string>
+    <string name="sync_queued_title">सिंक शुरू होने की प्रतीक्षा</string>
+    <string name="sync_queued_body">आपका सील किया पैकेज कतार में है। सिंक की पहली कोशिश अपने आप शुरू होगी।</string>
+    <string name="sync_uploading_title">प्रमाण सिंक हो रहा है…</string>
+    <string name="sync_uploading_body">आकलन सर्वर से जुड़कर अपलोड हो रहा है। नीचे सर्वर द्वारा स्वीकार किए गए बाइट की प्रगति दिखाई जाती है।</string>
+    <string name="sync_verifying_title">जमा होने की पुष्टि हो रही है…</string>
+    <string name="sync_verifying_body">अपलोड किए प्रमाण की जाँच हो रही है और उसे असेसर की समीक्षा के लिए जमा किया जा रहा है। सर्वर की पुष्टि के बाद ही सिंक पूरा होगा।</string>
+    <string name="sync_retrying_title">सिंक असफल — फिर कोशिश करें</string>
+    <string name="sync_retrying_body">पिछली कोशिश पूरी नहीं हुई। इंटरनेट जाँचें, फिर फिर से सिंक करें दबाएँ। आपका सील किया प्रमाण इस फ़ोन पर रहेगा।</string>
+    <string name="sync_failed_title">सिंक असफल हुआ</string>
+    <string name="sync_failed_body">सर्वर ने जमा होने की पुष्टि नहीं की। कनेक्शन जाँचकर फिर से सिंक करें दबाएँ। फिर असफल होने पर पैकेज फ़ोन पर रखें और मदद लें।</string>
+    <string name="sync_stalled_title">सिंक में सामान्य से अधिक समय लग रहा है</string>
+    <string name="sync_stalled_body">हाल में अपलोड की प्रगति नहीं मिली। वर्तमान अनुरोध अभी पूरा हो सकता है। कनेक्शन जाँचें; रुकने के बाद ज़रूरत हो तो फिर से सिंक करें दबाएँ।</string>
+    <string name="sync_complete_body">सर्वर ने आपका आकलन जमा होने की पुष्टि की है। यह अब असेसर डैशबोर्ड पर उपलब्ध है।</string>
+    <string name="sync_uploaded_bytes">%2$s में से %1$s अपलोड हुए</string>
+    <string name="sync_verified_items">सर्वर ने पैकेज की %2$d में से %1$d चीज़ों की पुष्टि की</string>
+    <string name="sync_keep_local">सिंक की पुष्टि होने तक आकलन फ़ोन पर रखें। मिटाने से बाकी अपलोड रद्द हो जाते हैं।</string>
+    <string name="sync_upload_running">अपलोड जारी है</string>
+    <string name="sync_action_retry">फिर से सिंक करें</string>
+    <string name="sync_notice_done">ठीक है</string>
+    <string name="sync_notice_later">बाद के लिए रखें</string>
 </resources>

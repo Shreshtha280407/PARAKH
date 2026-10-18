@@ -18,8 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpCard as Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +64,7 @@ fun TaskListScreen(
     ) { modifier ->
         Column(modifier = modifier.fillMaxSize()) {
             LazyColumn(
-                modifier = Modifier.weight(1f).padding(horizontal = 16.dp).testTag("task_list_lazy_column"),
+                modifier = Modifier.weight(1f).padding(horizontal = 18.dp).testTag("task_list_lazy_column"),
             ) {
                 item(key = "assessment_summary") {
                     Column(modifier = Modifier.padding(vertical = 16.dp)) {
@@ -199,7 +199,7 @@ fun TaskListScreen(
             if (uiState.assessmentIsTestOnly && uiState.assessmentDraftId != null) {
                 TextButton(
                     onClick = { showDeleteDraftConfirm = true },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).defaultMinTapTarget().testTag("btn_delete_test_draft"),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp).defaultMinTapTarget().testTag("btn_delete_test_draft"),
                 ) {
                     Text(stringResource(R.string.action_delete_test_draft), color = MaterialTheme.colorScheme.error)
                 }

@@ -1,20 +1,20 @@
 package `in`.kaushalpramaan.app.data.sync
 
 import androidx.test.core.app.ApplicationProvider
+import `in`.kaushalpramaan.app.BuildConfig
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** This module's own build config is "debug" (Robolectric always runs against the debug
- * variant's compiled sources) -- so [provideSyncEndpointConfig] here resolves to
+/** Robolectric runs against the debug variant's compiled sources, so
+ * [provideSyncEndpointConfig] here resolves to
  * [DebugOverridableSyncEndpointConfig]; [FixedSyncEndpointConfig]'s own release-only behaviour
  * (always the hardcoded production URL, override is a genuine no-op) is proven never to even
  * exist in a release build's compiled output by
  * app/build.gradle.kts's verifyP6SyncEndpointOverrideAbsentFromRelease task -- see
- * docs/gates/P6.md for why that static proof is the right tool for an "absent", not
- * "behaves correctly", claim. */
+ * docs/gates/P6.md. Worker review builds disable the debug override and must
+ * ignore persisted local endpoints while using the configured deployed API. */
 @RunWith(RobolectricTestRunner::class)
 class SyncEndpointConfigTest {
 
@@ -22,7 +22,7 @@ class SyncEndpointConfigTest {
     fun debug_config_defaults_to_the_build_configs_emulator_alias_when_never_overridden() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val config = provideSyncEndpointConfig(context)
-        assertTrue(config.supportsRuntimeOverride())
+        assertEquals(BuildConfig.P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED, config.supportsRuntimeOverride())
         assertEquals(`in`.kaushalpramaan.app.BuildConfig.P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL, config.baseUrl())
     }
 
@@ -31,7 +31,9 @@ class SyncEndpointConfigTest {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         provideSyncEndpointConfig(context).setOverrideBaseUrl("http://192.168.1.50:8000")
         val secondInstance = provideSyncEndpointConfig(context)
-        assertEquals("http://192.168.1.50:8000", secondInstance.baseUrl())
+        val expected = if (BuildConfig.P6_TEST_ONLY_SYNC_ENDPOINT_OVERRIDE_ENABLED) "http://192.168.1.50:8000"
+            else BuildConfig.P6_TEST_ONLY_DEFAULT_SYNC_BASE_URL
+        assertEquals(expected, secondInstance.baseUrl())
     }
 
     @Test

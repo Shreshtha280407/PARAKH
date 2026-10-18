@@ -9,6 +9,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import `in`.kaushalpramaan.app.ui.components.KpButton as Button
+import `in`.kaushalpramaan.app.ui.components.KpScaffold
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +41,8 @@ fun PinUnlockScreen(viewModel: AppViewModel, onErased: () -> Unit = {}) {
         credentialConfirmed = it.resultCode == Activity.RESULT_OK
     }
     BackHandler { /* Locked data cannot be reached through navigation history. */ }
-    Column(Modifier.fillMaxSize().padding(24.dp)) {
+    KpScaffold(title = "PARAKH", language = state.language, onLanguageChange = viewModel::setLanguage) { modifier ->
+    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
         Text(stringResource(R.string.pin_unlock_title), style = MaterialTheme.typography.headlineMedium)
         if (state.legacyPinRequired) {
             Text(stringResource(R.string.pin_legacy_explanation))
@@ -51,14 +56,14 @@ fun PinUnlockScreen(viewModel: AppViewModel, onErased: () -> Unit = {}) {
         OutlinedTextField(pin, { pin = it.filter { c -> c in '0'..'9' }.take(4) },
             label = { Text(stringResource(R.string.registration_pin_label)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            visualTransformation = PasswordVisualTransformation(), modifier = Modifier.testTag("unlock_pin"))
+            visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth().padding(top = 24.dp).testTag("unlock_pin"))
         if (state.legacyPinRequired) OutlinedTextField(confirm, { confirm = it.filter { c -> c in '0'..'9' }.take(4) },
             label = { Text(stringResource(R.string.registration_pin_confirm_label)) },
             visualTransformation = PasswordVisualTransformation())
         if (error) Text(stringResource(R.string.pin_unlock_error, (viewModel.pinLockRemainingMillis() / 1000) + 1),
             color = MaterialTheme.colorScheme.error)
         Button(enabled = !busy && pin.length == 4 && (!state.legacyPinRequired || credentialConfirmed && pin == confirm),
-            modifier = Modifier.testTag("btn_unlock"), onClick = {
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp).testTag("btn_unlock"), onClick = {
                 busy = true
                 scope.launch(Dispatchers.Main.immediate) {
                     try {
@@ -69,6 +74,7 @@ fun PinUnlockScreen(viewModel: AppViewModel, onErased: () -> Unit = {}) {
                 }
             }) { Text(stringResource(R.string.pin_unlock_action)) }
         TextButton(onClick = { eraseDialog = true }) { Text(stringResource(R.string.pin_forgot_action)) }
+    }
     }
     if (eraseDialog) AlertDialog(onDismissRequest = { eraseDialog = false },
         title = { Text(stringResource(R.string.pin_forgot_action)) },

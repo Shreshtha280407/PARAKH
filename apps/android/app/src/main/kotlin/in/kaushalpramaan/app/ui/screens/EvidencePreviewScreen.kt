@@ -7,6 +7,7 @@ import `in`.kaushalpramaan.app.data.isEditable
 import `in`.kaushalpramaan.app.data.draft.EvidenceDraftState
 import `in`.kaushalpramaan.app.data.draft.FinalEvidenceState
 import `in`.kaushalpramaan.app.data.draft.SealState
+import `in`.kaushalpramaan.app.ui.components.KpBottomBar
 import `in`.kaushalpramaan.app.ui.components.KpScaffold
 import `in`.kaushalpramaan.app.ui.components.decodeSampledBitmap
 import `in`.kaushalpramaan.app.ui.components.defaultMinTapTarget
@@ -27,7 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import `in`.kaushalpramaan.app.ui.components.KpOutlinedButton as OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -64,11 +65,34 @@ fun EvidencePreviewScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    val canEdit = evidence != null && uiState.sealState.isEditable() && uiState.taskDrafts[evidence.taskId]?.locked != true && !evidence.fromPreviousRevision
+
     KpScaffold(
         title = stringResource(R.string.evidence_preview_title),
         language = uiState.language,
         onLanguageChange = viewModel::setLanguage,
         onBack = onBack,
+        bottomBar = { KpBottomBar {
+            if (canEdit) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { onRetake(evidence.taskId, evidence.id) },
+                        modifier = Modifier.weight(1f).defaultMinTapTarget().testTag("btn_retake_evidence"),
+                    ) { Text(stringResource(R.string.action_retake)) }
+                    OutlinedButton(
+                        onClick = { showDeleteConfirm = true },
+                        modifier = Modifier.weight(1f).defaultMinTapTarget().testTag("btn_delete_evidence"),
+                    ) { Text(stringResource(R.string.action_delete)) }
+                }
+            } else {
+                Text(
+                    stringResource(R.string.task_detail_sealed_read_only),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        } },
     ) { modifier ->
         if (evidence == null) {
             Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
@@ -106,6 +130,7 @@ fun EvidencePreviewScreen(
                                 setOnPreparedListener { player -> player.start() }
                             }
                         },
+                        onReset = null, onRelease = { video -> video.stopPlayback() },
                         update = { video ->
                             if (video.tag != file.absolutePath) {
                                 video.tag = file.absolutePath
@@ -135,7 +160,6 @@ fun EvidencePreviewScreen(
                 )
             }
 
-            val canEdit = uiState.sealState.isEditable() && uiState.taskDrafts[evidence.taskId]?.locked != true && !evidence.fromPreviousRevision
             `in`.kaushalpramaan.app.ui.components.AssistanceCard(
                 record = uiState.assistanceByEvidence[evidence.id]?.takeIf {
                     evidence.finalState == FinalEvidenceState.SEALED || it.inputPath == `in`.kaushalpramaan.app.data.assistance.EvidenceAssistanceCoordinator.inputPath(evidence)
@@ -144,25 +168,7 @@ fun EvidencePreviewScreen(
                 onRetry = if (canEdit) ({ viewModel.retryAssistance(evidence.id) }) else null,
                 onCancel = if (canEdit) ({ viewModel.cancelAssistance(evidence.id) }) else null,
             )
-            if (canEdit) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 16.dp)) {
-                    OutlinedButton(
-                        onClick = { onRetake(evidence.taskId, evidence.id) },
-                        modifier = Modifier.defaultMinTapTarget().testTag("btn_retake_evidence"),
-                    ) { Text(stringResource(R.string.action_retake)) }
-                    OutlinedButton(
-                        onClick = { showDeleteConfirm = true },
-                        modifier = Modifier.defaultMinTapTarget().testTag("btn_delete_evidence"),
-                    ) { Text(stringResource(R.string.action_delete)) }
-                }
-            } else {
-                Text(
-                    stringResource(R.string.task_detail_sealed_read_only),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-            }
+
         }
     }
 
