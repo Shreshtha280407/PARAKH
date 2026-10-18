@@ -10,3 +10,10 @@
 .brand-wordmark{font-family:var(--font-display);font-size:25px;font-weight:700;letter-spacing:.035em;line-height:1.15}.brandpane .brand-wordmark{font-size:30px}
 
 .header-signout{background:transparent;color:var(--paper);border:1px solid #fbf6ec55;padding:6px 10px;min-height:36px;font-size:12px;white-space:nowrap}.password-reminder{margin:16px 0}.password-reminder p{margin-bottom:0}
+
+/* Preserve the incoming P8 overflow fix with the current Parakh layout spacing.
+   Long metadata must wrap inside a phone-width card rather than widen its grid. */
+@media(max-width:480px){
+  .card form,dl,dl dt,dl dd{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  dl{grid-template-columns:minmax(0,1fr)}
+}

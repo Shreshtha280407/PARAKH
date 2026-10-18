@@ -111,7 +111,7 @@ There is exactly one metadata-only fixture reference per package/task; no media 
     "packs/ae-con-q0602/rubric.json": "1acb1b06ec3fa99762a5da6a2b31c3cd23434015af8d552e656fb8998f0bce46",
     "packs/ae-con-q0602/tasks.json": "e07a1946792240063cd068348378b1453050a174d49bcf2fd9f0c903bae19138",
     "server/app/outcome.py": "0e547bb571d9a9e243022be4b084e631d15f5df80e23173af224de6e50e68c1b",
-    "server/app/routers/scoring.py": "f613d1a181afac583995feb59b13b4b201b9304293dc2d2bee159d21a60c4a15"
+    "server/app/routers/scoring.py": "67663a91d8934a5bd5c6f9f72a187fa4e970484fbc5ea7716e8f8334802ffbeb"
   }
 }
 ```
