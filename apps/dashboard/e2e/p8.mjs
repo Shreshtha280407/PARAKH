@@ -98,7 +98,7 @@ try {
     return route.abort();
   });
   await page.reload();
-  await page.getByRole("button", { name: /^T2 \\(/ }).click();
+  await page.getByRole("button", { name: /^T2 \(/ }).click();
   const failed = page.locator(".evidence-gallery-item").filter({ hasText: /v1 · historical/i });
   // Wait for the player's real error state rather than a phrase the UI
   // no longer displays; the interrupted media request must be observed.
