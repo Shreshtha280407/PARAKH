@@ -170,7 +170,41 @@ try {
   check("targeted reassessment request is created and appears in the assessment's own history");
 
   // ---- 12. Sign-off + signed report + authenticated verify ----
+  // This seeded assessment has not had its rubric reviewed yet. Do not relax
+  // the backend's incomplete-evidence gate: finish a CI-only synthetic rubric
+  // fixture before exercising the real UI sign-off and verification checks.
   await page.goto(`${base}/#/assessments/${submittedId}`);
+  const fixtureScoreCount = await page.evaluate(async ({ apiBase, assessmentId }) => {
+    const csrf = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/)?.[1];
+    if (!csrf) throw new Error("Missing assessor CSRF cookie for CI scoring fixture");
+    const response = await fetch(`${apiBase}/assessments/${assessmentId}/review`, {
+      credentials: "include",
+    });
+    if (!response.ok) throw new Error(`Unable to load synthetic rubric: HTTP ${response.status}`);
+    const criteria = await response.json();
+    if (!criteria.length) throw new Error("Expected seeded qualification pack to have rubric criteria");
+
+    for (const criterion of criteria) {
+      const saved = await fetch(`${apiBase}/assessments/${assessmentId}/review`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+        body: JSON.stringify({
+          pc_full_id: criterion.pc_full_id,
+          score_level: 3,
+          evidence_status: "DEMONSTRATED",
+          assessor_comment: "CI-only synthetic scoring fixture; not a real worker evaluation.",
+          expected_version: criterion.score?.version ?? 0,
+        }),
+      });
+      if (!saved.ok) {
+        throw new Error(`Unable to score synthetic PC ${criterion.pc_full_id}: HTTP ${saved.status} ${await saved.text()}`);
+      }
+    }
+    return criteria.length;
+  }, { apiBase: api, assessmentId: submittedId });
+  assert(fixtureScoreCount > 0, "the synthetic fixture must cover the entire rubric");
+  check("complete synthetic scoring fixture satisfies the sign-off eligibility gate");
   await page.getByRole("button", { name: "Load competency profile" }).click();
   await page.locator("dt", { hasText: "Computed outcome" }).waitFor();
   await page.locator('input[type="password"]').fill(password);
