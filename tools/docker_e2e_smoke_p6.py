@@ -135,18 +135,29 @@ def main() -> None:
     aid, wt = created["id"], created["worker_token"]
     assert created["status"] == "draft"
 
-    print("5. build and upload a real ECDSA-signed manifest (2 items: T1 photo, T2 video)")
+    print("5. build signed synthetic manifest across all five task slots")
     revision_id = "smoke-rev-1"
     t1_bytes = b"P6 smoke test T1 photo evidence bytes" * 200
     t2_bytes = b"P6 smoke test T2 video evidence bytes" * 500
+    extra_task_bytes = {
+        code: f"P6 smoke synthetic {code} evidence".encode() * 50
+        for code in ("T3", "T4", "T5")
+    }
+    task_totals = {"T1": len(t1_bytes), "T2": len(t2_bytes)}
+    task_totals.update({code: len(data) for code, data in extra_task_bytes.items()})
     items = [
         {"evidenceId": "ev-t1", "taskId": "T1", "kind": "photo", "bytes": len(t1_bytes),
          "sha256": hashlib.sha256(t1_bytes).hexdigest(), "mimeType": "image/jpeg", "processing": "SEALED"},
         {"evidenceId": "ev-t2", "taskId": "T2", "kind": "video", "bytes": len(t2_bytes),
          "sha256": hashlib.sha256(t2_bytes).hexdigest(), "mimeType": "video/mp4", "processing": "SEALED"},
     ]
+    items.extend({
+        "evidenceId": f"ev-{code.lower()}", "taskId": code, "kind": "photo",
+        "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+        "mimeType": "image/jpeg", "processing": "SEALED",
+    } for code, data in extra_task_bytes.items())
     envelope_bytes, _canonical, device_key = build_signed_manifest(
-        aid, revision_id, items, {"T1": len(t1_bytes), "T2": len(t2_bytes)}, len(t1_bytes) + len(t2_bytes),
+        aid, revision_id, items, task_totals, sum(task_totals.values()),
     )
     manifest_receipt = upload_and_complete(base, wt, aid, envelope_bytes, target="manifest", revision_id=revision_id)
     assert manifest_receipt["status"] == "received", manifest_receipt
@@ -181,6 +192,13 @@ def main() -> None:
         revision_id=revision_id, client_evidence_id="ev-t2",
     )
     assert t2_receipt["sha256"] == hashlib.sha256(t2_bytes).hexdigest()
+    print("10b. upload all other synthetic task evidence declared in the manifest")
+    for code, data in extra_task_bytes.items():
+        receipt_extra = upload_and_complete(
+            base, wt, aid, data, target="evidence", task_code=code, kind="photo",
+            mime="image/jpeg", revision_id=revision_id, client_evidence_id=f"ev-{code.lower()}",
+        )
+        assert receipt_extra["sha256"] == hashlib.sha256(data).hexdigest()
     status = call("GET", f"{base}/assessments/{aid}/sync-status?revision_id={revision_id}", worker_token=wt)
     assert status["manifest_state"] == "complete" and status["all_items_verified"], status
 
@@ -221,14 +239,16 @@ def main() -> None:
     assert scored_entries[-1]["details"]["old_score_level"] == 3
     assert scored_entries[-1]["details"]["new_score_level"] == 2
 
-    print("15b. score every T2 (CON/N0602) PC too, so reopening T2 below has real scores to flag needs_review on")
+    print("15b. confirm all remaining rubric criteria before task-specific reassessment")
     review_now = call("GET", f"{base}/assessments/{aid}/review", token=assessor_token)
+    assert review_now, "the pinned pack must have rubric criteria"
     for item in review_now:
-        if item["pc_full_id"].startswith("CON/N0602."):
-            call("PUT", f"{base}/assessments/{aid}/review", token=assessor_token, body={
-                "pc_full_id": item["pc_full_id"], "score_level": 3, "evidence_status": "DEMONSTRATED",
-                "expected_version": item["score"]["version"] if item["score"] else 0,
-            })
+        if item["pc_full_id"] == pc:
+            continue  # Keep the original score/version for the audit check.
+        call("PUT", f"{base}/assessments/{aid}/review", token=assessor_token, body={
+            "pc_full_id": item["pc_full_id"], "score_level": 3, "evidence_status": "DEMONSTRATED",
+            "expected_version": item["score"]["version"] if item["score"] else 0,
+        })
 
     print("15. audit log is protected -- a worker token cannot read it")
     worker_audit_req = urllib.request.Request(f"{base}/assessments/{aid}/audit-log")
@@ -266,9 +286,14 @@ def main() -> None:
         {"evidenceId": "ev-t2-v2", "taskId": "T2", "kind": "video", "bytes": len(t2_v2_bytes),
          "sha256": hashlib.sha256(t2_v2_bytes).hexdigest(), "mimeType": "video/mp4", "processing": "SEALED"},
     ]
+    items_v2.extend({
+        "evidenceId": f"ev-{code.lower()}", "taskId": code, "kind": "photo",
+        "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+        "mimeType": "image/jpeg", "processing": "SEALED",
+    } for code, data in extra_task_bytes.items())
+    totals_v2 = {**task_totals, "T2": len(t2_v2_bytes)}
     envelope_v2, _canonical_v2, _ = build_signed_manifest(
-        aid, revision_id_v2, items_v2, {"T1": len(t1_bytes), "T2": len(t2_v2_bytes)},
-        len(t1_bytes) + len(t2_v2_bytes), private_key=device_key,
+        aid, revision_id_v2, items_v2, totals_v2, sum(totals_v2.values()), private_key=device_key,
     )
     manifest_receipt_v2 = upload_and_complete(base, wt, aid, envelope_v2, target="manifest", revision_id=revision_id_v2)
     assert manifest_receipt_v2["status"] == "received", manifest_receipt_v2
@@ -308,6 +333,9 @@ def main() -> None:
         })
 
     profile_v2 = call("GET", f"{base}/assessments/{aid}/competency-profile", token=assessor_token)
+    assert profile_v2["computed_outcome"] != "INSUFFICIENT_EVIDENCE", (
+        "all rubric criteria are human-confirmed in this synthetic smoke test"
+    )
     wrong_pw = call("POST", f"{base}/assessments/{aid}/sign-off", token=assessor_token, expect=401, body={
         "password": "not-the-real-password", "final_recommendation": profile_v2["computed_outcome"],
     })
