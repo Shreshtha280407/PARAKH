@@ -85,6 +85,20 @@ def main() -> None:
     with urllib.request.urlopen(content_req) as resp:
         assert resp.read() == data, "served evidence content does not match what was uploaded"
 
+    print("4b. provide CI-only synthetic evidence for every other task before submitting")
+    task_codes = {task["task_code"] for task in created["tasks"]}
+    assert "T1" in task_codes and len(task_codes) > 1
+    for task_code in sorted(task_codes - {"T1"}):
+        task_data = f"CI-only synthetic evidence for {task_code}".encode()
+        upload = call("POST", f"{base}/uploads", worker_token=wt, expect=201, body={
+            "assessment_id": aid, "task_code": task_code, "kind": "photo",
+            "mime": "image/jpeg", "claimed_size_bytes": len(task_data),
+        })
+        put_chunk(base, upload["id"], wt, task_data)
+        completed = call("POST", f"{base}/uploads/{upload['id']}/complete",
+                         worker_token=wt, body={"client_sha256": hashlib.sha256(task_data).hexdigest()})
+        assert completed["sha256"] == hashlib.sha256(task_data).hexdigest()
+
     print("5. worker submits -- evidence locked after this")
     submitted = call("POST", f"{base}/assessments/{aid}/submit", worker_token=wt)
     assert submitted["status"] == "submitted"
@@ -104,6 +118,15 @@ def main() -> None:
     })
     assert score["version"] == 1
 
+    print("7b. human-confirm all remaining rubric criteria in this synthetic CI fixture")
+    assert review, "the seeded pack must have rubric criteria"
+    for item in review[1:]:
+        result = call("PUT", f"{base}/assessments/{aid}/review", token=token, body={
+            "pc_full_id": item["pc_full_id"], "score_level": 3,
+            "evidence_status": "DEMONSTRATED", "expected_version": 0,
+        })
+        assert result["version"] == 1
+
     print("8. competency profile is decision support only")
     profile = call("GET", f"{base}/assessments/{aid}/competency-profile", token=token)
     assert "Decision support only" in profile["disclaimer"]
@@ -112,6 +135,7 @@ def main() -> None:
     print("9. computed outcome (decision support only, never auto-certifies)")
     profile2 = call("GET", f"{base}/assessments/{aid}/competency-profile", token=token)
     computed = profile2["computed_outcome"]
+    assert computed == "RECOMMEND_CERTIFICATION", f"complete synthetic review should be signable: {computed}"
 
     print("10. password-confirmed sign-off produces the one, immutable, Ed25519-signed PDF")
     wrong_pw = call("POST", f"{base}/assessments/{aid}/sign-off", token=token, expect=401, body={
