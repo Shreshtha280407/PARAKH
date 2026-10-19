@@ -227,7 +227,9 @@ try {
   const publicContext = await browser.newContext();
   const publicPage = await publicContext.newPage();
   await publicPage.goto(`${base}/#/verify/${encodeURIComponent(reportId)}`);
-  await publicPage.locator("text=/Signature verified/i").waitFor();
+  // The report details also contain "SIGNED — signature verified".
+  // Match the exact success heading to avoid a Playwright strict-mode violation.
+  await publicPage.getByText("Signature verified", { exact: true }).waitFor();
   await publicPage.getByRole("button", { name: "Log out" }).count().then((n) => assert.equal(n, 0));
   check("public QR-target verify page confirms the same signature with no session/cookie at all");
 
