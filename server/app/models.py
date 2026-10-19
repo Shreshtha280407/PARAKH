@@ -228,6 +228,7 @@ class AssessmentStatus(str, enum.Enum):
     in_review = "in_review"
     needs_reassessment = "needs_reassessment"
     recommended = "recommended"
+    not_recommended = "not_recommended"
 
 
 class Assessment(Base):
@@ -238,6 +239,9 @@ class Assessment(Base):
     provenance: Mapped[str] = mapped_column(String(30), default="legacy", server_default="legacy", index=True)
     enrollment_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     public_name_consent: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    public_outcome_consent: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    public_outcome_consent_version: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    public_outcome_consent_recorded_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     consent_recorded_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     decision_reviewer_identity: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     worker_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
@@ -256,7 +260,7 @@ class Assessment(Base):
     submitted_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Decision support only -- never an official certificate (see
     # docs/evidence_status_model.md / the competency-profile disclaimer).
-    # "recommended" | "needs_reassessment", set once by decide_assessment.
+    # Final: recommended / not_recommended. Reassessment is non-final.
     decision: Mapped[str | None] = mapped_column(String(30), nullable=True)
     decision_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     decided_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)

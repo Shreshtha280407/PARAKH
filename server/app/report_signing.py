@@ -20,10 +20,42 @@ key_id.
 """
 import hashlib
 import json
+import base64
+import re
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
 from .config import settings
+
+PDF_METADATA_PREFIX = "PARAKH-REPORT-V1."
+
+
+def pdf_metadata(snapshot: dict) -> str:
+    """Public verification fields inside the signed PDF, without private identity."""
+    fields = {key: snapshot[key] for key in (
+        "report_uid", "revision_number", "computed_recommendation", "final_recommendation", "signed_at",
+    )}
+    fields["qp"] = f"{snapshot['qp_code']} v{snapshot['qp_version']}"
+    encoded = base64.urlsafe_b64encode(canonical_json(fields).encode()).decode().rstrip("=")
+    return PDF_METADATA_PREFIX + encoded
+
+
+def bound_metadata(pdf_bytes: bytes) -> dict | None:
+    """Read only our ASCII-only, PDF Info Subject encoding, after crypto validation.
+
+    Historical PDFs predate this binding and remain verifiable as documents.
+    This is deliberately not a parser for arbitrary uploaded PDF documents.
+    """
+    if PDF_METADATA_PREFIX.encode() not in pdf_bytes:
+        return None
+    match = re.search(rb"/Subject\s*\(PARAKH-REPORT-V1\.([A-Za-z0-9_-]+)\)", pdf_bytes)
+    if not match:
+        raise ValueError("invalid report metadata")
+    encoded = match.group(1)
+    result = json.loads(base64.urlsafe_b64decode(encoded + b"=" * (-len(encoded) % 4)))
+    if not isinstance(result, dict):
+        raise ValueError("invalid report metadata")
+    return result
 
 
 def canonical_json(data: dict) -> str:

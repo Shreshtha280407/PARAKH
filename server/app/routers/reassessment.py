@@ -54,7 +54,8 @@ def create_reassessment_request(
     reassessment request may be pending at a time (the server-side source
     of truth for 'which tasks are reopened' would otherwise be ambiguous
     while a prior request's revision is still unresolved)."""
-    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id)
+        .with_for_update().execution_options(populate_existing=True)).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
     if assessment.status not in ("in_review", "submitted"):
@@ -207,7 +208,10 @@ def get_worker_updates(
         latest_event_id = pending.id
 
     report = db.query(models.SignedReport).filter_by(assessment_id=assessment_id).one_or_none()
+    status_out = assessment.status
     if report is not None:
+        from ..report_outcomes import decision_for
+        status_out = decision_for(report.final_recommendation)
         report_status: schemas.ReportStatus = "available"
         latest_event_id = max(latest_event_id, report.id + 10_000_000)  # disjoint id space from reassessment_requests
     elif assessment.status in ("recommended", "needs_reassessment"):
@@ -216,7 +220,7 @@ def get_worker_updates(
         report_status = "none"
 
     return schemas.WorkerUpdatesOut(
-        assessment_id=assessment_id, assessment_status=assessment.status,
+        assessment_id=assessment_id, assessment_status=status_out,
         revision_number=revision_number_out, pending_reassessment_request=pending_out,
         report_status=report_status, latest_event_id=latest_event_id,
     )

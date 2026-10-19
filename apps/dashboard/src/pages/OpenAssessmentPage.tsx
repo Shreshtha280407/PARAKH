@@ -1,8 +1,8 @@
-import { humanize, qualificationName, readableTaskTitle } from "../presentation";
+import { humanize, qualificationName, readableTaskTitle, finalOutcomeLabel } from "../presentation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getReviewWorkspace, getCompetencyProfile,
-  publicAssessment, publicAssessmentSnapshot, updatePublicAssessmentSnapshot, startReview, rejectAssessment, reviewerReassessment,
-  reviewerSignOff, reportDownloadUrl, type PublicAssessment, type ReviewerAction } from "../api";
+  publicAssessment, publicAssessmentSnapshot, invalidatePublicQueue, startReview, rejectAssessment, reviewerReassessment,
+  reviewerSignOff, type PublicAssessment, type ReviewerAction } from "../api";
 import type { AssessmentOut, CriterionReviewItemOut, CompetencyProfileOut, SyncStatusOut } from "../types";
 import { EvidenceViewer as EvidencePreview } from "../components/EvidenceViewer";
 import { ReviewerConfirmation } from "../components/ReviewerConfirmation";
@@ -13,6 +13,7 @@ import { useAssessorSession } from '../components/AssessorSession';
 import { ApiError } from '../types';
 import { TaskScoring } from '../components/TaskScoring';
 import { AssessmentHistory } from '../components/AssessmentHistory';
+import { SignedReportPanel } from '../components/SignedReportPanel';
 import type { CompletedDecision } from '../components/DecisionComplete';
 
 const tabs = ['Overview', 'Evidence', 'Scoring', 'Decision', 'Audit & history'];
@@ -78,27 +79,28 @@ export function OpenAssessmentPage({ id, onCompleted }: { id: number; onComplete
   useEffect(() => { if (!account && loaded && summary?.id) setAccessOpen(true); }, [account, loaded, summary?.id]);
   async function confirmed(password: string) {
     const completedAction = action;
-    const finalRecommendation = recommendation || profile?.computed_outcome || '';
+    let finalRecommendation = recommendation || profile?.computed_outcome || '';
     if (action === "reject") {
-      await rejectAssessment(id, reason, password);
-      if (summary) updatePublicAssessmentSnapshot({...summary, status: 'not_recommended', review_status: 'not_recommended'});
+      const finalized = await rejectAssessment(id, reason, password);
+      finalRecommendation = finalized.signed_report?.final_recommendation || 'NOT_YET_COMPETENT';
     }
     if (action === "reassessment") {
       await reviewerReassessment(id, {task_codes: tasks, reason, capture_instructions: instructions}, password);
-      if (summary) updatePublicAssessmentSnapshot({...summary, status: 'needs_reassessment', review_status: 'needs_reassessment'});
+
     }
     if (action === "sign_off") {
       const signed = await reviewerSignOff(id, finalRecommendation, override, password);
-      if (summary) updatePublicAssessmentSnapshot({...summary, status: 'recommended', review_status: 'signed_off', report_available: true, report_id: signed.report_uid, outcome: signed.final_recommendation});
+      finalRecommendation = signed.final_recommendation;
     }
+    invalidatePublicQueue();
     setAction(undefined); setReason(""); setTasks([]); setInstructions(""); setAttested(false);
-    const title = completedAction === 'reject' ? 'Assessment marked not qualified' : completedAction === 'reassessment' ? 'Reassessment requested'
+    const title = completedAction === 'reject' ? 'Report signed — Not Recommended' : completedAction === 'reassessment' ? 'Reassessment requested'
       : finalRecommendation === 'RECOMMEND_CERTIFICATION' ? 'Report signed successfully'
       : finalRecommendation === 'NOT_YET_COMPETENT' ? 'Report signed — not yet qualified'
       : finalRecommendation === 'PARTIALLY_COMPETENT' ? 'Report signed — partially competent' : 'Report signed — more evidence needed';
     onCompleted({assessmentId: id, title, description: completedAction === 'reassessment'
       ? 'Your reassessment request and capture instructions have been saved for the worker.'
-      : completedAction === 'reject' ? 'Your decision and reason have been recorded.' : 'Your signed report and final recommendation have been saved.'});
+      : completedAction === 'reject' ? 'Your Not Recommended decision, reason and signed report have been saved.' : 'Your signed report and final recommendation have been saved.'});
   }
   async function refreshReview(begin = false) {
     setBusy(true); setError('');
@@ -120,7 +122,8 @@ export function OpenAssessmentPage({ id, onCompleted }: { id: number; onComplete
   }
   return <div className="page assessment-page">
     <div className="breadcrumb"><a href="#/queue">Queue</a> / {summary?.candidate_display_name ?? `Assessment #${id}`}</div>
-    <div className="pagehead"><div><h1>{summary?.candidate_display_name ?? `Assessment #${id}`}</h1><p className="sub">Assessment #{id} · {summary ? qualificationName(summary.pack_code, assessment?.pack_name || summary.pack_name) : 'Loading qualification…'}{summary && <small className="pack-reference">{summary.pack_code}</small>} · v{summary?.revision_number ?? '—'}</p></div>{summary && <StatusBadge value={summary.status} />}</div>
+    <div className="pagehead"><div><h1>{summary?.candidate_display_name ?? `Assessment #${id}`}</h1><p className="sub">Assessment #{id} · {summary ? qualificationName(summary.pack_code, assessment?.pack_name || summary.pack_name) : 'Loading qualification…'}{summary && <small className="pack-reference">{summary.pack_code}</small>} · v{summary?.revision_number ?? '—'}</p></div>{summary && <StatusBadge value={assessment?.signed_report ? finalOutcomeLabel(assessment.signed_report.final_recommendation) : assessment?.status ?? summary.status} />}</div>
+    {assessment?.signed_report && account && <SignedReportPanel assessmentId={id} report={assessment.signed_report} publicationConsent={assessment.public_outcome_consent} />}
     <div className="subnav" role="tablist" aria-label="Assessment sections">{tabs.map(value => <button key={value} id={`tab-${value.split(' ')[0]}`} role="tab" aria-selected={tab === value} aria-controls="assessment-panel" className={`subtab ${tab === value ? 'active' : ''}`} onClick={() => setTab(value)} onKeyDown={e => { const index = tabs.indexOf(value); if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); const next = tabs[(index + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; setTab(next); document.getElementById(`tab-${next.split(' ')[0]}`)?.focus(); } }}>{value}</button>)}</div>
     {error && <div className="notice error" role="alert">{error}<button className="secondary-button" onClick={() => setRetry(v => v + 1)}>Retry</button></div>}
     <div id="assessment-panel" role="tabpanel" aria-labelledby={`tab-${tab.split(' ')[0]}`}>
@@ -131,22 +134,22 @@ export function OpenAssessmentPage({ id, onCompleted }: { id: number; onComplete
       </div></section>
       {assessment && account && <><section className="card"><h2>Experience and qualification match</h2><div className="matchrow"><StatusBadge value={assessment.declared_match_result ?? 'not_recorded'} /><span className="coverage">{assessment.declared_coverage_fraction != null ? `${Math.round(Number(assessment.declared_coverage_fraction) * 100)}% declared-experience coverage` : 'Coverage not recorded'}</span></div><ul className="reasons">{assessment.declared_match_reasons?.map((line, i) => <li key={i}>{line}</li>)}</ul>{!assessment.declared_match_reasons && <p className="hint">Match reasons were not recorded for this submission.</p>}{!!assessment.declared_gap_task_codes?.length && <div className="gapbox">Extra evidence needed: {assessment.declared_gap_task_codes.map(code => displayTaskNames[code] ?? code).join(', ')}. Assessor attention is recommended on these tasks.</div>}</section>
       <section className="card"><h2>Sync &amp; package integrity</h2><div className="grid3"><div className="kv"><span className="k">Package uploaded</span><span className={`v ${sync?.all_items_verified ? 'good' : ''}`}>{sync?.all_items_verified ? '✓ All evidence verified' : 'Awaiting complete verification'}</span></div><div className="kv"><span className="k">Signed manifest</span><span className="v">{humanize(sync?.manifest_state ?? 'none')}</span></div><div className="kv"><span className="k">Total evidence size</span><span className="v">{mb(assessment.total_bytes_used)} of {mb(assessment.total_budget_bytes)}</span></div></div></section></>}
-      {summary.report_available && summary.report_id && <section className="card"><h2>Signed report</h2><p>{humanize(summary.outcome ?? summary.status)}</p><a className="openlink" href={`#/verify/${encodeURIComponent(summary.report_id)}`}>Verify report</a></section>}
+      {!assessment?.signed_report && summary.report_available && summary.report_id && <section className="card"><h2>Signed report</h2><p>{humanize(summary.outcome ?? summary.status)}</p><a className="openlink" href={`#/verify/${encodeURIComponent(summary.report_id)}`}>Verify report</a></section>}
     </>}
     {(!assessment || !account) && <section className="card access-card" aria-busy={loading}><h2>{tab === 'Overview' ? 'Assessor review' : `Open ${tab.toLowerCase()}`}</h2><p role={loading ? 'status' : undefined}>{loading ? 'Loading evidence and scoring workspace…' : 'Enter your assessor details to review evidence and score this assessment.'}</p><button disabled={!loaded || busy || loading} onClick={() => { if (account) void refreshReview(); else setAccessOpen(true); }}>{loading ? 'Loading assessment…' : account ? 'Load assessment' : 'Enter assessor details'}</button><p className="hint">Signing, rejection and reassessment suggestions require your password again. Reports are assessor recommendations, not official NCVET/MSDE certificates.</p></section>}
     {assessment && account && <>
       <div className="panel-actions review-actions"><span className="hint">Reviewing as {account.name} · {account.email}</span><button className="secondary-button" disabled={busy} onClick={() => void refreshReview()}>Refresh review</button>{assessment.status === 'submitted' && <button disabled={busy} onClick={() => void refreshReview(true)}>Start review</button>}</div>
       {tab === 'Evidence' && <div className="evidence-workspace"><aside className="task-menu" aria-label="Evidence tasks">{assessment.tasks.map(t => <button key={t.task_code} className={task?.task_code === t.task_code ? 'active' : ''} aria-pressed={task?.task_code === t.task_code} onClick={() => setTaskCode(t.task_code)}>{displayTaskNames[t.task_code] ?? t.task_code} <small className="task-index">{t.task_code}</small></button>)}</aside><section>{task && <><h2>{displayTaskNames[task.task_code]} <small className="task-index">{task.task_code}</small></h2><p className="sub">{task.evidence.length} evidence item(s) · {mb(task.bytes_used)} of {mb(task.budget_bytes)}</p><ul className="evidence-gallery">{task.evidence.map(item => <EvidencePreview key={item.id} assessmentId={id} evidence={item} />)}</ul>{!task.evidence.length && <div className="empty-state"><h2>No evidence submitted for this task.</h2></div>}<section className="card" style={{marginTop: 20}}><h2>Evidence quality assistance</h2><p className="hint">On-device advisory signals appear with each recording. Decision support only — the assessor decides every score and outcome.</p></section></>}</section></div>}
       <TaskScoring assessmentId={id} items={review} profile={profile} editable={canReview} visible={tab === 'Scoring'} onSaved={scoreSaved} onConflict={() => void refreshReview()} onViewEvidence={code => { setTaskCode(code); setTab('Evidence'); }} />
-      {tab === 'Decision' && <><section className="card"><h2>Reassessment</h2><p>Reopen specific tasks and send the worker clear instructions for new evidence.</p><button disabled={!canReview} onClick={() => setAction('reassessment')}>Request targeted reassessment</button></section><section className="card"><h2>Sign off</h2><p>{profile ? humanize(profile.computed_outcome) : 'Load the competency profile to continue.'}</p>{!allScored && <div className="gapbox">Confirm every performance criterion, including any reopened scores, before signing a report.</div>}<label className="checkbox-label"><input type="checkbox" checked={attested} onChange={e => setAttested(e.target.checked)} />I have reviewed all evidence and scores and confirm this outcome.</label><div className="panel-actions"><button disabled={!canReview || !allScored || !attested} onClick={() => setAction('sign_off')}>Approve and sign report</button><button className="danger-button" disabled={!canReview} onClick={() => setAction('reject')}>Reject / do not recommend</button></div></section><section className="card"><h2>Signed report</h2>{summary?.report_available && summary.report_id ? <><p className="mono">{summary.report_id}</p><div className="panel-actions"><a className="button" href={reportDownloadUrl(id, 'pdf')} target="_blank" rel="noreferrer">Download private signed report</a><a className="openlink" href={`#/verify/${encodeURIComponent(summary.report_id)}`}>View public verification →</a></div></> : <p className="hint">A signed report will appear after the assessor completes sign-off.</p>}</section></>}
+      {tab === 'Decision' && <><section className="card"><h2>Reassessment</h2><p>Reopen specific tasks and send the worker clear instructions for new evidence.</p><button disabled={!canReview} onClick={() => setAction('reassessment')}>Request targeted reassessment</button></section><section className="card"><h2>Sign off</h2><p>{profile ? humanize(profile.computed_outcome) : 'Load the competency profile to continue.'}</p>{!allScored && <div className="gapbox">Confirm every performance criterion, including any reopened scores, before signing a report.</div>}<label className="checkbox-label"><input type="checkbox" checked={attested} onChange={e => setAttested(e.target.checked)} />I have reviewed all evidence and scores and confirm this outcome.</label><div className="panel-actions"><button disabled={!canReview || !allScored || !attested} onClick={() => setAction('sign_off')}>Finalize and sign report</button><button className="danger-button" disabled={!canReview} onClick={() => setAction('reject')}>Reject / do not recommend</button></div></section>{!assessment.signed_report && <section className="card"><h2>Signed report</h2><p className="hint">{['recommended', 'not_recommended'].includes(assessment.status) ? 'Legacy finalized decision — no signed report was issued. A historical signature cannot be fabricated; arrange an authorized new assessment if a signed report is required.' : 'No signed report yet. Final positive and negative decisions issue signed reports; targeted reassessment remains open.'}</p></section>}</>}
       <AssessmentHistory assessmentId={id} visible={tab === 'Audit & history'} refreshKey={historyVersion} taskNames={displayTaskNames} />
     </>}
     </div>
     {accessOpen && !account && <AssessorAccess onClose={() => setAccessOpen(false)} />}
-    {action && account && <ReviewerConfirmation id={id} action={action} onConfirmed={confirmed} onCancel={() => setAction(undefined)} ready={action === 'reject' ? reason.trim().length >= 3 : action === 'reassessment' ? tasks.length > 0 && !!reason.trim() && !!instructions.trim() : action === 'sign_off' ? allScored && attested && (!overrideNeeded || !!override.trim()) : true}>
+    {action && account && <ReviewerConfirmation id={id} action={action} onConfirmed={confirmed} onCancel={() => setAction(undefined)} ready={action === 'reject' ? reason.trim().length >= 3 : action === 'reassessment' ? tasks.length > 0 && !!reason.trim() && !!instructions.trim() : action === 'sign_off' ? allScored && attested && (recommendation || profile?.computed_outcome) !== 'INSUFFICIENT_EVIDENCE' && (!overrideNeeded || !!override.trim()) : true}>
       {(action === 'reject' || action === 'reassessment') && <label>Reason / remarks (required)<textarea required maxLength={4000} value={reason} onChange={e => setReason(e.target.value)} /></label>}
       {action === 'reassessment' && <><fieldset><legend>Tasks requiring reassessment</legend>{assessment?.tasks.map(t => <label key={t.task_code}><input type="checkbox" checked={tasks.includes(t.task_code)} onChange={e => setTasks(previous => e.target.checked ? [...previous, t.task_code] : previous.filter(code => code !== t.task_code))} />{displayTaskNames[t.task_code] ?? t.task_code} <small className="task-index">{t.task_code}</small></label>)}</fieldset><label>What to capture (required)<textarea required maxLength={4000} value={instructions} onChange={e => setInstructions(e.target.value)} /></label></>}
-      {action === 'sign_off' && <><label>Decision<select value={recommendation || profile?.computed_outcome || ''} onChange={e => setRecommendation(e.target.value)}>{['RECOMMEND_CERTIFICATION', 'PARTIALLY_COMPETENT', 'NOT_YET_COMPETENT', 'INSUFFICIENT_EVIDENCE'].map(value => <option key={value} value={value}>{humanize(value)}</option>)}</select></label><label>Override reason (required when changing computed outcome)<textarea required={overrideNeeded} value={override} onChange={e => setOverride(e.target.value)} /></label></>}
+      {action === 'sign_off' && <><label>Decision<select value={recommendation || profile?.computed_outcome || ''} onChange={e => setRecommendation(e.target.value)}><option value="INSUFFICIENT_EVIDENCE" disabled>Needs reassessment — insufficient evidence</option>{['RECOMMEND_CERTIFICATION', 'PARTIALLY_COMPETENT', 'NOT_YET_COMPETENT'].map(value => <option key={value} value={value}>{finalOutcomeLabel(value)} — {humanize(value)}</option>)}</select></label><label>Override reason (required when changing computed outcome)<textarea required={overrideNeeded} value={override} onChange={e => setOverride(e.target.value)} /></label></>}
     </ReviewerConfirmation>}
   </div>;
 }

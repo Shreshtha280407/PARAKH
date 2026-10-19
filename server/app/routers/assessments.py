@@ -1,4 +1,5 @@
 import datetime
+import hmac
 
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -22,6 +23,35 @@ from ..reviewer_identity import identity
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 _bearer = HTTPBearer(auto_error=False)
+
+
+@router.put("/{assessment_id}/public-outcome-consent", response_model=schemas.PublicOutcomeConsentOut)
+def public_outcome_consent(assessment_id: int, body: schemas.PublicOutcomeConsentIn,
+                           x_worker_token: str | None = Header(default=None), db: Session = Depends(get_db)):
+    """Candidate-only opt-in/revocation. Name consent never implies outcome consent.
+
+    The consent disclosure must explain that the final outcome, qualification,
+    report ID and date become publicly searchable, including adverse outcomes.
+    Existing Android enrollment/submission payloads need no change.
+    """
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id)
+                            .with_for_update().execution_options(populate_existing=True)).scalar_one_or_none()
+    if assessment is None:
+        raise HTTPException(404, "assessment not found")
+    if (assessment.worker_token_status != "active" or not x_worker_token
+            or not hmac.compare_digest(hash_worker_token(x_worker_token), assessment.worker_token_hash)):
+        raise HTTPException(401, "requires this assessment's active X-Worker-Token")
+    if assessment.provenance != "candidate-v1":
+        raise HTTPException(409, "public listing requires a candidate enrollment")
+    assessment.public_outcome_consent = body.consent
+    assessment.public_outcome_consent_version = body.consent_version
+    assessment.public_outcome_consent_recorded_at = models.utcnow()
+    _audit(db, assessment_id, None, "worker", "public_outcome_consent_changed", {
+        "consent": body.consent, "consent_version": body.consent_version,
+    })
+    db.commit()
+    return schemas.PublicOutcomeConsentOut(consent=assessment.public_outcome_consent,
+        consent_version=assessment.public_outcome_consent_version, recorded_at=assessment.public_outcome_consent_recorded_at)
 
 
 def _assessor_or_worker_token(
@@ -188,6 +218,9 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
     ).filter_by(id=assessment.id).populate_existing().one()
     pack = db.get(models.QualificationPack, assessment.pack_id)
     worker_user = db.get(models.User, assessment.worker_id)
+    from .reports import _report_out
+    from ..report_outcomes import decision_for
+    report = db.query(models.SignedReport).filter_by(assessment_id=assessment.id).one_or_none()
     revision_number_by_id, current_pairs = _evidence_currency(db, assessment)
 
     def _evidence_out(e: models.EvidenceItem, task_code: str) -> schemas.EvidenceReceiptOut:
@@ -209,13 +242,13 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
         pack_id=assessment.pack_id,
         pack_code=pack.qp_code,
         pack_name=pack.qp_name,
-        status=assessment.status,
+        status=decision_for(report.final_recommendation) if report else assessment.status,
         assessor_id=assessment.assessor_id,
         total_bytes_used=assessment.total_bytes_used,
         total_budget_bytes=pack.final_evidence_budget_bytes,
         created_at=assessment.created_at,
         submitted_at=assessment.submitted_at,
-        decision=assessment.decision,
+        decision=decision_for(report.final_recommendation) if report else assessment.decision,
         decision_notes=assessment.decision_notes,
         reassessment_of_id=assessment.reassessment_of_id,
         declared_match_result=assessment.declared_match_result,
@@ -224,6 +257,8 @@ def _assessment_out(db: Session, assessment: models.Assessment) -> schemas.Asses
         declared_match_reasons=assessment.declared_match_reasons,
         current_revision_id=assessment.current_revision_id,
         revision_number=assessment.revision_number,
+        signed_report=_report_out(report) if report else None,
+        public_outcome_consent=assessment.public_outcome_consent,
         tasks=[
             schemas.AssessmentTaskOut(
                 task_code=t.task_code,

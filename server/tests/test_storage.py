@@ -64,3 +64,12 @@ def test_extension_for_mime_covers_the_allow_list():
     assert extension_for_mime("video/mp4") == ".mp4"
     assert extension_for_mime("video/webm") == ".webm"
     assert extension_for_mime("application/octet-stream") == ".bin"
+def test_signed_object_write_once_never_replaces_bytes(tmp_path):
+    from server.app.storage import LocalDiskStorage
+    import pytest
+    storage = LocalDiskStorage(tmp_path)
+    storage.write_once('reports/one.pdf', b'original signed PDF')
+    with pytest.raises(FileExistsError):
+        storage.write_once('reports/one.pdf', b'replacement PDF')
+    assert storage.read('reports/one.pdf') == b'original signed PDF'
+    assert not list((tmp_path / 'reports').glob('.report-*'))

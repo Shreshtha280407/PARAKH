@@ -24,6 +24,7 @@ from ..auth import require_assessor, verify_password
 from ..config import settings
 from ..db import get_db
 from ..reviewer_identity import identity
+from ..report_outcomes import decision_for, outcome_label
 from . import uploads
 from .assessments import _assessor_or_worker_token, _audit
 from .scoring import _rubric_rows, get_computed_outcome
@@ -68,7 +69,7 @@ def _report_snapshot(
             "score_level": score.score_level if score else None,
             "evidence_status": score.evidence_status if score else None,
             "assessor_comment": score.assessor_comment if score else None,
-            "marks_awarded": str(score.marks_awarded) if score and score.scored_at is not None else "0.00",
+            "marks_awarded": str(score.marks_awarded) if score and score.scored_at is not None else None,
             "revision_number": score.revision_number if score else None,
         })
 
@@ -195,6 +196,10 @@ def _render_pdf(data: dict) -> bytes:
     # greppable -- useful for debugging/audit, and lets tests assert on
     # real PDF content instead of only magic bytes.
     c = canvas.Canvas(buf, pagesize=A4, pageCompression=0)
+    # The public outcome metadata is now covered by the PDF signature as well.
+    # Historical render-test snapshots may omit signing time; keep them valid.
+    if data.get("signed_at"):
+        c.setSubject(report_signing.pdf_metadata(data))
     width, height = A4
     margin = 50
 
@@ -234,7 +239,7 @@ def _render_pdf(data: dict) -> bytes:
 
     y = height - margin
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(margin, y, "KaushalPramaan -- NSQF-Aligned Competency Profile")
+    c.drawString(margin, y, "PARAKH -- NSQF-Aligned Competency Profile")
     y -= 16
     c.setFont("Helvetica-Bold", 9)
     c.drawString(margin, y, data["disclaimer"])
@@ -308,10 +313,11 @@ def _render_pdf(data: dict) -> bytes:
             y = _new_page_if_needed(y)
             crit = " [CRITICAL]" if pc["critical"] else ""
             rev = f" (v{pc['revision_number']})" if pc["revision_number"] else ""
+            marks = pc['marks_awarded'] if pc['marks_awarded'] is not None else 'not scored'
             c.drawString(
                 margin + 8, y,
                 f"{pc['pc_full_id']}{crit}  level={pc['score_level']}  status={pc['evidence_status']}  "
-                f"marks={pc['marks_awarded']}/{pc['max_marks']}{rev}",
+                f"marks={marks}/{pc['max_marks']}{rev}",
             )
             y -= 9
             if pc["assessor_comment"]:
@@ -324,6 +330,8 @@ def _render_pdf(data: dict) -> bytes:
     y = _new_page_if_needed(y, 100)
     c.setFont("Helvetica-Bold", 10)
     c.drawString(margin, y, "Recommendation")
+    y -= 13
+    c.drawString(margin, y, f"Final outcome: {outcome_label(data['final_recommendation'])}")
     y -= 13
     c.setFont("Helvetica", 8.5)
     c.drawString(margin, y, f"Computed: {data['computed_recommendation']}    Final (assessor): {data['final_recommendation']}")
@@ -374,7 +382,8 @@ def _render_pdf(data: dict) -> bytes:
     c.drawString(margin, y, "Assessor sign-off")
     y -= 13
     c.setFont("Helvetica", 8.5)
-    c.drawString(margin, y, f"Assessor: {data['assessor_name']}    Signing date: {datetime.datetime.now(datetime.timezone.utc).date().isoformat()}")
+    signing_date = data['signed_at'][:10] if data.get('signed_at') else 'not recorded'
+    c.drawString(margin, y, f"Assessor: {data['assessor_name']}    Signing date: {signing_date}")
     y -= 12
     reviewer = data.get("reviewer_identity", {})
     c.drawString(margin, y, f"Email ownership verified: {reviewer.get('email_verified', False)}; name is self-declared.")
@@ -412,106 +421,114 @@ def _report_out(report: models.SignedReport) -> schemas.SignedReportOut:
     )
 
 
-def _sign_off_authorized(
-    assessment_id: int,
-    body: schemas.SignOffIn,
-    db: Session = Depends(get_db),
-    user: models.User = Depends(require_assessor),
-) -> schemas.SignedReportOut:
-    """Password-confirmed final sign-off: records the assessor's final
-    recommendation (optionally overriding the computed one, with a mandatory
-    reason) and produces the one, immutable, Ed25519-signed PDF for this
-    assessment. Idempotent -- a retry after the first success returns the
-    exact same signed artifact, never resigns. Never logs/stores the
-    password itself."""
-    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
+def verify_stored_report(report: models.SignedReport) -> tuple[bool, dict | None]:
+    """Fail closed for unreadable/tampered artifacts and mismatched bound metadata."""
+    try:
+        pdf = uploads._storage.read(report.pdf_storage_key)
+        if not report_signing.verify_pdf(pdf, report.pdf_sha256, report.signature, report.key_id):
+            return False, None
+        metadata = report_signing.bound_metadata(pdf)
+        if metadata is not None:
+            signed_at = report.signed_at
+            if signed_at.tzinfo is None:
+                signed_at = signed_at.replace(tzinfo=datetime.timezone.utc)
+            expected = {
+                "report_uid": report.report_uid, "revision_number": report.revision_number,
+                "computed_recommendation": report.computed_recommendation,
+                "final_recommendation": report.final_recommendation, "signed_at": signed_at.isoformat(),
+            }
+            if any(metadata.get(key) != value for key, value in expected.items()):
+                return False, None
+        return True, metadata
+    except Exception:
+        # A missing object or unavailable key/storage must never verify by default.
+        return False, None
+
+
+def _finalize_authorized(assessment_id: int, body, db: Session, user, *, rejection_reason: str | None = None,
+                         decision_notes: str | None = None):
+    """One locked transaction for positive sign-off, negative sign-off or rejection.
+
+    Routes authenticate, authorize, check CSRF and re-confirm the password BEFORE
+    entering here, including retries. A unique report constraint and the same
+    assessment row lock used by scoring/reassessment serialize all finalizers.
+    """
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id)
+        .with_for_update().execution_options(populate_existing=True)).scalar_one_or_none()
     if assessment is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
-
-    # Lock before any read that influences what gets signed, so a
-    # concurrent score PUT or a second concurrent sign-off call can't
-    # interleave with this one and produce a report for an inconsistent
-    # snapshot (see docs/gates/P7.md section 5).
-    db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update())
-
-    # Password re-entry is validated on EVERY call, including an idempotent
-    # retry against an already-signed report -- "password-confirmed"
-    # means every sign-off request proves the password, not just the one
-    # that happens to create the report.
+        raise HTTPException(404, "assessment not found")
     existing = db.query(models.SignedReport).filter_by(assessment_id=assessment_id).one_or_none()
     if existing is not None:
+        if existing.final_recommendation != body.final_recommendation:
+            raise HTTPException(409, "a report already finalized a different outcome; it cannot be replaced")
+        # Retries return the exact original artifact. Reasons and snapshots are
+        # never changed by a repeated request, and old records are not rewritten.
         return _report_out(existing)
-
     if assessment.status != "in_review":
-        raise HTTPException(
-            status.HTTP_409_CONFLICT,
-            f"cannot sign off: assessment is '{assessment.status}', not 'in_review'",
-        )
-
-    pending_request = (
-        db.query(models.ReassessmentRequest)
-        .filter_by(assessment_id=assessment_id, status="pending")
-        .one_or_none()
-    )
-    if pending_request is not None:
-        raise HTTPException(
-            status.HTTP_409_CONFLICT,
-            "cannot sign off: a reassessment request is still pending resubmission",
-        )
-
-    stale_score = (
-        db.query(models.AssessmentCriterionScore)
-        .filter_by(assessment_id=assessment_id, needs_review=True)
-        .first()
-    )
-    if stale_score is not None:
-        raise HTTPException(
-            status.HTTP_409_CONFLICT,
-            f"cannot sign off: PC '{stale_score.pc.full_id}' was reopened for reassessment and has not "
-            "been re-reviewed since -- score it again before signing off",
-        )
-
+        raise HTTPException(409, f"cannot sign off: assessment is '{assessment.status}', not 'in_review'")
+    if db.query(models.ReassessmentRequest).filter_by(assessment_id=assessment_id, status="pending").first():
+        raise HTTPException(409, "cannot sign off: a reassessment request is still pending resubmission")
+    stale = db.query(models.AssessmentCriterionScore).filter_by(assessment_id=assessment_id, needs_review=True).first()
+    if stale:
+        raise HTTPException(409, f"cannot sign off: PC '{stale.pc.full_id}' was reopened for reassessment; score it again")
+    if body.final_recommendation == "INSUFFICIENT_EVIDENCE":
+        raise HTTPException(409, "insufficient evidence requires the reassessment workflow, not a final report")
+    if rejection_reason is None:
+        rubric = _rubric_rows(db, assessment.pack_id)
+        scores = {s.pc_id: s for s in db.query(models.AssessmentCriterionScore).filter_by(assessment_id=assessment_id)}
+        if not rubric or any(pc.id not in scores or scores[pc.id].scored_at is None for _, pc, _ in rubric):
+            raise HTTPException(409, "every performance criterion must be human-confirmed before sign-off")
     computed = get_computed_outcome(db, assessment)
-    if body.final_recommendation != computed.outcome and not (body.override_reason and body.override_reason.strip()):
-        raise HTTPException(
-            422, "override_reason is required when final_recommendation differs from the computed outcome",
-        )
-
+    override_reason = body.override_reason.strip() if body.override_reason else None
+    if body.final_recommendation != computed.outcome and not override_reason:
+        raise HTTPException(422, "override_reason is required when final_recommendation differs from the computed outcome")
     now = datetime.datetime.now(datetime.timezone.utc)
-    assessment.status = "recommended"
-    assessment.decision = "recommended"
-    assessment.decided_by_id = user.id
-    assessment.decided_at = now
-    assessment.decision_reviewer_identity = identity(user)
+    try:
+        assessment.status = assessment.decision = decision_for(body.final_recommendation)
+        assessment.decided_by_id = user.id
+        assessment.decided_at = now
+        assessment.decision_reviewer_identity = identity(user)
+        if rejection_reason is not None:
+            assessment.decision_notes = rejection_reason.strip()
+        elif decision_notes is not None:
+            assessment.decision_notes = decision_notes
+        report_uid = secrets.token_urlsafe(16)
+        verify_url = f"{settings.report_verify_base_url.rstrip('/')}/#/verify/{report_uid}"
+        snapshot = _report_snapshot(db, assessment, computed, body.final_recommendation, override_reason,
+                                    user, report_uid, verify_url)
+        snapshot["finalization_action"] = "rejected" if rejection_reason is not None else "signed_off"
+        pdf = _render_pdf(snapshot)
+        pdf_sha256, signature, key_id = report_signing.sign_pdf(pdf)
+        pdf_key = f"reports/{report_uid}.pdf"
+        report = models.SignedReport(assessment_id=assessment_id, report_uid=report_uid,
+            revision_number=assessment.revision_number, canonical_json=report_signing.canonical_json(snapshot),
+            pdf_storage_key=pdf_key, pdf_sha256=pdf_sha256, signature=signature, key_id=key_id,
+            computed_recommendation=computed.outcome, final_recommendation=body.final_recommendation,
+            override_reason=override_reason, signed_by_id=user.id, reviewer_identity=identity(user), signed_at=now)
+        db.add(report)
+        db.flush()  # Reserve both unique identifiers before any storage write.
+        uploads._storage.write_once(pdf_key, pdf)
+        if not report_signing.verify_pdf(uploads._storage.read(pdf_key), pdf_sha256, signature, key_id):
+            raise ValueError("stored report integrity check failed")
+        details = {"reviewer_identity": identity(user), "computed_recommendation": computed.outcome,
+            "final_recommendation": body.final_recommendation, "decision": assessment.decision,
+            "override_reason": override_reason, "report_uid": report_uid, "revision_number": assessment.revision_number}
+        if rejection_reason is not None:
+            _audit(db, assessment_id, user.id, user.role, "rejected", details={**details, "reason": rejection_reason.strip(), "task_codes": []})
+        _audit(db, assessment_id, user.id, user.role, "signed_off", details=details)
+        db.commit()
+        db.refresh(report)
+        return _report_out(report)
+    except Exception:
+        db.rollback()
+        # Keep any newly written orphan PRIVATE. A commit acknowledgement can
+        # be ambiguous; deleting here could destroy an actually committed PDF.
+        # A confirmed retry returns the committed report, or creates a new UID.
+        raise HTTPException(503, "report finalization could not be confirmed; retry with your password") from None
 
-    report_uid = secrets.token_urlsafe(16)
-    verify_url = f"{settings.report_verify_base_url.rstrip('/')}/#/verify/{report_uid}"
-    snapshot = _report_snapshot(
-        db, assessment, computed, body.final_recommendation, body.override_reason, user, report_uid, verify_url,
-    )
 
-    pdf_bytes = _render_pdf(snapshot)
-    pdf_sha256, signature, key_id = report_signing.sign_pdf(pdf_bytes)
-    pdf_key = f"reports/{report_uid}.pdf"
-    uploads._storage.write(pdf_key, pdf_bytes)
-
-    report = models.SignedReport(
-        assessment_id=assessment_id, report_uid=report_uid, revision_number=assessment.revision_number,
-        canonical_json=report_signing.canonical_json(snapshot), pdf_storage_key=pdf_key,
-        pdf_sha256=pdf_sha256, signature=signature, key_id=key_id,
-        computed_recommendation=computed.outcome, final_recommendation=body.final_recommendation,
-        override_reason=body.override_reason, signed_by_id=user.id,
-        reviewer_identity=identity(user),
-    )
-    db.add(report)
-    _audit(db, assessment_id, actor_user_id=user.id, actor_role=user.role, action="signed_off", details={
-        "reviewer_identity": identity(user),
-        "computed_recommendation": computed.outcome, "final_recommendation": body.final_recommendation,
-        "override_reason": body.override_reason, "report_uid": report_uid, "revision_number": assessment.revision_number,
-    })
-    db.commit()
-    db.refresh(report)
-    return _report_out(report)
+def _sign_off_authorized(assessment_id: int, body, db: Session, user):
+    return _finalize_authorized(assessment_id, body, db, user)
 
 
 @router.post("/assessments/{assessment_id}/sign-off", response_model=schemas.SignedReportOut, status_code=201)
@@ -542,7 +559,7 @@ def download_report(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "no signed report exists yet for this assessment")
 
     if format == "json":
-        return Response(content=report.canonical_json, media_type="application/json")
+        return Response(content=report.canonical_json, media_type="application/json", headers={"Cache-Control": "private, no-store"})
 
     if format == "receipt":
         import json as _json
@@ -553,12 +570,19 @@ def download_report(
             "signature": report.signature, "key_id": report.key_id,
             "signed_at": report.signed_at.isoformat(),
         }
-        return Response(content=_json.dumps(receipt, indent=2), media_type="application/json")
+        return Response(content=_json.dumps(receipt, indent=2), media_type="application/json", headers={"Cache-Control": "private, no-store"})
 
+    valid, _ = verify_stored_report(report)
+    if not valid:
+        raise HTTPException(409, "stored signed report failed verification; download is unavailable")
     pdf_bytes = uploads._storage.read(report.pdf_storage_key)
+    # Validate the exact bytes served, including a replacement between reads.
+    if not report_signing.verify_pdf(pdf_bytes, report.pdf_sha256, report.signature, report.key_id):
+        raise HTTPException(409, "stored signed report failed verification")
     return Response(
         content=pdf_bytes, media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="assessment-{assessment_id}-report-v{report.revision_number}.pdf"'},
+        headers={"Content-Disposition": f'attachment; filename="assessment-{assessment_id}-report-v{report.revision_number}.pdf"',
+                 "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"},
     )
 
 
@@ -572,8 +596,7 @@ def verify_report(assessment_id: int, db: Session = Depends(get_db)) -> schemas.
     if report is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "no signed report exists for this assessment")
 
-    pdf_bytes = uploads._storage.read(report.pdf_storage_key)
-    valid = report_signing.verify_pdf(pdf_bytes, report.pdf_sha256, report.signature, report.key_id)
+    valid, _ = verify_stored_report(report)
     return schemas.ReportVerifyOut(
         assessment_id=assessment_id, valid=valid, key_id=report.key_id, signed_at=report.signed_at,
     )

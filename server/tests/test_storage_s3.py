@@ -251,3 +251,11 @@ def test_missing_object_reports_absent_rather_than_raising(storage):
     key = upload_key_for(1, "T1", 12)
     assert not storage.exists(key)
     assert storage.size(key) == 0
+def test_signed_object_conditional_put_prevents_overwrite(storage):
+    from botocore.exceptions import ClientError
+    import pytest
+    storage.write_once('reports/one.pdf', b'original signed PDF')
+    with pytest.raises(ClientError) as error:
+        storage.write_once('reports/one.pdf', b'replacement PDF')
+    assert error.value.response['ResponseMetadata']['HTTPStatusCode'] == 412
+    assert storage.read('reports/one.pdf') == b'original signed PDF'

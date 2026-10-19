@@ -184,12 +184,12 @@ try {
   await page.getByRole("button",{name:"Refresh review"}).click();
   await page.getByRole("tab",{name:"Decision",exact:true}).click();
   await page.getByRole("checkbox",{name:/I have reviewed all evidence/}).check();
-  await page.getByRole("button",{name:"Approve and sign report"}).click();
+  await page.getByRole("button",{name:"Finalize and sign report"}).click();
   await confirm(page,a.id,"sign_off",undefined,true);
   await page.getByRole('dialog', {name:'Report signed successfully',exact:true}).waitFor();
   await page.getByRole('heading', {name:'Assessment queue',exact:true}).waitFor();
   await page.goto(`${base}/#/assessments/${a.id}`);
-  await page.getByRole("tabpanel").getByRole("link",{name:"Verify report",exact:true}).click();
+  await page.getByRole("region",{name:"Signed assessment report"}).getByRole("link",{name:"Verify Report",exact:false}).click();
   await page.getByText(/Signature verified/).first().waitFor();
   pass("Human-confirmed scores, wrong-password rejection, password signing and public QR verification");
   const b=await enroll("Consenting Candidate",true); await submit(b);
@@ -223,10 +223,10 @@ try {
   await confirm(page,c.id,"reject",async dialog=>{
     await dialog.getByLabel("Reason / remarks (required)").fill("Safety could not be demonstrated.");
   },true);
-  await page.getByRole('dialog', {name:'Assessment marked not qualified',exact:true}).waitFor();
+  await page.getByRole('dialog', {name:'Report signed — Not Recommended',exact:true}).waitFor();
   await page.getByRole('heading', {name:'Assessment queue',exact:true}).waitFor();
   await page.goto(`${base}/#/assessments/${c.id}`);
-  await page.getByText(/Review: not_recommended/).waitFor();
+  await page.getByRole("region",{name:"Signed assessment report"}).getByText("Not Recommended",{exact:true}).waitFor();
   pass("Rejection requires verified authorization, explicit confirmation and remarks");
   await page.getByRole('button',{name:'Sign out',exact:true}).click();
   await page.getByRole('dialog',{name:'Assessor details'}).waitFor();

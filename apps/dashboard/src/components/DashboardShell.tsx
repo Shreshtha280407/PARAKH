@@ -30,5 +30,5 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 }
 
 export function StatusBadge({ value }: { value: string }) {
-  return <span className={`status status-${value.toLowerCase()}`}>{humanize(value)}</span>;
+  return <span className={`status status-${value.toLowerCase().replaceAll(' ', '_')}`}>{humanize(value)}</span>;
 }

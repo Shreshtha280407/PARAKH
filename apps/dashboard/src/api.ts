@@ -187,7 +187,7 @@ export function verifyReport(id: number): Promise<ReportVerifyOut> {
  * points at (see routers/verify.py). No credentials sent on purpose: this
  * must work for an arbitrary third party, not just a logged-in assessor. */
 export function publicVerify(reportId: string): Promise<PublicVerifyOut> {
-  return fetch(`${BASE_URL}/verify/${encodeURIComponent(reportId)}`).then(async (res) => {
+  return fetch(`${BASE_URL}/verify/${encodeURIComponent(reportId)}`, {credentials:'omit',cache:'no-store'}).then(async (res) => {
     if (!res.ok) {
       let detail = res.statusText;
       try {
@@ -293,6 +293,7 @@ export interface PublicAssessment {
   id: number; candidate_display_name: string; pack_code: string; pack_name?: string; submitted_at: string;
   status: string; tasks_completed: number; tasks_total: number; review_status: string;
   revision_number: number; report_available: boolean; report_id: string | null; outcome: string | null;
+  report_issued_at?: string | null;
 }
 export type ReviewerAction = "review" | "reject" | "reassessment" | "sign_off";
 const publicQueueCache = new Map<number | undefined, PublicAssessment[]>();
@@ -301,9 +302,7 @@ export function publicQueueSnapshot(beforeId?: number): PublicAssessment[] | und
 export function publicAssessmentSnapshot(id: number): PublicAssessment | undefined {
   for (const items of publicQueueCache.values()) { const item = items.find(row => row.id === id); if (item) return item; }
 }
-export function updatePublicAssessmentSnapshot(item: PublicAssessment): void {
-  for (const [page, items] of publicQueueCache) publicQueueCache.set(page, items.map(row => row.id === item.id ? item : row));
-}
+
 export function publicAssessments(beforeId?: number): Promise<PublicAssessment[]> {
   const pending = publicQueueInFlight.get(beforeId);
   if (pending) return pending;
@@ -313,6 +312,13 @@ export function publicAssessments(beforeId?: number): Promise<PublicAssessment[]
   publicQueueInFlight.set(beforeId, promise);
   return promise;
 }
+export function publicReports(beforeId?: number): Promise<PublicAssessment[]> {
+  return request(`/public/reports${beforeId ? `?before_id=${beforeId}` : ''}`, {cache:'no-store'});
+}
+export function reviewerQueue(beforeId?: number): Promise<PublicAssessment[]> {
+  return request(`/reviewer/queue${beforeId ? `?before_id=${beforeId}` : ''}`, {cache:'no-store'});
+}
+export function invalidatePublicQueue(): void { publicQueueCache.clear(); }
 export interface ReviewWorkspace { assessment: AssessmentOut; review: CriterionReviewItemOut[]; profile: CompetencyProfileOut; sync: SyncStatusOut }
 export interface ReviewHistory { revisions: AssessmentRevisionOut[]; requests: ReassessmentRequestOut[]; audit: AuditLogEntryOut[] }
 export function getReviewWorkspace(id: number): Promise<ReviewWorkspace> { return request(`/reviewer/assessments/${id}/workspace`); }

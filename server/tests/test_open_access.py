@@ -142,19 +142,15 @@ def test_scopes_csrf_expiry_and_live_permission(client, imported_pack, mailbox, 
     assert client.get(f"/reviewer/assessments/{a['id']}").status_code == 401
 
 
-def test_rejection_records_verified_actor_and_revision(client, imported_pack, mailbox, db_session):
+def test_legacy_email_rejection_cannot_bypass_password_finalization(client, imported_pack, mailbox, db_session):
     a, _ = submitted(client)
     review_headers = authorize(client, mailbox, a["id"])
     client.post(f"/reviewer/assessments/{a['id']}/start-review", headers=review_headers)
     headers = authorize(client, mailbox, a["id"], "reject")
     response = client.post(f"/reviewer/assessments/{a['id']}/reject", json={"reason": "Safety not demonstrated", "confirmed": True}, headers=headers)
-    assert response.status_code == 200, response.text
-    event = db_session.query(models.AuditLog).filter_by(action="rejected").one()
-    assert event.details["reviewer_identity"]["email_verified"] is True
-    assert event.details["reviewer_identity"]["email"] == "reviewer@test.invalid"
-    assert event.details["revision_number"] == 1
-    assert event.actor_user_id is None and event.actor_role == "reviewer"
-    assert client.post(f"/reviewer/assessments/{a['id']}/reject", json={"reason": "Again", "confirmed": True}, headers=headers).status_code == 401
+    assert response.status_code == 403 and 'password-based' in response.text
+    assert db_session.query(models.SignedReport).count() == 0
+    assert db_session.query(models.AuditLog).filter_by(action='rejected').count() == 0
 
 
 def test_targeted_reassessment_uses_existing_revision_history(client, imported_pack, mailbox, db_session):
@@ -186,21 +182,32 @@ def test_human_scoring_signed_identity_and_public_verification(client, imported_
     headers = authorize(client, mailbox, a["id"], "sign_off")
     response = client.post(f"/reviewer/assessments/{a['id']}/sign-off", headers=headers,
         json={"final_recommendation": "RECOMMEND_CERTIFICATION", "confirmed": True})
+    assert response.status_code == 403 and 'password-based' in response.text
+    from server.tests.test_reviewer_accounts import register, PASSWORD
+    headers = register(client)
+    response = client.post(f"/reviewer/assessments/{a['id']}/sign-off", headers=headers,
+        json={"final_recommendation":"RECOMMEND_CERTIFICATION", "confirmed":True, "password":PASSWORD})
     assert response.status_code == 201, response.text
     signed = db_session.query(models.SignedReport).one()
-    assert signed.signed_by_id is None and signed.reviewer_identity["email_verified"] is True
+    assert signed.signed_by_id is None and signed.reviewer_identity["email_verified"] is False
     assert json.loads(signed.canonical_json)["reviewer_identity"]["name_verified"] is False
     assert client.get(f"/verify/{signed.report_uid}").json()["valid"] is True
+    listing = client.get("/public/assessments").json()[0]
+    assert listing['report_available'] is False and listing['outcome'] is None
+    assert client.put(f"/assessments/{a['id']}/public-outcome-consent", headers={'X-Worker-Token':a['worker_token']},
+        json={'consent':True,'consent_version':'public-outcome-v1'}).status_code == 200
     listing = client.get("/public/assessments").json()[0]
     assert listing["report_available"] and listing["report_id"] == signed.report_uid
     assert "Reviewer Name" not in client.get("/public/assessments").text
 
 
-def test_signing_incomplete_scores_rejected(client, imported_pack, mailbox):
+def test_signing_incomplete_scores_rejected(client, imported_pack):
     a, _ = submitted(client)
-    headers = authorize(client, mailbox, a["id"], "sign_off")
+    from server.tests.test_reviewer_accounts import register, PASSWORD
+    headers = register(client)
+    assert client.post(f"/reviewer/assessments/{a['id']}/start-review", headers=headers).status_code == 200
     assert client.post(f"/reviewer/assessments/{a['id']}/sign-off", headers=headers,
-        json={"final_recommendation": "INSUFFICIENT_EVIDENCE", "confirmed": True}).status_code == 409
+        json={"final_recommendation": "RECOMMEND_CERTIFICATION", "confirmed": True, "password":PASSWORD}).status_code == 409
 
 
 def test_abuse_limit_and_retry_at_capacity(client, imported_pack, monkeypatch):

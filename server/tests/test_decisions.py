@@ -14,12 +14,15 @@ def _assessment_in_review(client, imported_pack, worker, assessor_headers):
 
 def test_decision_recommended_transitions_status(client, imported_pack, worker, assessor_headers):
     a = _assessment_in_review(client, imported_pack, worker, assessor_headers)
-    r = client.post(f"/assessments/{a['id']}/decision", json={"decision": "recommended", "notes": "all good"}, headers=assessor_headers)
+    from server.tests.test_reports import _score_all_pcs, ASSESSOR_PASSWORD
+    _score_all_pcs(client, a['id'], assessor_headers)
+    r = client.post(f"/assessments/{a['id']}/decision", json={"decision": "recommended", "notes": "all good", "password": ASSESSOR_PASSWORD}, headers=assessor_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["status"] == "recommended"
     assert body["decision"] == "recommended"
     assert body["decision_notes"] == "all good"
+    assert body['signed_report']['report_uid']
 
 
 def test_decision_needs_reassessment_transitions_status(client, imported_pack, worker, assessor_headers):
@@ -41,8 +44,16 @@ def test_decision_requires_assessor_role(client, imported_pack, worker, assessor
 
 def test_decision_rejected_outside_in_review(client, imported_pack, worker, assessor_headers):
     a = client.post("/assessments", json={"worker_id": worker.id, "pack_id": imported_pack.id}).json()  # draft
-    r = client.post(f"/assessments/{a['id']}/decision", json={"decision": "recommended"}, headers=assessor_headers)
+    from server.tests.test_reports import ASSESSOR_PASSWORD
+    r = client.post(f"/assessments/{a['id']}/decision", json={"decision": "recommended", "password": ASSESSOR_PASSWORD}, headers=assessor_headers)
     assert r.status_code == 409
+
+
+def test_legacy_final_decision_requires_password(client, imported_pack, worker, assessor_headers):
+    a = _assessment_in_review(client, imported_pack, worker, assessor_headers)
+    r = client.post(f"/assessments/{a['id']}/decision", json={"decision":"recommended"}, headers=assessor_headers)
+    assert r.status_code == 401
+    assert client.get(f"/assessments/{a['id']}", headers=assessor_headers).json()['signed_report'] is None
 
 
 def test_decision_rejects_invalid_value(client, imported_pack, worker, assessor_headers):

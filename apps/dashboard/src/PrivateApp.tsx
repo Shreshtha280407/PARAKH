@@ -29,7 +29,7 @@ function App() {
   // points at, meant for an arbitrary third party who scanned it, not a
   // logged-in assessor. Checked BEFORE the auth gate below on purpose, and
   // never touches checkAuth/the login flow at all.
-  const verifyMatch = hash.match(/^#\/verify\/([^/]+)$/);
+  const verifyMatch = hash.match(/^#\/verify(?:\/([^/]+))?$/);
 
   useEffect(() => {
     if (verifyMatch) return; // public page -- no need to check auth at all
@@ -38,7 +38,7 @@ function App() {
   }, [verifyMatch !== null]);
 
   if (verifyMatch) {
-    return <AssessorSessionProvider><VerifyReportPage reportId={decodeURIComponent(verifyMatch[1])} /></AssessorSessionProvider>;
+    return <AssessorSessionProvider><VerifyReportPage reportId={verifyMatch[1] ? decodeURIComponent(verifyMatch[1]) : undefined} /></AssessorSessionProvider>;
   }
 
   function checkAuth() {

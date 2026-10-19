@@ -128,6 +128,20 @@ def current_account(request: Request, db: Session = Depends(get_db)):
     return account_identity(account, session)
 
 
+@router.get("/queue", response_model=list[schemas.PublicAssessmentOut])
+def private_queue(request: Request, response: Response, before_id: int | None = None, db: Session = Depends(get_db)):
+    throttle(db, "review-requests:" + source(request), 240, 60)
+    account_session(request, db)
+    response.headers["Cache-Control"] = "private, no-store"
+    rows = public.visible(db)
+    if before_id is not None:
+        rows = rows.filter(models.Assessment.id < before_id)
+    assessments_rows = rows.order_by(models.Assessment.id.desc()).limit(50).all()
+    signed = {r.assessment_id: r for r in db.query(models.SignedReport).filter(
+        models.SignedReport.assessment_id.in_([a.id for a in assessments_rows])).all()} if assessments_rows else {}
+    return [public.summary(db, a, reports=signed, private=True) for a in assessments_rows]
+
+
 @router.post("/logout")
 def logout_account(request: Request, response: Response, db: Session = Depends(get_db)):
     _, session = account_session(request, db)
@@ -139,8 +153,10 @@ def logout_account(request: Request, response: Response, db: Session = Depends(g
     return {"status": "signed_out"}
 
 
-def confirm_account_password(actor, password, request, db):
+def confirm_account_password(actor, password, request, db, *, require_password=False):
     if not actor.account_id:
+        if require_password:
+            raise HTTPException(403, "signed finalization requires a password-based assessor account; sign in to continue")
         return  # Existing email-code capabilities already authorize exactly one action.
     throttle(db, "review-confirm:" + actor.account_id, 15, 600)
     throttle(db, "review-confirm-ip:" + source(request), 60, 600)
@@ -316,22 +332,13 @@ def profile(assessment_id: int, db: Session = Depends(get_db), actor=Depends(cap
 
 @router.post("/assessments/{assessment_id}/reject", response_model=schemas.AssessmentOut)
 def reject(assessment_id: int, body: schemas.ReviewerRejectIn, request: Request, db: Session = Depends(get_db), actor=Depends(capability("reject"))):
-    confirm_account_password(actor, body.password, request, db)
-    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id)
-        .with_for_update().execution_options(populate_existing=True)).scalar_one()
-    if assessment.status != "in_review":
-        raise HTTPException(409, "assessment must be in review")
+    confirm_account_password(actor, body.password, request, db, require_password=True)
     if not body.reason.strip():
         raise HTTPException(422, "reason is required")
-    assessment.status = assessment.decision = "not_recommended"
-    assessment.decision_notes = body.reason.strip()
-    assessment.decided_at = models.utcnow()
-    assessment.decision_reviewer_identity = identity(actor)
-    assessments._audit(db, assessment_id, None, actor.role, "rejected", {
-        "reviewer_identity": identity(actor), "reason": body.reason.strip(), "decision": "not_recommended",
-        "revision_number": assessment.revision_number, "task_codes": []})
-    db.commit()
-    return assessments._assessment_out(db, assessment)
+    reports._finalize_authorized(assessment_id, schemas.ReviewerSignOffIn(
+        final_recommendation="NOT_YET_COMPETENT", override_reason=body.reason.strip(), confirmed=True,
+    ), db, actor, rejection_reason=body.reason)
+    return assessments._assessment_out(db, db.get(models.Assessment, assessment_id))
 
 
 class ConfirmedReassessment(schemas.ReassessmentRequestIn):
@@ -350,12 +357,7 @@ def request_reassessment(assessment_id: int, body: ConfirmedReassessment, reques
 
 @router.post("/assessments/{assessment_id}/sign-off", response_model=schemas.SignedReportOut, status_code=201)
 def sign(assessment_id: int, body: schemas.ReviewerSignOffIn, request: Request, db: Session = Depends(get_db), actor=Depends(capability("sign_off"))):
-    confirm_account_password(actor, body.password, request, db)
-    assessment = db.get(models.Assessment, assessment_id)
-    rubric = scoring._rubric_rows(db, assessment.pack_id)
-    scores = {s.pc_id: s for s in db.query(models.AssessmentCriterionScore).filter_by(assessment_id=assessment_id).all()}
-    if not rubric or any(pc.id not in scores or scores[pc.id].scored_at is None for _, pc, _ in rubric):
-        raise HTTPException(409, "every performance criterion must be human-confirmed before sign-off")
+    confirm_account_password(actor, body.password, request, db, require_password=True)
     return reports._sign_off_authorized(assessment_id, body, db, actor)
 
 

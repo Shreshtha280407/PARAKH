@@ -94,6 +94,8 @@ export interface AssessmentTaskOut {
 }
 
 export interface AssessmentOut {
+  signed_report?: SignedReportOut | null;
+  public_outcome_consent?: boolean;
   id: number;
   worker_id: number;
   worker_name: string;
@@ -321,6 +323,7 @@ export interface ReportVerifyOut {
 }
 
 export interface PublicVerifyOut {
+  metadata_bound?: boolean;
   report_id: string;
   status: "SIGNED";
   valid: boolean;

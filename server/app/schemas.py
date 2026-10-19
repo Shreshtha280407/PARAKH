@@ -101,6 +101,17 @@ class PublicAssessmentOut(BaseModel):
     report_available: bool
     report_id: str | None = None
     outcome: str | None = None
+    report_issued_at: datetime.datetime | None = None
+
+
+class PublicOutcomeConsentIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    consent: bool
+    consent_version: Literal["public-outcome-v1"]
+
+
+class PublicOutcomeConsentOut(PublicOutcomeConsentIn):
+    recorded_at: datetime.datetime
 
 
 class ReviewerChallengeIn(BaseModel):
@@ -242,6 +253,8 @@ class AssessmentOut(BaseModel):
     current_revision_id: str | None = None
     revision_number: int = 1
     tasks: list[AssessmentTaskOut]
+    signed_report: "SignedReportOut | None" = None
+    public_outcome_consent: bool = False
 
 
 # ---- resumable uploads ----
@@ -600,6 +613,7 @@ class PublicVerifyOut(BaseModel):
     sha256: str
     key_id: str
     signed_at: datetime.datetime
+    metadata_bound: bool = False
 
 
 # ---- audit log (P6 review workspace) ----

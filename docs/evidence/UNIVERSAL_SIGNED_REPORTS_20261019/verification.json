@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-10-19T11:18:25.089Z",
+  "checks": [
+    "In-review assessment has no signed Report ID or download link",
+    "Positive finalization uses actual human scores, rejects a wrong password, displays Report ID and downloads bytes matching SHA-256",
+    "Reject finalizes Not Recommended, issues a signed PDF, and shows the correct outcome and Report ID after reopening",
+    "Name consent alone never publishes a positive or negative outcome in the searchable directory",
+    "Consented positive and negative reports both appear with outcome, Report ID, issuance date and verification link",
+    "Anonymous phone verification separates valid signatures from positive/negative outcomes, retains SHA-256, and reveals no identity/contact/evidence",
+    "Actual stored-PDF tampering produces verification failure and blocks signed-PDF download",
+    "Invalid-ID and missing-ID states provide a useful report search path",
+    "Consent revocation removes the directory entry, while anonymous report/evidence downloads remain protected",
+    "Negative signed report controls and Report ID fit on a phone without horizontal overflow",
+    "Private dashboard mode also permits anonymous report search, negative verification and verify-another navigation",
+    "No JavaScript errors across the report workflow"
+  ],
+  "errors": []
+}

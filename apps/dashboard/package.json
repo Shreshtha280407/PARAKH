@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test:p8": "node e2e/p8.mjs",
     "test:p10": "node e2e/p10-workflow.mjs",
+    "test:reports": "node e2e/universal-reports.mjs",
     "perf:dashboard": "node e2e/perf-dashboard.mjs"
   },
   "dependencies": {

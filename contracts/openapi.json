@@ -178,6 +178,11 @@
             "title": "Pack Name",
             "type": "string"
           },
+          "public_outcome_consent": {
+            "default": false,
+            "title": "Public Outcome Consent",
+            "type": "boolean"
+          },
           "reassessment_of_id": {
             "anyOf": [
               {
@@ -193,6 +198,16 @@
             "default": 1,
             "title": "Revision Number",
             "type": "integer"
+          },
+          "signed_report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignedReportOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "title": "Status",
@@ -1268,6 +1283,7 @@
           "decision": {
             "enum": [
               "recommended",
+              "not_recommended",
               "needs_reassessment"
             ],
             "title": "Decision",
@@ -1283,6 +1299,19 @@
               }
             ],
             "title": "Notes"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
           }
         },
         "required": [
@@ -1764,6 +1793,18 @@
             ],
             "title": "Report Id"
           },
+          "report_issued_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Issued At"
+          },
           "review_status": {
             "title": "Review Status",
             "type": "string"
@@ -1805,12 +1846,63 @@
         "title": "PublicAssessmentOut",
         "type": "object"
       },
+      "PublicOutcomeConsentIn": {
+        "additionalProperties": false,
+        "properties": {
+          "consent": {
+            "title": "Consent",
+            "type": "boolean"
+          },
+          "consent_version": {
+            "const": "public-outcome-v1",
+            "title": "Consent Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "consent",
+          "consent_version"
+        ],
+        "title": "PublicOutcomeConsentIn",
+        "type": "object"
+      },
+      "PublicOutcomeConsentOut": {
+        "additionalProperties": false,
+        "properties": {
+          "consent": {
+            "title": "Consent",
+            "type": "boolean"
+          },
+          "consent_version": {
+            "const": "public-outcome-v1",
+            "title": "Consent Version",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "consent",
+          "consent_version",
+          "recorded_at"
+        ],
+        "title": "PublicOutcomeConsentOut",
+        "type": "object"
+      },
       "PublicVerifyOut": {
         "description": "GET /verify/{report_id} -- public, unauthenticated. Minimal safe\nfields only: never the worker's name/contact, never evidence, never the\nfull score breakdown. `valid` distinguishes \"signature verifies against\na trusted key\" from `status`, which is always SIGNED here (a report row\nonly ever exists once signed) -- the two are deliberately separate\nfields so a caller can't misread \"status: SIGNED\" as itself a validity\nguarantee.",
         "properties": {
           "key_id": {
             "title": "Key Id",
             "type": "string"
+          },
+          "metadata_bound": {
+            "default": false,
+            "title": "Metadata Bound",
+            "type": "boolean"
           },
           "qp": {
             "title": "Qp",
@@ -3873,6 +3965,75 @@
         ]
       }
     },
+    "/assessments/{assessment_id}/public-outcome-consent": {
+      "put": {
+        "description": "Candidate-only opt-in/revocation. Name consent never implies outcome consent.\n\nThe consent disclosure must explain that the final outcome, qualification,\nreport ID and date become publicly searchable, including adverse outcomes.\nExisting Android enrollment/submission payloads need no change.",
+        "operationId": "public_outcome_consent_assessments__assessment_id__public_outcome_consent_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "title": "Assessment Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-worker-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Worker-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicOutcomeConsentIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicOutcomeConsentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Public Outcome Consent",
+        "tags": [
+          "assessments"
+        ]
+      }
+    },
     "/assessments/{assessment_id}/reassess": {
       "post": {
         "operationId": "reassess_assessments__assessment_id__reassess_post",
@@ -5746,6 +5907,73 @@
         ]
       }
     },
+    "/public/reports": {
+      "get": {
+        "description": "Consent-aware directory; possession of an ID still permits /verify/{id}.",
+        "operationId": "list_signed_reports_public_reports_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicAssessmentOut"
+                  },
+                  "title": "Response List Signed Reports Public Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Signed Reports",
+        "tags": [
+          "public summaries"
+        ]
+      }
+    },
     "/queue": {
       "get": {
         "description": "Submitted (or further-along) assessments waiting on an assessor,\noldest first. Assessor/admin only -- see server/app/auth.py. Scoring,\ndecisions, reassessment and signed reports all exist (P2.2) and are\nreached from here via GET /assessments/{id} -- this endpoint itself\nstays a plain queue listing, not a scored summary.",
@@ -6862,6 +7090,59 @@
           }
         },
         "summary": "Logout Account",
+        "tags": [
+          "assessor review"
+        ]
+      }
+    },
+    "/reviewer/queue": {
+      "get": {
+        "operationId": "private_queue_reviewer_queue_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicAssessmentOut"
+                  },
+                  "title": "Response Private Queue Reviewer Queue Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Private Queue",
         "tags": [
           "assessor review"
         ]

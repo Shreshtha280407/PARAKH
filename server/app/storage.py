@@ -20,6 +20,10 @@ _READ_CHUNK = 1024 * 1024
 
 class Storage(ABC):
     @abstractmethod
+    def write_once(self, key: str, data: bytes) -> str:
+        """Atomically create a complete object; fail if the key already exists."""
+
+    @abstractmethod
     def write(self, key: str, data: bytes) -> str:
         """Overwrite key with data, return its sha256 hex digest."""
 
@@ -94,6 +98,21 @@ class LocalDiskStorage(Storage):
         path = self._path(key)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+        return hashlib.sha256(data).hexdigest()
+
+    def write_once(self, key: str, data: bytes) -> str:
+        path = self._path(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, temporary = tempfile.mkstemp(prefix=".report-", dir=path.parent)
+        try:
+            with os.fdopen(fd, "wb") as output:
+                output.write(data)
+                output.flush()
+                os.fsync(output.fileno())
+            # A same-filesystem hard link is atomic and never replaces a key.
+            os.link(temporary, path)
+        finally:
+            os.unlink(temporary)
         return hashlib.sha256(data).hexdigest()
 
     def append(self, key: str, data: bytes) -> None:
@@ -313,6 +332,13 @@ class S3Storage(Storage):
 
     def write(self, key: str, data: bytes) -> str:
         self._client.put_object(Bucket=self.bucket, Key=key, Body=data)
+        return hashlib.sha256(data).hexdigest()
+
+    def write_once(self, key: str, data: bytes) -> str:
+        # Fail closed on providers without conditional PUT support. Never fall
+        # back to an overwriting PUT for a signed artifact.
+        self._client.put_object(Bucket=self.bucket, Key=key, Body=data,
+                                ContentType="application/pdf", IfNoneMatch="*")
         return hashlib.sha256(data).hexdigest()
 
     def append(self, key: str, data: bytes) -> None:

@@ -15,15 +15,16 @@ from sqlalchemy import select
 from ..reviewer_identity import identity
 
 from .. import models, schemas
-from ..auth import require_assessor
+from ..auth import require_assessor, verify_password
 from ..db import get_db
 
 router = APIRouter(prefix="/assessments", tags=["decisions"])
 
 
 class DecisionIn(BaseModel):
-    decision: Literal["recommended", "needs_reassessment"]
+    decision: Literal["recommended", "not_recommended", "needs_reassessment"]
     notes: str | None = None
+    password: schemas.SecretStr | None = None
 
 
 @router.post("/{assessment_id}/decision", response_model=schemas.AssessmentOut)
@@ -35,7 +36,23 @@ def decide_assessment(
 ) -> schemas.AssessmentOut:
     from .assessments import _assessment_out, _audit
 
-    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id).with_for_update()).scalar_one_or_none()
+    # The legacy endpoint must not bypass finalization or create unsigned final
+    # decisions. Keep its URL/response; final decisions now require fresh proof.
+    if body.decision != "needs_reassessment":
+        from .reports import _finalize_authorized
+        if not body.password or not user.password_hash or not verify_password(body.password.get_secret_value(), user.password_hash):
+            raise HTTPException(401, "incorrect password; final decisions require password confirmation")
+        if body.decision == "not_recommended" and not (body.notes and len(body.notes.strip()) >= 3):
+            raise HTTPException(422, "a reason is required to finalize Not Recommended")
+        payload = schemas.SignOffIn(password=body.password.get_secret_value(),
+            final_recommendation="RECOMMEND_CERTIFICATION" if body.decision == "recommended" else "NOT_YET_COMPETENT",
+            override_reason=body.notes)
+        _finalize_authorized(assessment_id, payload, db, user,
+            rejection_reason=body.notes if body.decision == "not_recommended" else None, decision_notes=body.notes)
+        return _assessment_out(db, db.get(models.Assessment, assessment_id))
+
+    assessment = db.execute(select(models.Assessment).where(models.Assessment.id == assessment_id)
+        .with_for_update().execution_options(populate_existing=True)).scalar_one_or_none()
     if assessment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "assessment not found")
     if assessment.status != "in_review":

@@ -6,7 +6,7 @@ import {chromium} from 'playwright';
 const base=process.env.OPEN_DASHBOARD_URL??'http://127.0.0.1:18177';
 const api=process.env.OPEN_API_URL??'http://127.0.0.1:18178';
 // Fixture mutations are confined to the dedicated local browser-test API.
-assert.equal(new URL(api).origin,'http://127.0.0.1:18178');
+assert.ok(['http://127.0.0.1:18178','http://127.0.0.1:18188'].includes(new URL(api).origin));
 const browser=await chromium.launch({headless:true,...(process.env.P8_CHROME?{executablePath:process.env.P8_CHROME}:{})});
 const timings={},checks=[],errors=[];
 const pass=name=>{checks.push(name);console.log('PASS '+name)};
@@ -52,14 +52,14 @@ try {
  start=performance.now();await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Queue',exact:true}).click();
  await page.getByRole('link',{name:`Open assessment ${a.id}`,exact:true}).waitFor();
  timings.cached_queue_ms=Math.round(performance.now()-start);assert.ok(timings.cached_queue_ms<500);
- pass('Returning to the queue displays cached public rows immediately while refreshing in the background');
+ pass('Authenticated queue remains responsive when public listing is delayed; private results use a separate endpoint');
  await page.unroute('**/public/assessments');
  const review=await (await context.request.get(`${api}/reviewer/assessments/${a.id}/review`)).json();
  for(const item of review)assert.equal((await context.request.put(`${api}/reviewer/assessments/${a.id}/review`,{headers:{'X-Reviewer-CSRF':csrf},data:{pc_full_id:item.pc_full_id,score_level:3,evidence_status:'DEMONSTRATED',expected_version:0}})).status(),200);
  await page.goto(`${base}/#/assessments/${a.id}`);await page.getByText(/Reviewing as Responsive Review Assessor/).waitFor();
  await page.getByRole('tab',{name:'Decision',exact:true}).click();
  await page.getByRole('checkbox',{name:/I have reviewed all evidence/}).check();
- await page.getByRole('button',{name:'Approve and sign report',exact:true}).click();
+ await page.getByRole('button',{name:'Finalize and sign report',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Confirm and sign assessment',exact:true});
  await dialog.getByRole('combobox').selectOption('NOT_YET_COMPETENT');
  await dialog.getByLabel('Override reason (required when changing computed outcome)',{exact:true}).fill('Local UI validation of a signed negative recommendation.');
@@ -69,8 +69,9 @@ try {
  const complete=page.getByRole('dialog',{name:'Report signed — not yet qualified',exact:true});await complete.waitFor();
  await complete.screenshot({path:'/tmp/parakh-ui-review/decision-success.png'});
  await page.getByRole('heading',{name:'Assessment queue',exact:true}).waitFor();
- assert.equal((await (await context.request.get(`${api}/public/assessments/${a.id}`)).json()).outcome,'NOT_YET_COMPETENT');
- await page.getByRole('link',{name:`Open assessment ${a.id}`,exact:true}).locator('xpath=ancestor::tr').getByText('Not yet competent',{exact:true}).waitFor();
+ assert.equal((await (await context.request.get(`${api}/public/assessments/${a.id}`)).json()).outcome,null);
+ assert.equal((await (await context.request.get(`${api}/reviewer/assessments/${a.id}`)).json()).signed_report.final_recommendation,'NOT_YET_COMPETENT');
+ await page.getByRole('link',{name:`Open assessment ${a.id}`,exact:true}).locator('xpath=ancestor::tr').getByText(/^Not recommended$/i).waitFor();
  pass('Signing a negative recommendation shows the correct success popup and automatically returns to the queue');
  assert.deepEqual(errors,[]);
  writeFileSync('/tmp/parakh-ui-review/dashboard-responsiveness.json',JSON.stringify({timings_ms:timings,checks,browserErrors:errors},null,2));

@@ -269,7 +269,7 @@ export function AssessmentDetailPage({ id }: { id: number }) {
   // shows the right state without the assessor re-entering their password just
   // to SEE it again.
   useEffect(() => {
-    if (assessment?.status !== "recommended") return;
+    if (!assessment || !["recommended", "not_recommended"].includes(assessment.status)) return;
     Promise.all([getReportReceipt(id), getReportSnapshot(id)])
       .then(([receipt, snapshot]) => {
         if (currentIdRef.current !== id) return;
@@ -697,10 +697,10 @@ export function AssessmentDetailPage({ id }: { id: number }) {
                 <option value="" disabled>
                   Load the competency profile above first
                 </option>
-                <option value="RECOMMEND_CERTIFICATION">RECOMMEND_CERTIFICATION</option>
-                <option value="PARTIALLY_COMPETENT">PARTIALLY_COMPETENT</option>
-                <option value="NOT_YET_COMPETENT">NOT_YET_COMPETENT</option>
-                <option value="INSUFFICIENT_EVIDENCE">INSUFFICIENT_EVIDENCE</option>
+                <option value="RECOMMEND_CERTIFICATION">Recommended</option>
+                <option value="PARTIALLY_COMPETENT">Not Recommended — partially competent</option>
+                <option value="NOT_YET_COMPETENT">Not Recommended — not yet competent</option>
+                <option value="INSUFFICIENT_EVIDENCE" disabled>Needs reassessment — insufficient evidence</option>
               </select>
             </label>
             {profile && (signOffRecommendation || profile.computed_outcome) !== profile.computed_outcome && (
@@ -725,7 +725,7 @@ export function AssessmentDetailPage({ id }: { id: number }) {
             </label>
             <div className="panel-actions">
               <button
-                disabled={signOffBusy || !signOffPassword}
+                disabled={signOffBusy || !signOffPassword || (signOffRecommendation || profile?.computed_outcome) === 'INSUFFICIENT_EVIDENCE'}
                 onClick={async () => {
                   setSignOffError(null);
                   setSignOffBusy(true);
@@ -854,16 +854,17 @@ export function AssessmentDetailPage({ id }: { id: number }) {
         </section>
       )}
 
-      {assessment.status === "recommended" && (
+      {["recommended", "not_recommended"].includes(assessment.status) && (
         <section className="card">
           <h2>Signed report</h2>
+          {report && <span className="report-signed-indicator">Signed PDF issued</span>}
           <p className="hint">
             A tamper-evident, immutable PDF (Ed25519-signed over its own rendered bytes) -- an assessor
             recommendation, not an official certificate. Produced once via Sign off above; never regenerated or
             re-signed by this panel.
           </p>
           {report === null ? (
-            <p className="hint">Not signed yet -- use the Sign off panel above.</p>
+            <p className="hint">Legacy finalized decision without a signed report. Historical signatures cannot be fabricated; an authorized new assessment is required.</p>
           ) : (
             <>
               <dl>

@@ -3,6 +3,12 @@ export function humanize(value: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+export function finalOutcomeLabel(value: string) {
+  if (value === 'RECOMMEND_CERTIFICATION' || value === 'recommended') return 'Recommended';
+  if (['PARTIALLY_COMPETENT', 'NOT_YET_COMPETENT', 'INSUFFICIENT_EVIDENCE', 'not_recommended'].includes(value)) return 'Not Recommended';
+  return value === 'needs_reassessment' ? 'Needs Reassessment' : humanize(value);
+}
+
 export function qualificationName(code: string, name?: string) {
   return name || (code.startsWith('CON/Q0602') ? 'Assistant Electrician' : 'Qualification pack');
 }
