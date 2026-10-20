@@ -1,0 +1,37 @@
+# Railway scans files before Docker sees .dockerignore. Keep the upload
+# exclusions aligned with the reviewed server Docker build context.
+.git
+server/.venv
+server/data
+server/__pycache__
+server/app/__pycache__
+server/app/routers/__pycache__
+server/tests/__pycache__
+server/alembic/__pycache__
+server/alembic/versions/__pycache__
+**/__pycache__
+**/*.pyc
+.pytest_cache
+apps/dashboard/node_modules
+apps/dashboard/dist
+tests/fixtures
+
+# Not copied by server/Dockerfile and not needed by the API/worker image --
+# excluded so a `railway up` upload (and any docker build context) stays
+# small instead of shipping ~110 MB of Android/ML artifacts. tools/ is still
+# copied in full; only tools/verify_assistance_assets.py reaches into these
+# directories, and that is a host-side CI check, never run in the container.
+apps/android
+ml
+docs
+.github
+.env.deploy
+.env
+.env.*
+.aws
+.codex
+.agents
+android-release-receipt.json
+deployment-result.json
+migration-result.json
+previous-*.json

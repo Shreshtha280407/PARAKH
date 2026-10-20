@@ -87,3 +87,32 @@ def test_railway_context_contains_only_approved_archive_and_generated_sha(monkey
         assert not (context / ".env.deploy").exists()
         assert json.loads((context / "server/app/source_version.json").read_text())["source_sha"] == "a" * 40
     assert not context.exists()
+
+
+@pytest.mark.parametrize(("stderr", "expected"), [
+    ("Failed to upload code. File too large (48632514 bytes): private-payload", "upload too large (48632514 bytes)"),
+    ("Failed to upload code with status code 413; token=private-payload", "provider HTTP 413"),
+    ("error: unexpected argument '--bad-flag' found; private-payload", "unsupported CLI argument"),
+    ("Unauthorized: private-payload", "provider authorization rejected"),
+    ("request timed out; private-payload", "provider request timed out"),
+    ("unknown private-payload", "provider command rejected"),
+])
+def test_command_classifies_failure_without_disclosing_provider_output(monkeypatch, stderr, expected):
+    monkeypatch.setattr(release.subprocess, "run", lambda *args, **kwargs:
+                        SimpleNamespace(returncode=1, stderr=stderr, stdout="secret-stdout"))
+    with pytest.raises(RuntimeError) as error:
+        release.command(["railway", "up"])
+    assert expected in str(error.value)
+    assert "exit 1" in str(error.value)
+    assert "private-payload" not in str(error.value)
+    assert "secret-stdout" not in str(error.value)
+
+
+def test_railway_upload_excludes_non_server_assets_and_preserves_version():
+    ignored = (ROOT / ".railwayignore").read_text().splitlines()
+    for path in ("apps/android", "ml", "docs", ".github"):
+        assert path in ignored
+    assert "server" not in ignored
+    assert "tools" not in ignored
+    assert "packs" not in ignored
+    assert "server/app/source_version.json" not in ignored

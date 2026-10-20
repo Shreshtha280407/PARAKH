@@ -5,6 +5,7 @@ No source integrations, service creation, secret writes, data cleanup or schema
 downgrades. Capture only allowlisted deployment metadata, never variable values.
 """
 import json
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -26,8 +27,23 @@ def command(args, cwd=ROOT, env=None):
         args = [*args, "--token", os.environ["VERCEL_TOKEN"]]
     result = subprocess.run(args, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1200)
     if result.returncode:
-        # Raw provider output can contain environment values and signed URLs.
-        raise RuntimeError(f"{args[0]} {args[1]} failed; inspect the provider's protected logs")
+        # Never print raw provider output: it may contain secrets or signed URLs.
+        # Report only fixed diagnostic labels and numeric HTTP/size metadata.
+        diagnostic = "provider command rejected"
+        output = (result.stderr or "") + "\n" + (result.stdout or "")
+        status = re.search(r"status code (\d{3})", output)
+        size = re.search(r"File too large \((\d+) bytes\)", output)
+        if size:
+            diagnostic = f"upload too large ({size.group(1)} bytes)"
+        elif status:
+            diagnostic = f"provider HTTP {status.group(1)}"
+        elif "unexpected argument" in output:
+            diagnostic = "unsupported CLI argument"
+        elif "Unauthorized" in output or "Not authorized" in output:
+            diagnostic = "provider authorization rejected"
+        elif "timed out" in output or "timeout" in output.lower():
+            diagnostic = "provider request timed out"
+        raise RuntimeError(f"{args[0]} {args[1]} failed (exit {result.returncode}; {diagnostic}); inspect protected provider logs")
     return result.stdout
 
 
