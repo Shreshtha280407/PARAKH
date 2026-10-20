@@ -65,10 +65,12 @@ jobs:
           release = importlib.util.module_from_spec(spec)
           spec.loader.exec_module(release)
           original_run = subprocess.run
-          # Only fixed public diagnostic words may leave this process.
-          # Raw provider output and arbitrary values are never logged or saved.
+          # Mask environment values, URLs, credential fields and opaque tokens
+          # before logging a bounded CLI diagnostic. Never save raw output.
           vocabulary = set("""error failed failure unable cannot could not no such file directory found missing linked project environment service source path root archive prefix strip valid invalid argument unexpected usage required option command authentication authenticated authorized unauthorized permission denied forbidden token expired credentials request response status code network connection timeout timed out upload uploading indexing compressing compression snapshot stream size large too limit exceeded maximum bytes body payload create creating build deployment account plan hobby trial free credit credits balance subscription payment billing disabled suspended restricted locked active inactive resource exhausted rate server internal unavailable bad gateway hostname dns resolve certificate tls ssl io os unsupported operation access allowed support contact railway message json parse reason workload blocked repository tar gzip thread pool global initialized initializing exists already""".split())
           def run_with_safe_diagnostics(args, *positional, **kwargs):
+              if list(args[:2]) == ["railway", "up"]:
+                  args = [*args, "--json", "--verbose"]
               result = original_run(args, *positional, **kwargs)
               if result.returncode and list(args[:2]) == ["railway", "up"]:
                   diagnostic = (result.stderr or "") + "\n" + (result.stdout or "")
@@ -76,6 +78,11 @@ jobs:
                       if len(value) >= 8:
                           diagnostic = diagnostic.replace(value, "[redacted]")
                   diagnostic = re.sub(r"https?://\S+", "[url]", diagnostic)
+                  print("Railway stderr bytes: " + str(len(result.stderr or "")), flush=True)
+                  print("Railway stdout bytes: " + str(len(result.stdout or "")), flush=True)
+                  safe = re.sub(r"(?i)(authorization|token|password|secret|cookie|signature)([\s:=]+)(\S+)", r"\1\2[redacted]", diagnostic)
+                  safe = re.sub(r"[A-Za-z0-9_./+=-]{24,}", "[opaque]", safe)
+                  print("Railway redacted diagnostic: " + safe[:2000], flush=True)
                   words = re.findall(r"[a-z]+", diagnostic.lower())
                   print("Railway diagnostic keywords: " + " ".join(word for word in words if word in vocabulary), flush=True)
                   print("Railway exit code: " + str(result.returncode), flush=True)
