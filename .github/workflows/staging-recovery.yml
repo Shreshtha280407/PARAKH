@@ -1,0 +1,85 @@
+name: Diagnose approved staging release
+on:
+  push:
+    branches: [repair/staging-upload-diagnostics]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: parakh-hosted-release
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    environment: hosted-staging
+    timeout-minutes: 60
+    env:
+      RELEASE_SHA: 4e3c97f74f09b13281b030f8af16db3b7907986d
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      NEON_DIRECT_DATABASE_URL: ${{ secrets.NEON_DIRECT_DATABASE_URL }}
+    steps:
+      - name: Require the exact successful main CI before any deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = process.env.RELEASE_SHA;
+            const branch = await github.rest.repos.getBranch({...context.repo, branch:'main'});
+            if (branch.data.commit.sha !== sha) throw new Error('main advanced; stop');
+            const run = await github.rest.actions.getWorkflowRun({...context.repo, run_id:39490836598});
+            if (run.data.head_sha !== sha || run.data.event !== 'push' || run.data.head_branch !== 'main' || run.data.conclusion !== 'success') throw new Error('Approved main CI required');
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {...context.repo, run_id:39490836598, filter:'latest'});
+            if (jobs.length !== 10 || jobs.some(j=>j.conclusion !== 'success')) throw new Error('Every required CI job must pass');
+      - uses: actions/checkout@v4
+        with:
+          ref: 4e3c97f74f09b13281b030f8af16db3b7907986d
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install the same pinned release tools
+        run: |
+          python -m pip install -r server/requirements.txt
+          npm install --global @railway/cli@5.70.0 vercel@64.5.0
+      - name: Validate the existing staging targets
+        run: python tools/release_cloud.py preflight
+      - name: Migrate idempotently under the existing lock
+        run: python tools/release_migrate.py
+      - name: Recheck main before recovery
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = await github.rest.repos.getBranch({...context.repo, branch:'main'});
+            if (branch.data.commit.sha !== process.env.RELEASE_SHA) throw new Error('main advanced; stop');
+      - name: Diagnose and recover only the CI-approved release
+        run: |
+          python - <<'PY'
+          import importlib.util
+          import os
+          import re
+          import subprocess
+          spec = importlib.util.spec_from_file_location("release_cloud", "tools/release_cloud.py")
+          release = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(release)
+          original_run = subprocess.run
+          # Only fixed public diagnostic words may leave this process.
+          # Raw provider output and arbitrary values are never logged or saved.
+          vocabulary = set("""error failed failure unable cannot could not no such file directory found missing linked project environment service source path root archive prefix strip valid invalid argument unexpected usage required option command authentication authenticated authorized unauthorized permission denied forbidden token expired credentials request response status code network connection timeout timed out upload uploading indexing compressing compression snapshot stream size large too limit exceeded maximum bytes body payload create creating build deployment account plan hobby trial free credit credits balance subscription payment billing disabled suspended restricted locked active inactive resource exhausted rate server internal unavailable bad gateway hostname dns resolve certificate tls ssl io os unsupported operation access allowed support contact railway message json parse reason workload blocked repository tar gzip thread pool global initialized initializing exists already""".split())
+          def run_with_safe_diagnostics(args, *positional, **kwargs):
+              result = original_run(args, *positional, **kwargs)
+              if result.returncode and list(args[:2]) == ["railway", "up"]:
+                  diagnostic = (result.stderr or "") + "\n" + (result.stdout or "")
+                  for value in os.environ.values():
+                      if len(value) >= 8:
+                          diagnostic = diagnostic.replace(value, "[redacted]")
+                  diagnostic = re.sub(r"https?://\S+", "[url]", diagnostic)
+                  words = re.findall(r"[a-z]+", diagnostic.lower())
+                  print("Railway diagnostic keywords: " + " ".join(word for word in words if word in vocabulary), flush=True)
+                  print("Railway exit code: " + str(result.returncode), flush=True)
+              return result
+          subprocess.run = run_with_safe_diagnostics
+          release.deploy()
+          PY
