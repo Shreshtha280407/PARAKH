@@ -1,0 +1,195 @@
+{
+  "assets": [
+    {
+      "file": "app-consent.webp",
+      "bytes": 115516,
+      "sha256": "4bbd58ef0a8b6282e4e505cf9534d9b3e3ae08dfe88d3f4bcfc90bcc8a1ac3fb"
+    },
+    {
+      "file": "app-declaration.webp",
+      "bytes": 120002,
+      "sha256": "22ec039055e50f7a01c5d7aca7377c0f9289e81edbdbe687974fd53604188c99"
+    },
+    {
+      "file": "app-hindi.webp",
+      "bytes": 63244,
+      "sha256": "6474db576ea8750f2dba82a48d37eb03f0c52058ee8eb828e678d6f094c61346"
+    },
+    {
+      "file": "app-language.webp",
+      "bytes": 66918,
+      "sha256": "f0a5596c542ba2016a33a5c45d18bbbe6193dff2a5418ad08c16ea9842c6468f"
+    },
+    {
+      "file": "app-match.webp",
+      "bytes": 125410,
+      "sha256": "c9f398f13bdb1f5774c3c399bdcc9f8af168d16ab7754b284069f49cc0d74a02"
+    },
+    {
+      "file": "app-registration.webp",
+      "bytes": 83612,
+      "sha256": "659c8214abb77c27feeb3621f470ed4065175c2716057c41130681d9553e7060"
+    },
+    {
+      "file": "app-review.webp",
+      "bytes": 104854,
+      "sha256": "8e4fc43c353417af620b0f07262725b681fe0e71aa29f58a239c399482224ebd"
+    },
+    {
+      "file": "app-task-detail.webp",
+      "bytes": 181710,
+      "sha256": "01eb2029bdb76d4ea1aab96410e8d3462563cc837ea9a0ecb16ad42dc89c3bd4"
+    },
+    {
+      "file": "app-tasks.webp",
+      "bytes": 114652,
+      "sha256": "9f62a914c3f7d90859c164ab7edad9732058ec7bba0410bcdbf141d23c430e16"
+    },
+    {
+      "file": "architecture.svg",
+      "bytes": 9298,
+      "sha256": "e4765b3b45b7cb0ec2666882ca1c388f31ae57330a9788b964720d8e4e4c964a"
+    },
+    {
+      "file": "assessor-gallery.webp",
+      "bytes": 109366,
+      "sha256": "e1743f6f6488fd908af8d2a0aacbd44e5c4dfe615453ed9328cd32cb12dd0285"
+    },
+    {
+      "file": "assessor-review.gif",
+      "bytes": 2203852,
+      "sha256": "ed4e25286d125962097f58ccd5992007731b638f9777cc1649c2336fe3cb8388"
+    },
+    {
+      "file": "assessor-review.mp4",
+      "bytes": 472723,
+      "sha256": "bfebdc806d974d7b53ee6c8aa4a01dcddc820a434fb24c5c01c381afbe8e68a3"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 2053,
+      "sha256": "80a1db135b375ae9b7c88182db5d7e034ca0b43f06981c0d0497a549fcb1ad54"
+    },
+    {
+      "file": "dashboard-decision.webp",
+      "bytes": 52422,
+      "sha256": "9f09c08def80e0c18e5ad218837789f1f9eaf4491d45b7e98e6642e784805765"
+    },
+    {
+      "file": "dashboard-evidence.webp",
+      "bytes": 67350,
+      "sha256": "de2689288072a7cd04c63fb9014253a1f6f53c6053da5f4ec994c166fda915c7"
+    },
+    {
+      "file": "dashboard-history.webp",
+      "bytes": 50576,
+      "sha256": "975cc4334c262864be7b4cad0c71482688fbcc3609d041b50dc244b13f5b80ea"
+    },
+    {
+      "file": "dashboard-overview.webp",
+      "bytes": 56636,
+      "sha256": "825892982d19597ee206176f04de6a978dd956b8a092da92180f68f24afb2b98"
+    },
+    {
+      "file": "dashboard-queue.webp",
+      "bytes": 49312,
+      "sha256": "9a9cd2838a2db08a546d96899e00e11d5fe088372a9efe4e32d29dfc952b68d9"
+    },
+    {
+      "file": "dashboard-reassessment.webp",
+      "bytes": 48446,
+      "sha256": "373cb5b367cc766a5664ce1119860ba1b974158972992e6feb17ec3d0631ea7b"
+    },
+    {
+      "file": "dashboard-report.webp",
+      "bytes": 63934,
+      "sha256": "6ee310ee4e238f759892bb9a9ce6ad1a79a8407415b0516562d905559834e4c8"
+    },
+    {
+      "file": "dashboard-scoring.webp",
+      "bytes": 86342,
+      "sha256": "a8d51b10d67b97235d47b68e34088dc43c04a8bdd8728330324795b945d71c0b"
+    },
+    {
+      "file": "dashboard-signoff.webp",
+      "bytes": 38838,
+      "sha256": "d162381c6aae06b91924596ced304697b1ecb48f40e8adc341b7ffefec1d4dd7"
+    },
+    {
+      "file": "evidence-gallery.webp",
+      "bytes": 139844,
+      "sha256": "52b431db4be7334c0117d5e7189071fd1457982060ce2fba5981040ce82d59c5"
+    },
+    {
+      "file": "evidence-pipeline.svg",
+      "bytes": 4721,
+      "sha256": "d83eafb229fa9e4c4660cc79b53da7c0365bdf02fe86906087eeeae9ee26f404"
+    },
+    {
+      "file": "hero-poster.webp",
+      "bytes": 69634,
+      "sha256": "d3939d643aff655bee5eec25c0073d7aa1261c930ce86b39eb9e9cfa3d8883ee"
+    },
+    {
+      "file": "hero.gif",
+      "bytes": 1805255,
+      "sha256": "4cb2d158085bb9c813bf0babe93171ddfd4bfe9a1c87beab428e3361100956ed"
+    },
+    {
+      "file": "live-landing.webp",
+      "bytes": 54910,
+      "sha256": "602a6fa086bb713d0d23158fb9da41107ad4ac2c2b58615aa1abbfd908025e79"
+    },
+    {
+      "file": "live-product-tour.gif",
+      "bytes": 4050609,
+      "sha256": "ab3a52760e367f4aacccd8908e6d70fbe8324e274fcb0cffdc41963d22a90271"
+    },
+    {
+      "file": "live-product-tour.mp4",
+      "bytes": 777466,
+      "sha256": "55cdff9fc187a4cfebab761f908fc4503a5f5c15f797c45961f9ca766d3f680a"
+    },
+    {
+      "file": "live-workflow.webp",
+      "bytes": 42370,
+      "sha256": "d562fbb26b10f5a07cdc88c5f9b95b9bee56d48d16f16838e5782cf88caa2fbc"
+    },
+    {
+      "file": "reassessment.svg",
+      "bytes": 5304,
+      "sha256": "fa4044382c8b94fd909b712b69090991a646da4929be8333f669e8218be9fc5f"
+    },
+    {
+      "file": "report-verification-mobile.webp",
+      "bytes": 25206,
+      "sha256": "69b39c30d55519fc656ae5045453d04313d551a7ffb476cd0b44e2a7d2432f88"
+    },
+    {
+      "file": "report-verification.webp",
+      "bytes": 52508,
+      "sha256": "3c2e83e7515e9b709ebd2bcc2087d110c4c30ae32cd985e0bce506a8926eebd9"
+    },
+    {
+      "file": "task-budgets.svg",
+      "bytes": 4897,
+      "sha256": "457f969b62e4d0750d8dd790aa624b162107439dde6986bfea8d63713bd4d9e5"
+    },
+    {
+      "file": "worker-gallery.webp",
+      "bytes": 112576,
+      "sha256": "dfc7866a0bb45dc9e14ac30860c392b3d27a10b7340917049fa079d5030d9fbb"
+    },
+    {
+      "file": "worker-journey.gif",
+      "bytes": 413030,
+      "sha256": "e17394e042167c35be8ede8b85dff528cb01afce421e299e0e2d009ba6f94ae7"
+    },
+    {
+      "file": "workflow.svg",
+      "bytes": 6446,
+      "sha256": "2296a84c8eadb1c36bc538e5923ea1bd94c7c7d38275deee4df41ba786bae8b7"
+    }
+  ],
+  "totalBytes": 11851842
+}

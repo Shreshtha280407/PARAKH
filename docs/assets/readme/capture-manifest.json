@@ -1,0 +1,70 @@
+{
+  "capturedAt": "2026-10-20T17:43:12.392Z",
+  "liveUrl": "https://parakh-dashboard-five.vercel.app",
+  "localApi": "http://127.0.0.1:18198",
+  "localDatabase": "disposable SQLite",
+  "sampleData": true,
+  "checks": [
+    "Authenticated sample queue, protected media, score save, reassessment dialog and audit history captured against real local API",
+    "Signed PDF SHA-256 matches downloaded bytes; anonymous verification succeeds without exposing sample candidate identity; phone layout fits"
+  ],
+  "errors": [],
+  "sourceCommit": "d6730718228038ba812ccbe5ad833e3c80593026",
+  "workingTreeIncludesDocumentationChanges": true,
+  "phone": {
+    "model": "OnePlus 13R",
+    "qaPackage": "in.kaushalpramaan.app.p8validation",
+    "screenshots": 9,
+    "captureDriverRuns": 2,
+    "captureDriverResult": "OK (1 test) in each run",
+    "productionAppDataRetained": true,
+    "productionScreenshotProtectionChanged": false,
+    "workerAnimation": "sequence of real USB screenshots"
+  },
+  "freshRepositoryChecks": {
+    "packValidation": "passed",
+    "sourceTraceability": "passed",
+    "matcherStructuralChecks": 17,
+    "goldenVectors": 100,
+    "englishHindiResourceParity": "passed"
+  },
+  "liveCapture": {
+    "url": "https://parakh-dashboard-five.vercel.app",
+    "readOnly": true,
+    "recording": "live-product-tour.mp4"
+  },
+  "localCapture": {
+    "sampleMedia": "repository browser fixtures; image and color-bar video",
+    "scriptedScores": true,
+    "reassessmentRequest": "dialog filled and cancelled",
+    "cloudRecordsModified": false
+  },
+  "readmeRendering": {
+    "localImages": 13,
+    "failedImages": [],
+    "mobileOverflow": false,
+    "svg": [
+      {
+        "name": "architecture",
+        "clipped": []
+      },
+      {
+        "name": "workflow",
+        "clipped": []
+      },
+      {
+        "name": "evidence-pipeline",
+        "clipped": []
+      },
+      {
+        "name": "reassessment",
+        "clipped": []
+      },
+      {
+        "name": "task-budgets",
+        "clipped": []
+      }
+    ],
+    "errors": []
+  }
+}
